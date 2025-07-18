@@ -1,0 +1,19 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 19
+  },
+  "configurePresets": [
+    {
+      "name": "debug",
+      "hidden": false,
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "YES"
+      }
+    }
+  ]
+}

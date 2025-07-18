@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import subprocess
+import json
+
+CONFIG_FILE = "goldpkg/gold.cfg"
+BUILD_DIR = "build"
+
+GREEN = "\033[92m"
+RED = "\033[91m"
+RESET = "\033[0m"
+
+PROJECT_ROOT = os.getcwd()
+setup_script = os.path.join(PROJECT_ROOT, "setup.sh")
+os.chdir(PROJECT_ROOT)
+
+
+def log_success(msg):
+    print(f"\n{GREEN}{msg}{RESET}\n")
+
+
+def log_error(msg):
+    print(f"\n{RED}ERROR: {msg}{RESET}\n")
+
+
+def load_config():
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+
+def save_config(cfg):
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(cfg, f, indent=2)
+
+
+def replace_project_name_in_cmake(project_name, project_root):
+    for root, _, files in os.walk(project_root):
+        for fname in files:
+            if fname == "CMakeLists.txt":
+                path = os.path.join(root, fname)
+                with open(path, "r") as f:
+                    contents = f.read()
+                if "PROJECT_NAME" in contents:
+                    updated = contents.replace("PROJECT_NAME", project_name)
+                    with open(path, "w") as f:
+                        f.write(updated)
+
+
+def build():
+    try:
+        os.makedirs(BUILD_DIR, exist_ok=True)
+        subprocess.run(["cmake", ".."], cwd=BUILD_DIR, check=True)
+        subprocess.run(["cmake", "--build", "."], cwd=BUILD_DIR, check=True)
+        log_success("✓ Build complete.")
+    except subprocess.CalledProcessError as e:
+        log_error(f"Build failed: {e}")
+        sys.exit(1)
+
+
+def run_executable(project_name):
+    bin_path = os.path.abspath(
+        os.path.join(PROJECT_ROOT, BUILD_DIR, "bin", project_name)
+    )
+    if not os.path.exists(bin_path):
+        log_error(f"Executable '{bin_path}' not found.")
+        sys.exit(1)
+    try:
+        subprocess.run([bin_path], check=True)
+    except subprocess.CalledProcessError as e:
+        log_error(f"Executable failed: {e}")
+        sys.exit(1)
+
+
+def cmd_setup():
+    cfg = load_config()
+
+    project_name = input("\nEnter your project name: ").strip()
+    if not project_name:
+        log_error("Invalid project name.")
+        sys.exit(1)
+
+    print(f"\nReplacing PROJECT_NAME with {project_name} in CMakeLists.txt files...")
+    replace_project_name_in_cmake(project_name, PROJECT_ROOT)
+
+    build()
+
+    cfg["project_name"] = project_name
+    cfg["setup_complete"] = True
+    save_config(cfg)
+
+
+def cmd_run():
+    cfg = load_config()
+    if not cfg.get("setup_complete"):
+        log_error("You must run 'gold setup' first.")
+        sys.exit(1)
+
+    project_name = cfg["project_name"]
+
+    build()
+    run_executable(project_name)
+
+
+def main():
+    if len(sys.argv) != 2 or sys.argv[1] not in ["setup", "run"]:
+        log_error("Invalid argument. Usage: gold [setup|run]")
+        sys.exit(1)
+
+    cmd = sys.argv[1]
+    if cmd == "setup":
+        cmd_setup()
+    elif cmd == "run":
+        cmd_run()
+
+
+if __name__ == "__main__":
+    main()
