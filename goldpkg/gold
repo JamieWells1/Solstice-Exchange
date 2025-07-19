@@ -4,6 +4,7 @@ import os
 import sys
 import subprocess
 import json
+import stat
 
 CONFIG_FILE = "goldpkg/gold.cfg"
 BUILD_DIR = "build"
@@ -105,9 +106,44 @@ def cmd_run():
     run_executable(project_name)
 
 
+def cmd_test():
+    cfg = load_config()
+    if not cfg.get("setup_complete"):
+        log_error("You must run 'gold setup' first.")
+        sys.exit(1)
+
+    build()
+
+    bin_dir = os.path.join(BUILD_DIR, "bin")
+    if not os.path.exists(bin_dir):
+        log_error("No bin directory found. Expected test binaries in 'build/bin'.")
+        sys.exit(1)
+
+    test_binaries = [
+        os.path.join(bin_dir, f)
+        for f in os.listdir(bin_dir)
+        if os.path.isfile(os.path.join(bin_dir, f))
+        and os.access(os.path.join(bin_dir, f), os.X_OK)
+    ]
+
+    if not test_binaries:
+        log_error("No test executables found in 'build/bin'.")
+        sys.exit(1)
+
+    for test_bin in test_binaries:
+        print(f"\nRunning tests: {test_bin}")
+        try:
+            subprocess.run([test_bin], check=True)
+        except subprocess.CalledProcessError as e:
+            log_error(f"Tests failed: {e}")
+            sys.exit(1)
+
+    log_success("✓ All tests completed.")
+
+
 def main():
-    if len(sys.argv) != 2 or sys.argv[1] not in ["setup", "run"]:
-        log_error("Invalid argument. Usage: gold [setup|run]")
+    if len(sys.argv) != 2 or sys.argv[1] not in ["setup", "run", "test"]:
+        log_error("Invalid argument. Usage: gold [setup|run|test]")
         sys.exit(1)
 
     cmd = sys.argv[1]
@@ -115,6 +151,8 @@ def main():
         cmd_setup()
     elif cmd == "run":
         cmd_run()
+    elif cmd == "test":
+        cmd_test()
 
 
 if __name__ == "__main__":

@@ -10,6 +10,4 @@ void OrderBook::addBuyOrder(std::shared_ptr<Order> order) {
     d_buyOrders[order->price()].push_back(order);
 }
 
-int OrderBook::ordersFulfilled() {
-    return d_ordersFulfilled;
-}
+int OrderBook::ordersFulfilled() { return d_ordersFulfilled; }

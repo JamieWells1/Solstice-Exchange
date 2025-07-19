@@ -15,7 +15,8 @@ using TimePoint = std::chrono::system_clock::time_point;
 class Order {
    public:
     static std::expected<std::shared_ptr<Order>, std::string> createOrder(
-        Ticker tkr, double price, double qnty, bool isBuy, TimePoint timeOrderPlaced);
+        Ticker tkr, double price, double qnty, bool isBuy,
+        TimePoint timeOrderPlaced);
 
     std::string uid() const;
     Ticker tkr() const;
