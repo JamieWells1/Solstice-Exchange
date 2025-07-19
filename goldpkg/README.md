@@ -24,6 +24,14 @@ It simplifies project setup, enforces clean structure, and supports fully portab
 Run the following after cloning:
 
 ```bash
+./goldpkg/install.sh
+```
+
+This will install `gold`.
+
+After installing `gold` successfully, run:
+
+```bash
 gold setup
 ```
 
@@ -54,7 +62,7 @@ This rebuilds the project and executes the compiled binary.
 cpp_skeleton/
 ├── goldpkg/
 │   ├── gold        # Main CLI script
-│   └── setup.sh    # One-time installer
+│   └── install.sh    # One-time installer
 ├── build/          # Auto-created build directory
 ├── src/            # Your C++ sources
 ├── CMakeLists.txt  # Template with 'PROJECT_NAME'
