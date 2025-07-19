@@ -2,22 +2,23 @@
 #define ORDER_H
 
 // /enums
-#include "ticker.h"
+#include <ticker.h>
 
-// /utils
-#include "getRandom.h"
-
-struct Order {
+class Order {
     int d_uid;
     Ticker d_tkr;
     double d_price;
     double d_qnty;
     bool d_isBuy;
 
-    Order(Ticker tkr, double price, double qnty, bool isBuy)
-        : d_tkr(tkr), d_price(price), d_qnty(qnty), d_isBuy(isBuy) {
-            d_uid = getRandomUid();
-        }
+   public:
+    Order(Ticker tkr, double price, double qnty, bool isBuy);
+
+    int uid() const;
+    Ticker tkr() const;
+    double price() const;
+    double qnty() const;
+    bool isBuy() const;
 };
 
 #endif
