@@ -4,23 +4,26 @@
 // /enums
 #include <ticker.h>
 
+#include <chrono>
 #include <ctime>
 #include <expected>
 #include <string>
 
+using TimePoint = std::chrono::system_clock::time_point;
+
 class Order {
    public:
     Order(Ticker tkr, double price, double qnty, bool isBuy,
-          time_t timeOrderPlaced);
+          TimePoint timeOrderPlaced);
 
     Ticker tkr() const;
     double price() const;
     double qnty() const;
     bool isBuy() const;
-    time_t timeOrderPlaced() const;
+    TimePoint timeOrderPlaced() const;
 
     int uid() const;
-    std::expected<time_t, std::string> timeOrderFulfilled() const;
+    std::expected<TimePoint, std::string> timeOrderFulfilled() const;
     bool orderComplete() const;
 
    private:
@@ -28,13 +31,11 @@ class Order {
     double d_price;
     double d_qnty;
     bool d_isBuy;
-    time_t d_timeOrderPlaced;
+    TimePoint d_timeOrderPlaced;
 
     int d_uid;
-    time_t d_timeOrderFulfilled;
+    TimePoint d_timeOrderFulfilled;
     bool d_orderComplete;
-
-    bool validatePrice(const double price);
 };
 
 #endif
