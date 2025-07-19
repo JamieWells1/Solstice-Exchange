@@ -5,7 +5,6 @@
 
 #include <chrono>
 #include <format>
-#include <iostream>
 #include <memory>
 #include <stdexcept>
 
@@ -60,7 +59,7 @@ Order::Order(std::string uid, Ticker tkr, double price, double qnty,
     validatePrice(price);
     validateQnty(qnty);
     validateTimeOrderPlaced(timeOrderPlaced);
-};
+}
 
 std::string Order::uid() const { return d_uid; }
 
