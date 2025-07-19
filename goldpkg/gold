@@ -13,7 +13,7 @@ RED = "\033[91m"
 RESET = "\033[0m"
 
 PROJECT_ROOT = os.getcwd()
-setup_script = os.path.join(PROJECT_ROOT, "setup.sh")
+setup_script = os.path.join(PROJECT_ROOT, "install.sh")
 os.chdir(PROJECT_ROOT)
 
 
