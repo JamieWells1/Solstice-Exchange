@@ -1,3 +1,5 @@
-add_library(enums INTERFACE)
+add_library(utils STATIC
+    ticker.cpp
+)
 
-target_include_directories(enums INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
