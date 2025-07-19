@@ -54,12 +54,12 @@ Order::Order(std::string uid, Ticker tkr, double price, double qnty,
       d_qnty(qnty),
       d_isBuy(isBuy),
       d_timeOrderPlaced(timeOrderPlaced) {
-    d_uid = getRandomUid();
     d_orderComplete = false;
 
     // these functions throw
     validatePrice(price);
     validateQnty(qnty);
+    validateTimeOrderPlaced(timeOrderPlaced);
 };
 
 std::string Order::uid() const { return d_uid; }
