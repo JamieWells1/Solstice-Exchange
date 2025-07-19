@@ -1,6 +1,8 @@
 #ifndef GETRANDOM_H
 #define GETRANDOM_H
 
-int getRandomUid();
+#include <string>
+
+std::string getRandomUid();
 
 #endif // GETRANDOM_H

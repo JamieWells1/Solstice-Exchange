@@ -1,9 +1,5 @@
-add_library(enums INTERFACE)
-target_include_directories(enums INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/enums
-)
-
 add_subdirectory(utils)
+
 
 add_executable(solstice
     main.cpp
@@ -12,6 +8,7 @@ add_executable(solstice
 
 target_include_directories(solstice PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils
 )
 
-target_link_libraries(solstice PRIVATE enums utils)
+target_link_libraries(solstice PRIVATE utils)

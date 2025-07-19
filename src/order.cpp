@@ -6,6 +6,7 @@
 #include <chrono>
 #include <format>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 
 namespace {
@@ -35,7 +36,8 @@ void validateTimeOrderPlaced(const TimePoint timeOrderPlaced) {
                               now - timeOrderPlaced)
                               .count();
     if (delayInSeconds > 10) {
-        throw std::runtime_error("Order timed out due to long processing time");
+        throw std::runtime_error(
+            "Order timed out due to long processing time");
     }
 }
 }  // namespace
@@ -44,9 +46,10 @@ void validateTimeOrderPlaced(const TimePoint timeOrderPlaced) {
 Order class
 */
 
-Order::Order(Ticker tkr, double price, double qnty, bool isBuy,
-             TimePoint timeOrderPlaced)
-    : d_tkr(tkr),
+Order::Order(std::string uid, Ticker tkr, double price, double qnty,
+             bool isBuy, TimePoint timeOrderPlaced)
+    : d_uid(uid),
+      d_tkr(tkr),
       d_price(price),
       d_qnty(qnty),
       d_isBuy(isBuy),
@@ -54,23 +57,12 @@ Order::Order(Ticker tkr, double price, double qnty, bool isBuy,
     d_uid = getRandomUid();
     d_orderComplete = false;
 
-    try {
-        validatePrice(price);
-        validateQnty(qnty);
-    } catch (const std::invalid_argument& e) {
-        std::cerr
-            << std::format(
-                   "Failed to place order {} due to invalid argument: {}",
-                   uid(), e.what())
-            << std::endl;
-    } catch (const std::runtime_error& e) {
-        std::cerr << std::format(
-            "Failed to place order {} due to a runtime error: {}", uid(),
-            e.what()) << std::endl;
-    }
+    // these functions throw
+    validatePrice(price);
+    validateQnty(qnty);
 };
 
-int Order::uid() const { return d_uid; }
+std::string Order::uid() const { return d_uid; }
 
 Ticker Order::tkr() const { return d_tkr; }
 
@@ -88,4 +80,26 @@ std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const {
         return std::unexpected("Order has not been fulfilled yet");
     }
     return d_timeOrderFulfilled;
+}
+
+std::expected<std::shared_ptr<Order>, std::string> Order::createOrder(
+    Ticker tkr, double price, double qnty, bool isBuy,
+    TimePoint timeOrderPlaced) {
+    std::string uid = getRandomUid();
+
+    try {
+        auto order = std::shared_ptr<Order>(
+            new Order{uid, tkr, price, qnty, isBuy, timeOrderPlaced});
+        return order;
+
+    } catch (const std::invalid_argument& e) {
+        return std::unexpected(std::format(
+            "Failed to push order {} due to invalid argument: {}", uid,
+            e.what()));
+
+    } catch (const std::runtime_error& e) {
+        return std::unexpected(
+            std::format("Failed to push order {} due to runtime error: {}",
+                        uid, e.what()));
+    }
 }
