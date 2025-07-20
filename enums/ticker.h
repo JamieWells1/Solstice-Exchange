@@ -22,6 +22,6 @@ inline const std::unordered_map<Ticker, std::string> kTickerNameMap = [] {
     return out;
 }();
 
-std::ostream& operator<<(std::ostream& os, const Ticker& tkr);
+std::ostream& operator<<(std::ostream& os, Ticker tkr);
 
 #endif  // TICKER_H

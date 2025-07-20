@@ -4,6 +4,8 @@ add_subdirectory(utils)
 add_executable(solstice
     main.cpp
     order.cpp
+    orderbook.cpp
+    transaction.cpp
 )
 
 target_include_directories(solstice PRIVATE
