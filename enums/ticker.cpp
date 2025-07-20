@@ -8,3 +8,8 @@ Ticker validateTkr(const std::string& tkrStr) {
     }
     return Ticker::INVALID;
 }
+
+inline std::ostream& operator<<(std::ostream& os, Ticker ticker) {
+    auto it = kTickerNameMap.find(ticker);
+    return os << (it != kTickerNameMap.end() ? it->second : "UNKNOWN");
+}

@@ -13,8 +13,7 @@ class OrderBook {
    public:
     OrderBook();
 
-    void addSellOrder(std::shared_ptr<Order> order);
-    void addBuyOrder(std::shared_ptr<Order> order);
+    bool receiveOrder(std::shared_ptr<Order> order);
 
     int ordersFulfilled();
 
@@ -29,6 +28,9 @@ class OrderBook {
     std::map<double, std::list<std::shared_ptr<Order>>,
              std::greater<double>>
         d_buyOrders;
+
+    void addSellOrder(std::shared_ptr<Order> order);
+    void addBuyOrder(std::shared_ptr<Order> order);
 };
 
 #endif  // ORDERBOOK_H
