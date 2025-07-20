@@ -1,16 +1,16 @@
-add_executable(order_tests
-    order_tests.cpp
+add_executable(tests
+    test_order.cpp
     ${PROJECT_SOURCE_DIR}/src/order.cpp
 )
 
-target_link_libraries(order_tests
+target_link_libraries(tests
     PRIVATE
     gtest_main
     utils
     enums
 )
 
-target_include_directories(order_tests PRIVATE
+target_include_directories(tests PRIVATE
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/src/enums
     ${PROJECT_SOURCE_DIR}/src/utils
