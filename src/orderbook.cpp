@@ -1,6 +1,10 @@
 #include <orderbook.h>
 
-OrderBook::OrderBook() : d_ordersFulfilled{0} {}
+#include "transaction.h"
+
+const std::vector<Transaction>& OrderBook::transactions() const {
+    return d_transactions;
+}
 
 bool OrderBook::receiveOrder(std::shared_ptr<Order> order) {
     if (order->isBuy()) {
@@ -21,4 +25,9 @@ void OrderBook::addBuyOrder(std::shared_ptr<Order> order) {
     d_buyOrders[order->price()].push_back(order);
 }
 
-int OrderBook::ordersFulfilled() { return d_ordersFulfilled; }
+Transaction OrderBook::match(std::shared_ptr<Order> buyOrder,
+                             std::shared_ptr<Order> sellOrder) {
+    // TODO 2: needs implementation
+    Transaction transaction(buyOrder, sellOrder, 10, 10);
+    return transaction;
+}

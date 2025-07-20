@@ -2,6 +2,7 @@
 #define ORDERBOOK_H
 
 #include <order.h>
+#include <transaction.h>
 
 #include <functional>
 #include <list>
@@ -11,15 +12,11 @@
 
 class OrderBook {
    public:
-    OrderBook();
-
     bool receiveOrder(std::shared_ptr<Order> order);
 
-    int ordersFulfilled();
+    const std::vector<Transaction>& transactions() const;
 
    private:
-    int d_ordersFulfilled;
-
     // unordered map of order pointers for fast UID lookup
     std::unordered_map<std::string, std::shared_ptr<Order>> d_uidMap;
 
@@ -31,6 +28,11 @@ class OrderBook {
 
     void addSellOrder(std::shared_ptr<Order> order);
     void addBuyOrder(std::shared_ptr<Order> order);
+
+    std::vector<Transaction> d_transactions;
+
+    Transaction match(std::shared_ptr<Order> buyOrder,
+                      std::shared_ptr<Order> sellOrder);
 };
 
 #endif  // ORDERBOOK_H

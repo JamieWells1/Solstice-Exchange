@@ -5,4 +5,6 @@
 
 using TimePoint = std::chrono::system_clock::time_point;
 
+TimePoint getTimeNow();
+
 #endif  // TIMEPOINT_H

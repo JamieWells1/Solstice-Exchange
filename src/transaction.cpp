@@ -1,13 +1,26 @@
 #include <transaction.h>
 
+#include "timepoint.h"
+
+Transaction::Transaction(std::shared_ptr<Order> buyOrder,
+                         std::shared_ptr<Order> sellOrder, double price,
+                         double qnty)
+    : d_uid(getRandomUid()),
+      d_timeExecuted(getTimeNow()),
+      d_buyOrderUid(buyOrder->uid()),
+      d_sellOrderUid(sellOrder->uid()),
+      d_price(price),
+      d_qnty(qnty),
+      d_tkr(buyOrder->tkr()) {}
+
 std::ostream& operator<<(std::ostream& os,
                          const Transaction& transaction) {
-    os << "Transaction UID: " << transaction.uid
-       << " | Buyer UID: " << transaction.buyerUid
-       << " | Seller UID: " << transaction.sellerUid
-       << " | Ticker: " << transaction.tkr
-       << " | Price: " << transaction.price
-       << " | Quantity: " << transaction.qnty
-       << " | Time executed: " << transaction.timeExecuted;
+    os << "Transaction UID: " << transaction.d_uid
+       << " | Buyer UID: " << transaction.d_buyOrderUid
+       << " | Seller UID: " << transaction.d_sellOrderUid
+       << " | Ticker: " << transaction.d_tkr
+       << " | Price: " << transaction.d_price
+       << " | Quantity: " << transaction.d_qnty
+       << " | Time executed: " << transaction.d_timeExecuted;
     return os;
 }
