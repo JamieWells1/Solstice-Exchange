@@ -3,15 +3,12 @@
 
 // /enums
 #include <ticker.h>
+#include <timepoint.h>
 
 #include <ctime>
 #include <expected>
 #include <memory>
 #include <string>
-
-#include <timepoint.h>
-
-using TimePoint = std::chrono::system_clock::time_point;
 
 class Order {
    public:
