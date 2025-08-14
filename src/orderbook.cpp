@@ -2,6 +2,8 @@
 
 #include "transaction.h"
 
+using namespace solstice;
+
 const std::vector<Transaction>& OrderBook::transactions() const {
     return d_transactions;
 }

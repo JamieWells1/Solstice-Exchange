@@ -3,6 +3,8 @@
 
 #include <chrono>
 
+using namespace solstice;
+
 TEST(OrderTests, ValidOrderSucceeds) {
     auto now = std::chrono::system_clock::now();
     auto result = Order::createOrder(Ticker::AAPL, 100.0, 10.0, true, now);

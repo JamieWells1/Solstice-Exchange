@@ -9,6 +9,7 @@
 #include <stdexcept>
 
 namespace {
+
 void validatePrice(const double price) {
     if (price < 0) {
         throw std::invalid_argument(
@@ -44,6 +45,8 @@ void validateTimeOrderPlaced(const TimePoint timeOrderPlaced) {
 /*
 Order class
 */
+
+using namespace solstice;
 
 Order::Order(std::string uid, Ticker tkr, double price, double qnty,
              bool isBuy, TimePoint timeOrderPlaced)

@@ -10,6 +10,8 @@
 #include <memory>
 #include <unordered_map>
 
+namespace solstice {
+
 class OrderBook {
    public:
     bool receiveOrder(std::shared_ptr<Order> order);
@@ -34,5 +36,6 @@ class OrderBook {
     Transaction match(std::shared_ptr<Order> buyOrder,
                       std::shared_ptr<Order> sellOrder);
 };
+}  // namespace solstice
 
 #endif  // ORDERBOOK_H

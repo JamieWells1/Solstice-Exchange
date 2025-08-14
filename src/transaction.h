@@ -10,6 +10,8 @@
 #include <ostream>
 #include <string>
 
+namespace solstice {
+
 class OrderBook;
 
 struct Transaction {
@@ -33,5 +35,5 @@ struct Transaction {
 };
 
 std::ostream& operator<<(std::ostream os, const Transaction& transaction);
-
+}  // namespace
 #endif  // TRANSACTION_H

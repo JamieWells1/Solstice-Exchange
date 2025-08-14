@@ -10,6 +10,8 @@
 #include <memory>
 #include <string>
 
+namespace solstice {
+
 class Order {
    public:
     static std::expected<std::shared_ptr<Order>, std::string> createOrder(
@@ -39,5 +41,6 @@ class Order {
     TimePoint d_timeOrderFulfilled;
     bool d_orderComplete;
 };
+}  // namespace solstice
 
 #endif
