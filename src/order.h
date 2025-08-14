@@ -15,8 +15,7 @@ namespace solstice {
 class Order {
    public:
     static std::expected<std::shared_ptr<Order>, std::string> createOrder(
-        Ticker tkr, double price, double qnty, bool isBuy,
-        TimePoint timeOrderPlaced);
+        Ticker tkr, double price, double qnty, bool isBuy);
 
     std::string uid() const;
     Ticker tkr() const;
@@ -31,6 +30,7 @@ class Order {
    private:
     Order(std::string uid, Ticker tkr, double price, double qnty,
           bool isBuy, TimePoint timeOrderPlaced);
+
     std::string d_uid;
     Ticker d_tkr;
     double d_price;

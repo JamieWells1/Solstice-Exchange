@@ -34,7 +34,8 @@ class OrderBook {
     std::vector<Transaction> d_transactions;
 
     Transaction match(std::shared_ptr<Order> buyOrder,
-                      std::shared_ptr<Order> sellOrder);
+                      std::shared_ptr<Order> sellOrder, double price,
+                      double qnty);
 };
 }  // namespace solstice
 

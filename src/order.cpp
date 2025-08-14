@@ -85,9 +85,9 @@ std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const {
 }
 
 std::expected<std::shared_ptr<Order>, std::string> Order::createOrder(
-    Ticker tkr, double price, double qnty, bool isBuy,
-    TimePoint timeOrderPlaced) {
+    Ticker tkr, double price, double qnty, bool isBuy) {
     std::string uid = getRandomUid();
+    TimePoint timeOrderPlaced = getTimeNow();
 
     try {
         auto order = std::shared_ptr<Order>(
