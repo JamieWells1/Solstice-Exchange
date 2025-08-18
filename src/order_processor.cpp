@@ -51,8 +51,7 @@ void OrderProcessor::produceOrders() {
 
 void OrderProcessor::start() {
     Config config;
-    OrderBook orderbook;
-    
+
     // produceOrders();
     // TODO
 }
