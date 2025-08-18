@@ -1,18 +1,20 @@
-#ifndef PROCESSOR_H
-#define PROCESSOR_H
+#ifndef ORDER_PROCESSOR_H
+#define ORDER_PROCESSOR_H
 
+#include <config.h>
 #include <order.h>
-
-#include <string>
 
 namespace solstice {
 
-class Processor {
+class OrderProcessor {
    public:
-    static const std::string start();
+    static void start(Config config);
 
    private:
     std::shared_ptr<Order> generateOrder() const;
+
+    // generates orders and adds them to the orderbook
+    void produceOrders();
 
     Ticker getTicker() const;
     double getPrice() const;
@@ -21,4 +23,4 @@ class Processor {
 };
 }  // namespace solstice
 
-#endif  // ORDERBOOK_H
+#endif  // ORDER_H

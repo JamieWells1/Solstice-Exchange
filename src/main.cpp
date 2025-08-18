@@ -1,5 +1,6 @@
+#include <config.h>
 #include <order_book.h>
-#include <processor.h>
+#include <order_processor.h>
 
 #include <iostream>
 
@@ -11,7 +12,8 @@ int main() {
     std::cin >> choice;
 
     if (!choice.empty()) {
-        Processor::start();
+        Config config;
+        OrderProcessor::start(config);
     }
 
     return 0;
