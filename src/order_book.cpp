@@ -29,7 +29,6 @@ void OrderBook::addBuyOrder(std::shared_ptr<Order> order) {
 
 Transaction OrderBook::match(std::shared_ptr<Order> buyOrder,
                              std::shared_ptr<Order> sellOrder, double price, double qnty) {
-    // TODO 2: needs implementation
     Transaction transaction(buyOrder, sellOrder, price, qnty);
     return transaction;
 }

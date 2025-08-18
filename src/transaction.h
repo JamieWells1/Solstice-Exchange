@@ -27,8 +27,6 @@ struct Transaction {
     TimePoint d_timeExecuted;
 
    private:
-    // TODO 1: implement constructor where values are moved from two Order
-    // objects into a Transaction construction
     Transaction(std::shared_ptr<Order> buyOrder,
                 std::shared_ptr<Order> sellOrder, double price,
                 double qnty);
