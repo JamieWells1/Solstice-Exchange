@@ -1,10 +1,10 @@
 #ifndef TRANSACTION_H
 #define TRANSACTION_H
 
-#include <getrandom.h>
+#include <get_random.h>
 #include <order.h>
 #include <ticker.h>
-#include <timepoint.h>
+#include <time_point.h>
 
 #include <memory>
 #include <ostream>
@@ -35,5 +35,5 @@ struct Transaction {
 };
 
 std::ostream& operator<<(std::ostream os, const Transaction& transaction);
-}  // namespace
+}  // namespace solstice
 #endif  // TRANSACTION_H

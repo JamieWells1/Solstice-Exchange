@@ -8,12 +8,14 @@ namespace solstice {
 
 class OrderProcessor {
    public:
-    static void start(Config config);
+    static void start();
+
+    Config config;
 
    private:
-    std::shared_ptr<Order> generateOrder() const;
+    std::expected<std::shared_ptr<Order>, std::string> generateOrder()
+        const;
 
-    // generates orders and adds them to the orderbook
     void produceOrders();
 
     Ticker getTicker() const;

@@ -12,8 +12,7 @@ int main() {
     std::cin >> choice;
 
     if (!choice.empty()) {
-        Config config;
-        OrderProcessor::start(config);
+        OrderProcessor::start();
     }
 
     return 0;

@@ -1,6 +1,6 @@
 add_library(utils STATIC
-    getrandom.cpp
-    timepoint.cpp
+    get_random.cpp
+    time_point.cpp
 )
 
 target_include_directories(utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -1,15 +1,16 @@
-#include <order_book.h>
 #include <config.h>
+#include <order_book.h>
 #include <order_processor.h>
+
 #include <random>
+#include <memory>
 
 using namespace solstice;
 
-void OrderProcessor::start(Config config) { OrderBook orderbook; }
-
-inline Ticker getTicker() {
+inline Ticker OrderProcessor::getTicker() const {
     static const std::array<Ticker, 6> validTickers = {
-        Ticker::AAPL, Ticker::TSLA, Ticker::GOOGL, Ticker::AMZN, Ticker::MSFT, Ticker::GOOG};
+        Ticker::AAPL, Ticker::TSLA, Ticker::GOOGL,
+        Ticker::AMZN, Ticker::MSFT, Ticker::GOOG};
 
     static std::random_device rd;
     static std::mt19937 gen(rd());
@@ -17,8 +18,21 @@ inline Ticker getTicker() {
     return validTickers[dist(gen)];
 }
 
+double OrderProcessor::getPrice() const {
+    return Random::getRandomNumber(config.minPrice, config.maxPrice);
+}
 
-std::shared_ptr<Order> OrderProcessor::generateOrder() const {
+double OrderProcessor::getQnty() const {
+    return Random::getRandomNumber(config.minQuantity, config.maxQuantity);
+}
+
+bool OrderProcessor::getIsBuy() const {
+    // TODO
+    return Random::getRandomBool();
+}
+
+std::expected<std::shared_ptr<Order>, std::string>
+OrderProcessor::generateOrder() const {
     Ticker ticker = getTicker();
     double price = getPrice();
     double qnty = getQnty();
@@ -27,4 +41,18 @@ std::shared_ptr<Order> OrderProcessor::generateOrder() const {
     auto order = Order::createOrder(ticker, price, qnty, isBuy);
 
     // TODO: carry on
+    return order;
+}
+
+void OrderProcessor::produceOrders() {
+    // TODO
+    return;
+}
+
+void OrderProcessor::start() {
+    Config config;
+    OrderBook orderbook;
+    
+    // produceOrders();
+    // TODO
 }

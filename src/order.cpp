@@ -1,7 +1,7 @@
 #include <order.h>
 
 // /utils
-#include <getrandom.h>
+#include <get_random.h>
 
 #include <chrono>
 #include <format>
@@ -86,7 +86,7 @@ std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const {
 
 std::expected<std::shared_ptr<Order>, std::string> Order::createOrder(
     Ticker tkr, double price, double qnty, bool isBuy) {
-    std::string uid = getRandomUid();
+    std::string uid = Random::getRandomUid();
     TimePoint timeOrderPlaced = getTimeNow();
 
     try {

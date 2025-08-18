@@ -4,7 +4,7 @@ add_subdirectory(utils)
 add_executable(solstice
     main.cpp
     order.cpp
-    orderbook.cpp
+    order_book.cpp
     transaction.cpp
     order_processor.cpp
 )

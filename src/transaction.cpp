@@ -1,13 +1,13 @@
 #include <transaction.h>
 
-#include "timepoint.h"
+#include "time_point.h"
 
 using namespace solstice;
 
 Transaction::Transaction(std::shared_ptr<Order> buyOrder,
                          std::shared_ptr<Order> sellOrder, double price,
                          double qnty)
-    : d_uid(getRandomUid()),
+    : d_uid(Random::getRandomUid()),
       d_timeExecuted(getTimeNow()),
       d_buyOrderUid(buyOrder->uid()),
       d_sellOrderUid(sellOrder->uid()),
