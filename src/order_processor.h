@@ -3,20 +3,26 @@
 
 #include <config.h>
 #include <order.h>
+#include <order_book.h>
 
-namespace solstice {
+namespace solstice
+{
 
-class OrderProcessor {
+class OrderProcessor
+{
    public:
-    static void start();
+    static std::expected<void, std::string> start();
 
-    Config config;
+    Config d_config;
+    OrderBook d_orderBook;
 
    private:
+    OrderProcessor(Config config, OrderBook orderBook);
+
     std::expected<std::shared_ptr<Order>, std::string> generateOrder()
         const;
 
-    void produceOrders();
+    std::expected<void, std::string> produceOrders();
 
     Ticker getTicker() const;
     double getPrice() const;

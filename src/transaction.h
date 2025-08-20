@@ -10,11 +10,13 @@
 #include <ostream>
 #include <string>
 
-namespace solstice {
+namespace solstice
+{
 
 class OrderBook;
 
-struct Transaction {
+struct Transaction
+{
     friend class OrderBook;
 
    public:
@@ -33,5 +35,7 @@ struct Transaction {
 };
 
 std::ostream& operator<<(std::ostream os, const Transaction& transaction);
+
 }  // namespace solstice
+
 #endif  // TRANSACTION_H

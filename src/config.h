@@ -3,18 +3,34 @@
 
 #include <ticker.h>
 
-namespace solstice {
+#include <expected>
 
-struct Config {
-    int ordersToGenerate = 100;
+namespace solstice
+{
 
-    int minQuantity = 1;
-    int maxQuantity = 100;
+struct Config
+{
+   public:
+    static std::expected<Config, std::string> initConfig();
 
-    double minPrice = 10.0;
-    double maxPrice = 1000.0;
+    // number of orders to generate
+    static constexpr int d_ordersToGenerate = 100;
 
-    double priceVolatility = 0.5;
+    // min and max quantity of equities in each order
+    static constexpr int d_minQuantity = 1;
+    static constexpr int d_maxQuantity = 100;
+
+    // mix and max price of each order
+    static constexpr double d_minPrice = 10.0;
+    static constexpr double d_maxPrice = 1000.0;
+
+    // price volatility of the market -- values can be in the range (0, 1)
+    static constexpr double d_priceVolatility = 0.5;
+
+   private:
+    Config();
+
+    static std::expected<void, std::string> checkConfig(Config& config);
 };
 }  // namespace solstice
 

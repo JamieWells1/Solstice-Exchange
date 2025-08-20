@@ -9,9 +9,11 @@
 #include <memory>
 #include <string>
 
-namespace solstice {
+namespace solstice
+{
 
-class Order {
+class Order
+{
    public:
     static std::expected<std::shared_ptr<Order>, std::string> createOrder(
         Ticker tkr, double price, double qnty, bool isBuy);
@@ -40,6 +42,9 @@ class Order {
     TimePoint d_timeOrderFulfilled;
     bool d_orderComplete;
 };
+
+std::ostream& operator<<(std::ostream os, const Order& order);
+
 }  // namespace solstice
 
 #endif

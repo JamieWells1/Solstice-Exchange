@@ -10,9 +10,11 @@
 #include <memory>
 #include <unordered_map>
 
-namespace solstice {
+namespace solstice
+{
 
-class OrderBook {
+class OrderBook
+{
    public:
     bool receiveOrder(std::shared_ptr<Order> order);
 

@@ -2,12 +2,19 @@
 #include <order_book.h>
 #include <order_processor.h>
 
-#include <random>
+#include <iostream>
 #include <memory>
+#include <random>
 
 using namespace solstice;
 
-inline Ticker OrderProcessor::getTicker() const {
+OrderProcessor::OrderProcessor(Config config, OrderBook orderBook)
+    : d_config(config), d_orderBook(orderBook)
+{
+}
+
+inline Ticker OrderProcessor::getTicker() const
+{
     static const std::array<Ticker, 6> validTickers = {
         Ticker::AAPL, Ticker::TSLA, Ticker::GOOGL,
         Ticker::AMZN, Ticker::MSFT, Ticker::GOOG};
@@ -18,40 +25,72 @@ inline Ticker OrderProcessor::getTicker() const {
     return validTickers[dist(gen)];
 }
 
-double OrderProcessor::getPrice() const {
-    return Random::getRandomNumber(config.minPrice, config.maxPrice);
+double OrderProcessor::getPrice() const
+{
+    return Random::getRandomNumber(d_config.d_minPrice,
+                                   d_config.d_maxPrice);
 }
 
-double OrderProcessor::getQnty() const {
-    return Random::getRandomNumber(config.minQuantity, config.maxQuantity);
+double OrderProcessor::getQnty() const
+{
+    return Random::getRandomNumber(d_config.d_minQuantity,
+                                   d_config.d_maxQuantity);
 }
 
-bool OrderProcessor::getIsBuy() const {
-    // TODO
-    return Random::getRandomBool();
-}
+bool OrderProcessor::getIsBuy() const { return Random::getRandomBool(); }
 
 std::expected<std::shared_ptr<Order>, std::string>
-OrderProcessor::generateOrder() const {
-    Ticker ticker = getTicker();
-    double price = getPrice();
-    double qnty = getQnty();
-    bool isBuy = getIsBuy();
+OrderProcessor::generateOrder() const
+{
+    Ticker d_ticker = getTicker();
+    double d_price = getPrice();
+    double d_qnty = getQnty();
+    bool d_isBuy = getIsBuy();
 
-    auto order = Order::createOrder(ticker, price, qnty, isBuy);
+    auto order = Order::createOrder(d_ticker, d_price, d_qnty, d_isBuy);
 
-    // TODO: carry on
+    if (!order)
+    {
+        return std::unexpected(order.error());
+    }
+
     return order;
 }
 
-void OrderProcessor::produceOrders() {
-    // TODO
-    return;
+std::expected<void, std::string> OrderProcessor::produceOrders()
+{
+    for (unsigned int i = 0; i < d_config.d_ordersToGenerate; i++)
+    {
+        std::expected<std::shared_ptr<Order>, std::string> order =
+            OrderProcessor::generateOrder();
+
+        if (!order)
+        {
+            return std::unexpected(order.error());
+        }
+
+        d_orderBook.receiveOrder(*order);
+
+        std::cout << "ORDER GENERATED: " << order->get()->uid();
+    }
+
+    return {};
 }
 
-void OrderProcessor::start() {
-    Config config;
+std::expected<void, std::string> OrderProcessor::start()
+{
+    Config config = *Config::initConfig();
+    OrderBook orderBook;
+    OrderProcessor OrderProcessor(config, orderBook);
 
-    // produceOrders();
-    // TODO
+    auto response = OrderProcessor.produceOrders();
+
+    if (!response)
+    {
+        return std::unexpected(
+            "An error occured when trying to create orders: " +
+            response.error());
+    }
+
+    return {};
 }

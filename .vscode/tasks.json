@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Format All C++",
+      "type": "shell",
+      "command": "find ./src -name '*.cpp' -o -name '*.h' | xargs clang-format -i",
+      "group": "build"
+    }
+  ]
+}

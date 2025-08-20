@@ -6,12 +6,14 @@
 
 using namespace solstice;
 
-int main() {
+int main()
+{
     std::string choice;
     std::cout << "Enter any key to start order flow: ";
     std::cin >> choice;
 
-    if (!choice.empty()) {
+    if (!choice.empty())
+    {
         OrderProcessor::start();
     }
 

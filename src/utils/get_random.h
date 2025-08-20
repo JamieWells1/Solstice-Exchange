@@ -4,9 +4,11 @@
 #include <random>
 #include <string>
 
-namespace solstice {
+namespace solstice
+{
 
-class Random {
+class Random
+{
    public:
     static std::string getRandomUid();
 
