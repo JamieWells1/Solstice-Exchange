@@ -5,7 +5,6 @@
 #include <transaction.h>
 
 #include <functional>
-#include <list>
 #include <map>
 #include <memory>
 #include <unordered_map>
@@ -30,8 +29,8 @@ class OrderBook
     std::unordered_map<std::string, std::shared_ptr<Order>> d_uidMap;
 
     // groups orders by price (orders with same price go in same group)
-    std::map<double, std::list<std::shared_ptr<Order>>> d_sellOrders;
-    std::map<double, std::list<std::shared_ptr<Order>>,
+    std::map<double, std::deque<std::shared_ptr<Order>>> d_sellOrders;
+    std::map<double, std::deque<std::shared_ptr<Order>>,
              std::greater<double>>
         d_buyOrders;
 

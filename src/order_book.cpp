@@ -4,6 +4,7 @@
 #include <truncate.h>
 
 #include <iostream>
+#include <deque>
 
 namespace solstice
 {

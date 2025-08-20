@@ -4,6 +4,7 @@
 #include <ticker.h>
 
 #include <expected>
+#include <deque>
 
 namespace solstice
 {
