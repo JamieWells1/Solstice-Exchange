@@ -38,10 +38,9 @@ void OrderBook::addBuyOrder(std::shared_ptr<Order> order)
 }
 
 Transaction OrderBook::match(std::shared_ptr<Order> buyOrder,
-                             std::shared_ptr<Order> sellOrder,
-                             double price, double qnty)
+                             std::shared_ptr<Order> sellOrder)
 {
-    Transaction transaction(buyOrder, sellOrder, price, qnty);
+    Transaction transaction(buyOrder, sellOrder, 10, 10);
     return transaction;
 }
 }  // namespace solstice
