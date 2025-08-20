@@ -1,7 +1,5 @@
-#include <order.h>
-
-// /utils
 #include <get_random.h>
+#include <order.h>
 
 #include <chrono>
 #include <format>
@@ -84,7 +82,8 @@ std::expected<void, std::string> validateOrderAttributes(
 // Order class
 // ==================
 
-using namespace solstice;
+namespace solstice
+{
 
 Order::Order(std::string uid, Ticker tkr, double price, double qnty,
              bool isBuy, TimePoint timeOrderPlaced)
@@ -141,11 +140,10 @@ std::expected<std::shared_ptr<Order>, std::string> Order::createOrder(
 
 std::ostream& operator<<(std::ostream& os, const Order& order)
 {
-     os << "Order UID: " << order.uid()
-       << " | Ticker: " << order.tkr()
-       << " | Price: " << order.price()
-       << " | Quantity: " << order.qnty()
+    os << "Order UID: " << order.uid() << " | Ticker: " << order.tkr()
+       << " | Price: " << order.price() << " | Quantity: " << order.qnty()
        << " | Is buy: " << order.isBuy();
 
     return os;
 }
+}  // namespace solstice

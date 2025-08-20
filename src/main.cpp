@@ -14,7 +14,7 @@ int main()
 
     if (!choice.empty())
     {
-        OrderProcessor::start();
+        auto response = OrderProcessor::start();
     }
 
     return 0;

@@ -2,7 +2,8 @@
 
 #include "transaction.h"
 
-using namespace solstice;
+namespace solstice
+{
 
 const std::vector<Transaction>& OrderBook::transactions() const
 {
@@ -43,3 +44,4 @@ Transaction OrderBook::match(std::shared_ptr<Order> buyOrder,
     Transaction transaction(buyOrder, sellOrder, price, qnty);
     return transaction;
 }
+}  // namespace solstice

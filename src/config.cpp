@@ -2,7 +2,8 @@
 
 #include <algorithm>
 
-using namespace solstice;
+namespace solstice
+{
 
 Config::Config() {}
 
@@ -44,3 +45,4 @@ std::expected<Config, std::string> Config::initConfig()
 
     return config;
 }
+}  // namespace solstice

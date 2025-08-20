@@ -15,4 +15,7 @@ target_include_directories(solstice PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/utils
 )
 
+# enable/disable logging
+target_compile_definitions(solstice PRIVATE ENABLE_LOGGING)
+
 target_link_libraries(solstice PRIVATE utils)

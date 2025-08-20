@@ -43,7 +43,7 @@ class Order
     bool d_orderComplete;
 };
 
-std::ostream& operator<<(std::ostream os, const Order& order);
+std::ostream& operator<<(std::ostream& os, const Order& order);
 
 }  // namespace solstice
 

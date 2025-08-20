@@ -1,12 +1,14 @@
 #include <config.h>
+#include <logging.h>
+#include <order.h>
 #include <order_book.h>
 #include <order_processor.h>
 
-#include <iostream>
 #include <memory>
 #include <random>
 
-using namespace solstice;
+namespace solstice
+{
 
 OrderProcessor::OrderProcessor(Config config, OrderBook orderBook)
     : d_config(config), d_orderBook(orderBook)
@@ -27,6 +29,7 @@ inline Ticker OrderProcessor::getTicker() const
 
 double OrderProcessor::getPrice() const
 {
+    // TODO: return price based on mktdata
     return Random::getRandomNumber(d_config.d_minPrice,
                                    d_config.d_maxPrice);
 }
@@ -71,7 +74,7 @@ std::expected<void, std::string> OrderProcessor::produceOrders()
 
         d_orderBook.receiveOrder(*order);
 
-        std::cout << "ORDER GENERATED: " << order->get()->uid();
+        LOG("ORDER GENERATED: " << *(*order));
     }
 
     return {};
@@ -94,3 +97,4 @@ std::expected<void, std::string> OrderProcessor::start()
 
     return {};
 }
+}  // namespace solstice

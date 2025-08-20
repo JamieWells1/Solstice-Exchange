@@ -2,7 +2,8 @@
 
 #include "time_point.h"
 
-using namespace solstice;
+namespace solstice
+{
 
 Transaction::Transaction(std::shared_ptr<Order> buyOrder,
                          std::shared_ptr<Order> sellOrder, double price,
@@ -29,3 +30,4 @@ std::ostream& operator<<(std::ostream& os, const Transaction& transaction)
 
     return os;
 }
+}  // namespace solstice
