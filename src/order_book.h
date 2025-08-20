@@ -18,6 +18,11 @@ class OrderBook
    public:
     bool receiveOrder(std::shared_ptr<Order> order);
 
+#ifdef ENABLE_LOGGING
+    void printSellOrders();
+    void printBuyOrders();
+#endif
+
     const std::vector<Transaction>& transactions() const;
 
    private:

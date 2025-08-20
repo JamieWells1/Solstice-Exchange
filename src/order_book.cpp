@@ -1,6 +1,9 @@
+#include <order.h>
 #include <order_book.h>
+#include <transaction.h>
+#include <truncate.h>
 
-#include "transaction.h"
+#include <iostream>
 
 namespace solstice
 {
@@ -36,6 +39,36 @@ void OrderBook::addBuyOrder(std::shared_ptr<Order> order)
 {
     d_buyOrders[order->price()].push_back(order);
 }
+
+#ifdef ENABLE_LOGGING
+void OrderBook::printSellOrders()
+{
+    std::cout << "\nSELL ORDERS: " << std::endl;
+    for (const auto& [price, orders] : d_sellOrders)
+    {
+        std::cout << "$" << price << ": [";
+        for (const auto& order : orders)
+        {
+            std::cout << " id_" << truncate(order->uid(), 5) << ' ';
+        }
+        std::cout << "]" << std::endl;
+    }
+}
+
+void OrderBook::printBuyOrders()
+{
+    std::cout << "\nBUY ORDERS: " << std::endl;
+    for (const auto& [price, orders] : d_buyOrders)
+    {
+        std::cout << "$" << price << ": [";
+        for (const auto& order : orders)
+        {
+            std::cout << " id_" << truncate(order->uid(), 5) << ' ';
+        }
+        std::cout << "]" << std::endl;
+    }
+}
+#endif
 
 Transaction OrderBook::match(std::shared_ptr<Order> buyOrder,
                              std::shared_ptr<Order> sellOrder)

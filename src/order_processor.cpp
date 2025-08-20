@@ -67,7 +67,7 @@ OrderProcessor::generateOrder()
 
 std::expected<void, std::string> OrderProcessor::produceOrders()
 {
-    for (unsigned int i = 0; i < d_config.d_ordersToGenerate; i++)
+    for (size_t i = 0; i < d_config.d_ordersToGenerate; i++)
     {
         std::expected<std::shared_ptr<Order>, std::string> order =
             OrderProcessor::generateOrder();
@@ -78,9 +78,12 @@ std::expected<void, std::string> OrderProcessor::produceOrders()
         }
 
         d_orderBook.receiveOrder(*order);
-
-        LOG("ORDER GENERATED: " << *(*order));
     }
+
+#ifdef ENABLE_LOGGING
+    d_orderBook.printSellOrders();
+    d_orderBook.printBuyOrders();
+#endif
 
     return {};
 }
