@@ -28,6 +28,8 @@ class OrderBook
     // unordered map of order pointers for fast UID lookup
     std::unordered_map<std::string, std::shared_ptr<Order>> d_uidMap;
 
+    // TODO: add map/deque of timestamps here
+
     // groups orders by price (orders with same price go in same group)
     std::map<double, std::deque<std::shared_ptr<Order>>> d_sellOrders;
     std::map<double, std::deque<std::shared_ptr<Order>>,

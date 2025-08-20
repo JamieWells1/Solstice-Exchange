@@ -18,6 +18,8 @@ bool OrderBook::receiveOrder(std::shared_ptr<Order> order)
 {
     d_uidMap.emplace(order->uid(), order);
 
+    // TODO: add map/deque of timestamps for fast time lookup
+
     if (order->isBuy())
     {
         addBuyOrder(order);
