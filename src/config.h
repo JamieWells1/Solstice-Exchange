@@ -17,8 +17,8 @@ struct Config
     static constexpr int d_ordersToGenerate = 5;
 
     // min and max quantity of equities in each order
-    static constexpr int d_minQuantity = 1;
-    static constexpr int d_maxQuantity = 100;
+    static constexpr int d_minQnty = 1;
+    static constexpr int d_maxQnty = 100;
 
     // mix and max price of each order
     static constexpr double d_minPrice = 10.0;

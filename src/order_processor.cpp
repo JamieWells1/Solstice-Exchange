@@ -7,15 +7,12 @@
 #include <memory>
 #include <random>
 
-namespace solstice
+using namespace solstice;
+
+namespace
 {
 
-OrderProcessor::OrderProcessor(Config config, OrderBook orderBook)
-    : d_config(config), d_orderBook(orderBook)
-{
-}
-
-inline Ticker OrderProcessor::getTicker() const
+inline Ticker getTicker()
 {
     static const std::array<Ticker, 6> validTickers = {
         Ticker::AAPL, Ticker::TSLA, Ticker::GOOGL,
@@ -27,27 +24,35 @@ inline Ticker OrderProcessor::getTicker() const
     return validTickers[dist(gen)];
 }
 
-double OrderProcessor::getPrice() const
+double getPrice(int minPrice, int maxPrice)
 {
     // TODO: return price based on mktdata
-    return Random::getRandomNumber(d_config.d_minPrice,
-                                   d_config.d_maxPrice);
+    return Random::getRandomNumber(minPrice, maxPrice);
 }
 
-double OrderProcessor::getQnty() const
+double getQnty(int minQnty, int maxQnty)
 {
-    return Random::getRandomNumber(d_config.d_minQuantity,
-                                   d_config.d_maxQuantity);
+    return Random::getRandomNumber(minQnty, maxQnty);
 }
 
-bool OrderProcessor::getIsBuy() const { return Random::getRandomBool(); }
+bool getIsBuy() { return Random::getRandomBool(); }
+
+}  // namespace
+
+namespace solstice
+{
+
+OrderProcessor::OrderProcessor(Config config, OrderBook orderBook)
+    : d_config(config), d_orderBook(orderBook)
+{
+}
 
 std::expected<std::shared_ptr<Order>, std::string>
-OrderProcessor::generateOrder() const
+OrderProcessor::generateOrder()
 {
     Ticker d_ticker = getTicker();
-    double d_price = getPrice();
-    double d_qnty = getQnty();
+    double d_price = getPrice(d_config.d_minPrice, d_config.d_maxPrice);
+    double d_qnty = getQnty(d_config.d_minQnty, d_config.d_maxQnty);
     bool d_isBuy = getIsBuy();
 
     auto order = Order::createOrder(d_ticker, d_price, d_qnty, d_isBuy);
@@ -82,9 +87,15 @@ std::expected<void, std::string> OrderProcessor::produceOrders()
 
 std::expected<void, std::string> OrderProcessor::start()
 {
-    Config config = *Config::initConfig();
+    auto config = Config::initConfig();
+
+    if (!config)
+    {
+        return std::unexpected(config.error());
+    }
+
     OrderBook orderBook;
-    OrderProcessor OrderProcessor(config, orderBook);
+    OrderProcessor OrderProcessor(*config, orderBook);
 
     auto response = OrderProcessor.produceOrders();
 

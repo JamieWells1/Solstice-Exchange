@@ -1,6 +1,7 @@
 #include <config.h>
 
 #include <algorithm>
+#include <iostream>
 
 namespace solstice
 {
@@ -9,24 +10,14 @@ Config::Config() {}
 
 std::expected<void, std::string> Config::checkConfig(Config& config)
 {
-    if (std::any_of(std::begin({double(config.d_ordersToGenerate),
-                                double(config.d_minQuantity),
-                                double(config.d_maxQuantity),
-                                double(config.d_minPrice),
-                                double(config.d_maxPrice)}),
-                    std::end({double(config.d_ordersToGenerate),
-                              double(config.d_minQuantity),
-                              double(config.d_maxQuantity),
-                              double(config.d_minPrice),
-                              double(config.d_maxPrice)}),
+    auto values = {double(config.d_ordersToGenerate),
+                   double(config.d_minQnty), double(config.d_maxQnty),
+                   double(config.d_minPrice), double(config.d_maxPrice)};
+
+    if (std::any_of(std::begin(values), std::end(values),
                     [](auto x) { return x < 0; }))
     {
         return std::unexpected("Config values cannot be less than 0");
-    }
-
-    if (d_priceVolatility < 0 || d_priceVolatility > 1)
-    {
-        return std::unexpected("Price volatility must be between 0 and 1");
     }
 
     return {};

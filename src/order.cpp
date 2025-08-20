@@ -142,7 +142,7 @@ std::ostream& operator<<(std::ostream& os, const Order& order)
 {
     os << "Order UID: " << order.uid() << " | Ticker: " << order.tkr()
        << " | Price: " << order.price() << " | Quantity: " << order.qnty()
-       << " | Is buy: " << order.isBuy();
+       << " | Is buy: " << std::boolalpha << order.isBuy();
 
     return os;
 }

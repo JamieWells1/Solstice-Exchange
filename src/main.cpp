@@ -15,6 +15,16 @@ int main()
     if (!choice.empty())
     {
         auto response = OrderProcessor::start();
+
+        if (!response)
+        {
+            std::cout << "\n[FATAL]: " << response.error() << std::endl;
+            return -1;
+        }
+    }
+    else
+    {
+        return -1;
     }
 
     return 0;

@@ -19,15 +19,9 @@ class OrderProcessor
    private:
     OrderProcessor(Config config, OrderBook orderBook);
 
-    std::expected<std::shared_ptr<Order>, std::string> generateOrder()
-        const;
+    std::expected<std::shared_ptr<Order>, std::string> generateOrder();
 
     std::expected<void, std::string> produceOrders();
-
-    Ticker getTicker() const;
-    double getPrice() const;
-    double getQnty() const;
-    bool getIsBuy() const;
 };
 }  // namespace solstice
 
