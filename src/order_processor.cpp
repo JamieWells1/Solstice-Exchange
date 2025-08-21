@@ -26,7 +26,6 @@ inline Ticker getTicker()
 
 double getPrice(int minPrice, int maxPrice)
 {
-    // TODO: return price based on mktdata
     return Random::getRandomNumber(minPrice, maxPrice);
 }
 

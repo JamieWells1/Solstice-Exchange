@@ -39,6 +39,9 @@ class OrderBook
     void addSellOrder(std::shared_ptr<Order> order);
     void addBuyOrder(std::shared_ptr<Order> order);
 
+    void onNewSellOrder(std::shared_ptr<Order> order);
+    void onBuySellOrder(std::shared_ptr<Order> order);
+
     std::vector<Transaction> d_transactions;
 
     Transaction match(std::shared_ptr<Order> buyOrder,

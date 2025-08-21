@@ -23,13 +23,16 @@ bool OrderBook::receiveOrder(std::shared_ptr<Order> order)
     if (order->isBuy())
     {
         addBuyOrder(order);
+        onBuySellOrder(order);
         return true;
     }
     else
     {
         addSellOrder(order);
+        onNewSellOrder(order);
         return true;
     }
+
     return false;
 }
 
@@ -41,6 +44,18 @@ void OrderBook::addSellOrder(std::shared_ptr<Order> order)
 void OrderBook::addBuyOrder(std::shared_ptr<Order> order)
 {
     d_buyOrders[order->price()].push_back(order);
+}
+
+void OrderBook::onNewSellOrder(std::shared_ptr<Order>)
+{
+    // TODO: what happens when a sell order is placed?
+    return;
+}
+
+void OrderBook::onBuySellOrder(std::shared_ptr<Order>)
+{
+    // TODO: what happens when a buy order is placed?
+    return;
 }
 
 #ifdef ENABLE_LOGGING
