@@ -86,12 +86,12 @@ namespace solstice
 {
 
 Order::Order(std::string uid, Ticker tkr, double price, double qnty,
-             bool isBuy, TimePoint timeOrderPlaced)
+             OrderSide orderSide, TimePoint timeOrderPlaced)
     : d_uid(uid),
       d_tkr(tkr),
       d_price(price),
       d_qnty(qnty),
-      d_isBuy(isBuy),
+      d_orderSide(orderSide),
       d_timeOrderPlaced(timeOrderPlaced)
 {
     d_orderComplete = false;
@@ -105,7 +105,7 @@ double Order::price() const { return d_price; }
 
 double Order::qnty() const { return d_qnty; }
 
-bool Order::isBuy() const { return d_isBuy; }
+OrderSide Order::orderSide() const { return d_orderSide; }
 
 TimePoint Order::timeOrderPlaced() const { return d_timeOrderPlaced; }
 
@@ -120,7 +120,7 @@ std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
 }
 
 std::expected<std::shared_ptr<Order>, std::string> Order::createOrder(
-    Ticker tkr, double price, double qnty, bool isBuy)
+    Ticker tkr, double price, double qnty, OrderSide orderSide)
 {
     std::string uid = Random::getRandomUid();
     TimePoint timeOrderPlaced = getTimeNow();
@@ -133,7 +133,7 @@ std::expected<std::shared_ptr<Order>, std::string> Order::createOrder(
     }
 
     auto order = std::shared_ptr<Order>(new (std::nothrow) Order{
-        uid, tkr, price, qnty, isBuy, timeOrderPlaced});
+        uid, tkr, price, qnty, orderSide, timeOrderPlaced});
 
     return order;
 }
@@ -142,7 +142,7 @@ std::ostream& operator<<(std::ostream& os, const Order& order)
 {
     os << "Order UID: " << order.uid() << " | Ticker: " << order.tkr()
        << " | Price: " << order.price() << " | Quantity: " << order.qnty()
-       << " | Is buy: " << std::boolalpha << order.isBuy();
+       << " | Is buy: " << std::boolalpha << (order.orderSide() == OrderSide::Buy);
 
     return os;
 }

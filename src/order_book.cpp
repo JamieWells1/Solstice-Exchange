@@ -3,8 +3,8 @@
 #include <transaction.h>
 #include <truncate.h>
 
-#include <iostream>
 #include <deque>
+#include <iostream>
 
 namespace solstice
 {
@@ -20,7 +20,7 @@ bool OrderBook::receiveOrder(std::shared_ptr<Order> order)
 
     // TODO: add map/deque of timestamps for fast time lookup
 
-    if (order->isBuy())
+    if (order->orderSide() == OrderSide::Buy)
     {
         addBuyOrder(order);
         onBuySellOrder(order);
@@ -38,12 +38,14 @@ bool OrderBook::receiveOrder(std::shared_ptr<Order> order)
 
 void OrderBook::addSellOrder(std::shared_ptr<Order> order)
 {
-    d_sellOrders[order->price()].push_back(order);
+    // fix syntax
+    d_activeOrders[order->orderSide()].d_activeOrders[order->price()].push_back(order);
 }
 
 void OrderBook::addBuyOrder(std::shared_ptr<Order> order)
 {
-    d_buyOrders[order->price()].push_back(order);
+    d_activeOrders[order->tkr()].d_activeOrders[order->][order->price()].push_back(
+        order);
 }
 
 void OrderBook::onNewSellOrder(std::shared_ptr<Order>)
@@ -58,7 +60,7 @@ void OrderBook::onBuySellOrder(std::shared_ptr<Order>)
     return;
 }
 
-#ifdef ENABLE_LOGGING
+/*
 void OrderBook::printSellOrders()
 {
     std::cout << "\nSELL ORDERS: " << std::endl;
@@ -86,7 +88,7 @@ void OrderBook::printBuyOrders()
         std::cout << "]" << std::endl;
     }
 }
-#endif
+*/
 
 Transaction OrderBook::match(std::shared_ptr<Order> buyOrder,
                              std::shared_ptr<Order> sellOrder)

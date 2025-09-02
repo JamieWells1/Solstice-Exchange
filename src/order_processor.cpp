@@ -3,6 +3,7 @@
 #include <order.h>
 #include <order_book.h>
 #include <order_processor.h>
+#include <order_side.h>
 
 #include <memory>
 #include <random>
@@ -34,7 +35,17 @@ double getQnty(int minQnty, int maxQnty)
     return Random::getRandomNumber(minQnty, maxQnty);
 }
 
-bool getIsBuy() { return Random::getRandomBool(); }
+OrderSide getOrderSide()
+{
+    if (Random::getRandomBool())
+    {
+        return OrderSide::Buy;
+    }
+    else
+    {
+        return OrderSide::Sell;
+    }
+}
 
 }  // namespace
 
@@ -52,9 +63,10 @@ OrderProcessor::generateOrder()
     Ticker d_ticker = getTicker();
     double d_price = getPrice(d_config.d_minPrice, d_config.d_maxPrice);
     double d_qnty = getQnty(d_config.d_minQnty, d_config.d_maxQnty);
-    bool d_isBuy = getIsBuy();
+    OrderSide d_orderSide = getOrderSide();
 
-    auto order = Order::createOrder(d_ticker, d_price, d_qnty, d_isBuy);
+    auto order =
+        Order::createOrder(d_ticker, d_price, d_qnty, d_orderSide);
 
     if (!order)
     {
@@ -78,11 +90,6 @@ std::expected<void, std::string> OrderProcessor::produceOrders()
 
         d_orderBook.receiveOrder(*order);
     }
-
-#ifdef ENABLE_LOGGING
-    d_orderBook.printSellOrders();
-    d_orderBook.printBuyOrders();
-#endif
 
     return {};
 }

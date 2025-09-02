@@ -1,6 +1,7 @@
 #ifndef ORDER_H
 #define ORDER_H
 
+#include <order_side.h>
 #include <ticker.h>
 #include <time_point.h>
 
@@ -16,13 +17,13 @@ class Order
 {
    public:
     static std::expected<std::shared_ptr<Order>, std::string> createOrder(
-        Ticker tkr, double price, double qnty, bool isBuy);
+        Ticker tkr, double price, double qnty, OrderSide orderSide);
 
     std::string uid() const;
     Ticker tkr() const;
     double price() const;
     double qnty() const;
-    bool isBuy() const;
+    OrderSide orderSide() const;
     TimePoint timeOrderPlaced() const;
 
     std::expected<TimePoint, std::string> timeOrderFulfilled() const;
@@ -30,13 +31,13 @@ class Order
 
    private:
     Order(std::string uid, Ticker tkr, double price, double qnty,
-          bool isBuy, TimePoint timeOrderPlaced);
+          OrderSide orderSide, TimePoint timeOrderPlaced);
 
     std::string d_uid;
     Ticker d_tkr;
     double d_price;
     double d_qnty;
-    bool d_isBuy;
+    OrderSide d_orderSide;
     TimePoint d_timeOrderPlaced;
 
     TimePoint d_timeOrderFulfilled;

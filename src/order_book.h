@@ -3,49 +3,47 @@
 
 #include <order.h>
 #include <transaction.h>
+#include <ticker.h>
+#include <order_side.h>
 
 #include <functional>
-#include <map>
 #include <memory>
 #include <unordered_map>
 
 namespace solstice
 {
 
+using OrderPtr = std::shared_ptr<Order>;
+using PriceLevelMap = std::unordered_map<double, std::deque<OrderPtr>>;
+
+struct ActiveOrders
+{
+    std::unordered_map<OrderSide, PriceLevelMap> d_activeOrders;
+};
+
 class OrderBook
 {
    public:
-    bool receiveOrder(std::shared_ptr<Order> order);
-
-#ifdef ENABLE_LOGGING
-    void printSellOrders();
-    void printBuyOrders();
-#endif
+    bool receiveOrder(OrderPtr order);
 
     const std::vector<Transaction>& transactions() const;
 
    private:
     // unordered map of order pointers for fast UID lookup
-    std::unordered_map<std::string, std::shared_ptr<Order>> d_uidMap;
+    std::unordered_map<std::string, OrderPtr> d_uidMap;
 
-    // TODO: add map/deque of timestamps here
+    std::unordered_map<Ticker, ActiveOrders> d_activeOrders;
 
-    // groups orders by price (orders with same price go in same group)
-    std::map<double, std::deque<std::shared_ptr<Order>>> d_sellOrders;
-    std::map<double, std::deque<std::shared_ptr<Order>>,
-             std::greater<double>>
-        d_buyOrders;
+    void addSellOrder(OrderPtr order);
+    void addBuyOrder(OrderPtr order);
 
-    void addSellOrder(std::shared_ptr<Order> order);
-    void addBuyOrder(std::shared_ptr<Order> order);
-
-    void onNewSellOrder(std::shared_ptr<Order> order);
-    void onBuySellOrder(std::shared_ptr<Order> order);
+    void onNewSellOrder(OrderPtr order);
+    void onBuySellOrder(OrderPtr order);
 
     std::vector<Transaction> d_transactions;
 
-    Transaction match(std::shared_ptr<Order> buyOrder,
-                      std::shared_ptr<Order> sellOrder);
+    Transaction match(OrderPtr buyOrder,
+                      OrderPtr sellOrder);
 };
 }  // namespace solstice
 
