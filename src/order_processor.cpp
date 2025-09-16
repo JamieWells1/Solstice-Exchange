@@ -53,8 +53,9 @@ OrderSide getOrderSide()
 namespace solstice
 {
 
-OrderProcessor::OrderProcessor(Config config, OrderBook orderBook)
-    : d_config(config), d_orderBook(orderBook)
+OrderProcessor::OrderProcessor(Config config, OrderBook orderBook,
+                               Matcher matcher)
+    : d_config(config), d_orderBook(orderBook), d_matcher(matcher)
 {
 }
 
@@ -99,9 +100,25 @@ std::expected<void, std::string> OrderProcessor::produceOrders()
     return {};
 }
 
-std::expected<void, std::string> OrderProcessor::processOrder(OrderPtr order)
+std::expected<void, std::string> OrderProcessor::processOrder(
+    OrderPtr order)
 {
-    std::deque<OrderPtr> matchedOrders = d_orderBook.matchOrders(order);
+    std::deque<OrderPtr> matchedOrders =
+        d_orderBook.getMatchingOrders(order);
+
+    return {};
+}
+
+std::expected<void, std::string> OrderProcessor::onNewOrder(OrderPtr order)
+{
+    d_orderBook.addOrderToOrderBook(order);
+
+    auto result = processOrder(order);
+
+    if (!result)
+    {
+        return std::unexpected(result.error());
+    }
 
     return {};
 }
@@ -115,8 +132,11 @@ std::expected<void, std::string> OrderProcessor::start()
         return std::unexpected(config.error());
     }
 
+    // TODO: construct in place?
     OrderBook orderBook;
-    OrderProcessor OrderProcessor(*config, orderBook);
+    Matcher matcher = Matcher(orderBook);
+    OrderProcessor OrderProcessor(*config, std::move(orderBook),
+                                  std::move(matcher));
 
     auto response = OrderProcessor.produceOrders();
 

@@ -1,3 +1,4 @@
+#include <matcher.h>
 #include <order.h>
 #include <order_book.h>
 #include <transaction.h>
@@ -8,7 +9,6 @@
 #include <memory>
 
 #include "order_processor.h"
-#include "order_side.h"
 
 namespace solstice
 {
@@ -18,8 +18,8 @@ const std::vector<Transaction>& OrderBook::transactions() const
     return d_transactions;
 }
 
-// might need to return as pointer/reference?
-const std::deque<OrderPtr> OrderBook::matchOrders(OrderPtr order)
+// TODO: might need to return as pointer/reference?
+const std::deque<OrderPtr> OrderBook::getMatchingOrders(OrderPtr order)
 {
     auto sideIndex = static_cast<size_t>(order->orderSide());
 
@@ -54,19 +54,6 @@ void OrderBook::addOrderToOrderBook(OrderPtr order)
     d_activeOrders[order->tkr()]
         .activeOrders[order->orderSide()][sideIndex]
         .push_back(order);
-}
-
-std::expected<void, std::string> OrderBook::onNewOrder(OrderPtr order)
-{
-    addOrderToOrderBook(order);
-
-    auto result = d_matcher.processOrder(order);
-    if (!result)
-    {
-        return std::unexpected(result.error());
-    }
-
-    return {};
 }
 
 /*
