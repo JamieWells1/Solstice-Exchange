@@ -5,6 +5,7 @@
 #include <order_processor.h>
 #include <order_side.h>
 
+#include <deque>
 #include <memory>
 #include <random>
 
@@ -57,8 +58,7 @@ OrderProcessor::OrderProcessor(Config config, OrderBook orderBook)
 {
 }
 
-std::expected<std::shared_ptr<Order>, std::string>
-OrderProcessor::generateOrder()
+std::expected<OrderPtr, std::string> OrderProcessor::generateOrder()
 {
     Ticker d_ticker = getTicker();
     double d_price = getPrice(d_config.d_minPrice, d_config.d_maxPrice);
@@ -80,7 +80,7 @@ std::expected<void, std::string> OrderProcessor::produceOrders()
 {
     for (size_t i = 0; i < d_config.d_ordersToGenerate; i++)
     {
-        std::expected<std::shared_ptr<Order>, std::string> order =
+        std::expected<OrderPtr, std::string> order =
             OrderProcessor::generateOrder();
 
         if (!order)
@@ -89,12 +89,19 @@ std::expected<void, std::string> OrderProcessor::produceOrders()
         }
 
         auto processedOrder = d_orderBook.receiveOrder(*order);
-        
+
         if (!processedOrder)
         {
             return std::unexpected(processedOrder.error());
         }
     }
+
+    return {};
+}
+
+std::expected<void, std::string> OrderProcessor::processOrder(OrderPtr order)
+{
+    std::deque<OrderPtr> matchedOrders = d_orderBook.matchOrders(order);
 
     return {};
 }

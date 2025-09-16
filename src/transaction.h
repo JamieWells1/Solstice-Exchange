@@ -12,6 +12,7 @@
 
 namespace solstice
 {
+using OrderPtr = std::shared_ptr<Order>;
 
 class OrderBook;
 
@@ -29,8 +30,7 @@ struct Transaction
     TimePoint d_timeExecuted;
 
    private:
-    Transaction(std::shared_ptr<Order> buyOrder,
-                std::shared_ptr<Order> sellOrder, double price,
+    Transaction(OrderPtr buyOrder, OrderPtr sellOrder, double price,
                 double qnty);
 };
 

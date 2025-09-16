@@ -6,6 +6,7 @@
 #include <deque>
 #include <iostream>
 #include <memory>
+
 #include "order_processor.h"
 #include "order_side.h"
 
@@ -17,7 +18,17 @@ const std::vector<Transaction>& OrderBook::transactions() const
     return d_transactions;
 }
 
-std::expected<std::shared_ptr<Order>, std::string> OrderBook::receiveOrder(std::shared_ptr<Order> order)
+// might need to return as pointer/reference?
+const std::deque<OrderPtr> OrderBook::matchOrders(OrderPtr order)
+{
+    auto sideIndex = static_cast<size_t>(order->orderSide());
+
+    return d_activeOrders[order->tkr()]
+        .activeOrders[order->orderSide()][sideIndex];
+}
+
+std::expected<OrderPtr, std::string> OrderBook::receiveOrder(
+    OrderPtr order)
 {
     d_uidMap.emplace(order->uid(), order);
 
@@ -36,7 +47,7 @@ std::expected<std::shared_ptr<Order>, std::string> OrderBook::receiveOrder(std::
     return std::move(order);
 }
 
-void OrderBook::addOrderToOrderBook(std::shared_ptr<Order> order)
+void OrderBook::addOrderToOrderBook(OrderPtr order)
 {
     auto sideIndex = static_cast<size_t>(order->orderSide());
 
@@ -45,11 +56,11 @@ void OrderBook::addOrderToOrderBook(std::shared_ptr<Order> order)
         .push_back(order);
 }
 
-std::expected<void, std::string> OrderBook::onNewOrder(std::shared_ptr<Order> order)
+std::expected<void, std::string> OrderBook::onNewOrder(OrderPtr order)
 {
     addOrderToOrderBook(order);
 
-    auto result = OrderProcessor::processOrder(order);
+    auto result = d_matcher.processOrder(order);
     if (!result)
     {
         return std::unexpected(result.error());
@@ -88,8 +99,7 @@ void OrderBook::printBuyOrders()
 }
 */
 
-Transaction OrderBook::match(std::shared_ptr<Order> buyOrder,
-                             std::shared_ptr<Order> sellOrder)
+Transaction OrderBook::match(OrderPtr buyOrder, OrderPtr sellOrder)
 {
     Transaction transaction(buyOrder, sellOrder, 10, 10);
     return transaction;

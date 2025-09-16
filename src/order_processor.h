@@ -18,12 +18,12 @@ class OrderProcessor
     Config d_config;
     OrderBook d_orderBook;
 
-    static std::expected<void, std::string> processOrder(std::shared_ptr<Order>);
+    std::expected<void, std::string> processOrder(OrderPtr order);
 
    private:
     OrderProcessor(Config config, OrderBook orderBook);
 
-    std::expected<std::shared_ptr<Order>, std::string> generateOrder();
+    std::expected<OrderPtr, std::string> generateOrder();
 
     std::expected<void, std::string> produceOrders();
 };

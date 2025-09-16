@@ -1,6 +1,7 @@
 #ifndef ORDERBOOK_H
 #define ORDERBOOK_H
 
+#include <matcher.h>
 #include <order.h>
 #include <order_side.h>
 #include <ticker.h>
@@ -24,15 +25,17 @@ struct ActiveOrders
 class OrderBook
 {
    public:
-    std::expected<std::shared_ptr<Order>, std::string> receiveOrder(OrderPtr order);
+    std::expected<OrderPtr, std::string> receiveOrder(OrderPtr order);
 
     const std::vector<Transaction>& transactions() const;
+
+    const std::deque<OrderPtr> matchOrders(OrderPtr order);
 
    private:
     // unordered map of order pointers for fast UID lookup
     std::unordered_map<std::string, OrderPtr> d_uidMap;
-
     std::unordered_map<Ticker, ActiveOrders> d_activeOrders;
+    Matcher d_matcher;
 
     void addOrderToOrderBook(OrderPtr order);
     std::expected<void, std::string> onNewOrder(OrderPtr order);
