@@ -4,6 +4,8 @@
 #include <config.h>
 #include <order.h>
 #include <order_book.h>
+#include <string.h>
+#include <memory>
 
 namespace solstice
 {
@@ -15,6 +17,8 @@ class OrderProcessor
 
     Config d_config;
     OrderBook d_orderBook;
+
+    static std::expected<void, std::string> processOrder(std::shared_ptr<Order>);
 
    private:
     OrderProcessor(Config config, OrderBook orderBook);

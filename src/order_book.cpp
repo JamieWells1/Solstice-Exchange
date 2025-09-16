@@ -5,6 +5,9 @@
 
 #include <deque>
 #include <iostream>
+#include <memory>
+#include "order_processor.h"
+#include "order_side.h"
 
 namespace solstice
 {
@@ -14,50 +17,45 @@ const std::vector<Transaction>& OrderBook::transactions() const
     return d_transactions;
 }
 
-bool OrderBook::receiveOrder(std::shared_ptr<Order> order)
+std::expected<std::shared_ptr<Order>, std::string> OrderBook::receiveOrder(std::shared_ptr<Order> order)
 {
     d_uidMap.emplace(order->uid(), order);
 
-    // TODO: add map/deque of timestamps for fast time lookup
-
-    if (order->orderSide() == OrderSide::Buy)
+    if (!order)
     {
-        addBuyOrder(order);
-        onBuySellOrder(order);
-        return true;
-    }
-    else
-    {
-        addSellOrder(order);
-        onNewSellOrder(order);
-        return true;
+        return std::unexpected("No order received by order book");
     }
 
-    return false;
+    auto result = onNewOrder(order);
+
+    if (!result)
+    {
+        return std::unexpected(result.error());
+    }
+
+    return std::move(order);
 }
 
-void OrderBook::addSellOrder(std::shared_ptr<Order> order)
+void OrderBook::addOrderToOrderBook(std::shared_ptr<Order> order)
 {
-    // fix syntax
-    d_activeOrders[order->orderSide()].d_activeOrders[order->price()].push_back(order);
+    auto sideIndex = static_cast<size_t>(order->orderSide());
+
+    d_activeOrders[order->tkr()]
+        .activeOrders[order->orderSide()][sideIndex]
+        .push_back(order);
 }
 
-void OrderBook::addBuyOrder(std::shared_ptr<Order> order)
+std::expected<void, std::string> OrderBook::onNewOrder(std::shared_ptr<Order> order)
 {
-    d_activeOrders[order->tkr()].d_activeOrders[order->][order->price()].push_back(
-        order);
-}
+    addOrderToOrderBook(order);
 
-void OrderBook::onNewSellOrder(std::shared_ptr<Order>)
-{
-    // TODO: what happens when a sell order is placed?
-    return;
-}
+    auto result = OrderProcessor::processOrder(order);
+    if (!result)
+    {
+        return std::unexpected(result.error());
+    }
 
-void OrderBook::onBuySellOrder(std::shared_ptr<Order>)
-{
-    // TODO: what happens when a buy order is placed?
-    return;
+    return {};
 }
 
 /*

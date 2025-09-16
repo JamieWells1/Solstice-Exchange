@@ -88,7 +88,12 @@ std::expected<void, std::string> OrderProcessor::produceOrders()
             return std::unexpected(order.error());
         }
 
-        d_orderBook.receiveOrder(*order);
+        auto processedOrder = d_orderBook.receiveOrder(*order);
+        
+        if (!processedOrder)
+        {
+            return std::unexpected(processedOrder.error());
+        }
     }
 
     return {};

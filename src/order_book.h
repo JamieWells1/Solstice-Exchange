@@ -2,9 +2,9 @@
 #define ORDERBOOK_H
 
 #include <order.h>
-#include <transaction.h>
-#include <ticker.h>
 #include <order_side.h>
+#include <ticker.h>
+#include <transaction.h>
 
 #include <functional>
 #include <memory>
@@ -18,13 +18,13 @@ using PriceLevelMap = std::unordered_map<double, std::deque<OrderPtr>>;
 
 struct ActiveOrders
 {
-    std::unordered_map<OrderSide, PriceLevelMap> d_activeOrders;
+    std::unordered_map<OrderSide, PriceLevelMap> activeOrders;
 };
 
 class OrderBook
 {
    public:
-    bool receiveOrder(OrderPtr order);
+    std::expected<std::shared_ptr<Order>, std::string> receiveOrder(OrderPtr order);
 
     const std::vector<Transaction>& transactions() const;
 
@@ -34,16 +34,12 @@ class OrderBook
 
     std::unordered_map<Ticker, ActiveOrders> d_activeOrders;
 
-    void addSellOrder(OrderPtr order);
-    void addBuyOrder(OrderPtr order);
-
-    void onNewSellOrder(OrderPtr order);
-    void onBuySellOrder(OrderPtr order);
+    void addOrderToOrderBook(OrderPtr order);
+    std::expected<void, std::string> onNewOrder(OrderPtr order);
 
     std::vector<Transaction> d_transactions;
 
-    Transaction match(OrderPtr buyOrder,
-                      OrderPtr sellOrder);
+    Transaction match(OrderPtr buyOrder, OrderPtr sellOrder);
 };
 }  // namespace solstice
 

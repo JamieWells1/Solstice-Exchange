@@ -1,10 +1,12 @@
 #ifndef ORDER_SIDE_H
 #define ORDER_SIDE_H
 
-enum class OrderSide
+#include <cstdint>
+
+enum class OrderSide : uint8_t
 {
-    Buy = true,
-    Sell = false
+    Buy = 1,
+    Sell = 0
 };
 
 #endif // ORDER_SIDE_H
