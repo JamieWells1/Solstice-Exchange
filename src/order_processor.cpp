@@ -53,7 +53,8 @@ OrderSide getOrderSide()
 namespace solstice
 {
 
-OrderProcessor::OrderProcessor(Config config, OrderBook orderBook,
+OrderProcessor::OrderProcessor(Config config,
+                               std::shared_ptr<OrderBook> orderBook,
                                Matcher matcher)
     : d_config(config), d_orderBook(orderBook), d_matcher(matcher)
 {
@@ -81,15 +82,14 @@ std::expected<void, std::string> OrderProcessor::produceOrders()
 {
     for (size_t i = 0; i < d_config.d_ordersToGenerate; i++)
     {
-        std::expected<OrderPtr, std::string> order =
-            OrderProcessor::generateOrder();
+        std::expected<OrderPtr, std::string> order = generateOrder();
 
         if (!order)
         {
             return std::unexpected(order.error());
         }
 
-        auto processedOrder = d_orderBook.receiveOrder(*order);
+        auto processedOrder = processOrder(*order);
 
         if (!processedOrder)
         {
@@ -104,23 +104,36 @@ std::expected<void, std::string> OrderProcessor::processOrder(
     OrderPtr order)
 {
     std::deque<OrderPtr> matchedOrders =
-        d_orderBook.getMatchingOrders(order);
+        d_orderBook->getMatchingOrders(order);
+
+    std::cout << "Found " << matchedOrders.size()
+              << " matching orders for " << order->tkr() << " @ "
+              << order->price() << " ["
+              << (order->orderSide() == OrderSide::Buy ? "BUY" : "SELL")
+              << "]" << std::endl;
 
     return {};
 }
 
-std::expected<void, std::string> OrderProcessor::onNewOrder(OrderPtr order)
+std::expected<OrderPtr, std::string> OrderProcessor::onNewOrder(
+    OrderPtr order)
 {
-    d_orderBook.addOrderToOrderBook(order);
+    d_orderBook->d_uidMap.emplace(order->uid(), order);
 
-    auto result = processOrder(order);
-
-    if (!result)
+    if (!order)
     {
-        return std::unexpected(result.error());
+        return std::unexpected("No order received by order book");
     }
 
-    return {};
+    d_orderBook->addOrderToOrderBook(order);
+
+    auto processingResult = processOrder(order);
+    if (!processingResult)
+    {
+        return std::unexpected(processingResult.error());
+    }
+
+    return std::move(order);
 }
 
 std::expected<void, std::string> OrderProcessor::start()
@@ -132,13 +145,13 @@ std::expected<void, std::string> OrderProcessor::start()
         return std::unexpected(config.error());
     }
 
-    // TODO: construct in place?
-    OrderBook orderBook;
-    Matcher matcher = Matcher(orderBook);
-    OrderProcessor OrderProcessor(*config, std::move(orderBook),
-                                  std::move(matcher));
+    auto orderBook = std::make_shared<OrderBook>();
 
-    auto response = OrderProcessor.produceOrders();
+    Matcher matcher{orderBook};
+
+    OrderProcessor processor(*config, orderBook, matcher);
+
+    auto response = processor.produceOrders();
 
     if (!response)
     {

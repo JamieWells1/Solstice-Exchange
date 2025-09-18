@@ -2,11 +2,11 @@
 #define ORDER_PROCESSOR_H
 
 #include <config.h>
+#include <matcher.h>
 #include <order.h>
 #include <order_book.h>
-#include <matcher.h>
-
 #include <string.h>
+
 #include <memory>
 
 namespace solstice
@@ -18,20 +18,24 @@ class OrderProcessor
     static std::expected<void, std::string> start();
 
     Config d_config;
-    OrderBook d_orderBook;
+    std::shared_ptr<OrderBook> d_orderBook;
     Matcher d_matcher;
 
-    std::expected<void, std::string> onNewOrder(OrderPtr order);
+    std::expected<OrderPtr, std::string> onNewOrder(OrderPtr order);
 
     std::expected<void, std::string> processOrder(OrderPtr order);
 
    private:
-    OrderProcessor(Config config, OrderBook orderBook, Matcher matcher);
+    OrderProcessor(Config config, std::shared_ptr<OrderBook> orderBook,
+                   Matcher matcher);
 
     std::expected<OrderPtr, std::string> generateOrder();
 
     std::expected<void, std::string> produceOrders();
 };
+
+std::ostream& operator<<(std::ostream& os, ActiveOrders activeOrders);
+
 }  // namespace solstice
 
 #endif  // ORDER_H

@@ -20,9 +20,9 @@ class Matcher
     friend class OrderProcessor;
 
    public:
-    OrderBook d_orderBook;
+    std::shared_ptr<OrderBook> d_orderBook;
 
-    Matcher(OrderBook orderbook);
+    Matcher(std::shared_ptr<OrderBook> orderbook);
 
     std::expected<void, std::string> processOrder(OrderPtr order);
 };

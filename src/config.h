@@ -15,7 +15,7 @@ struct Config
     static std::expected<Config, std::string> initConfig();
 
     // number of orders to generate
-    static constexpr int d_ordersToGenerate = 10;
+    static constexpr int d_ordersToGenerate = 1000;
 
     // min and max quantity of equities in each order
     static constexpr int d_minQnty = 1;
@@ -23,7 +23,7 @@ struct Config
 
     // mix and max price of each order
     static constexpr double d_minPrice = 10.0;
-    static constexpr double d_maxPrice = 100.0;
+    static constexpr double d_maxPrice = 20.0;
 
     // price volatility of the market -- values can be in the range (0, 1)
     static constexpr double d_priceVolatility = 0.5;

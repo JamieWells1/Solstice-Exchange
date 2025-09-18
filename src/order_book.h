@@ -6,6 +6,7 @@
 #include <ticker.h>
 #include <transaction.h>
 
+#include <deque>
 #include <functional>
 #include <memory>
 #include <unordered_map>
@@ -23,15 +24,14 @@ struct ActiveOrders
 
 class OrderBook
 {
-   public:
-    std::expected<OrderPtr, std::string> receiveOrder(OrderPtr order);
+    friend class OrderProcessor;
 
+   public:
     const std::vector<Transaction>& transactions() const;
 
-    const std::deque<OrderPtr> getMatchingOrders(OrderPtr order);
+    const std::deque<OrderPtr>& getMatchingOrders(const OrderPtr& order);
 
     void addOrderToOrderBook(OrderPtr order);
-    std::expected<void, std::string> onNewOrder(OrderPtr order);
 
    private:
     // unordered map of order pointers for fast UID lookup

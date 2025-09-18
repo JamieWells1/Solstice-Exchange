@@ -8,6 +8,7 @@ add_executable(solstice
     transaction.cpp
     order_processor.cpp
     config.cpp
+    matcher.cpp
 )
 
 target_include_directories(solstice PRIVATE

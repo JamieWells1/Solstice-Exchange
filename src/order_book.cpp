@@ -8,7 +8,7 @@
 #include <iostream>
 #include <memory>
 
-#include "order_processor.h"
+#include "order_side.h"
 
 namespace solstice
 {
@@ -18,41 +18,21 @@ const std::vector<Transaction>& OrderBook::transactions() const
     return d_transactions;
 }
 
-// TODO: might need to return as pointer/reference?
-const std::deque<OrderPtr> OrderBook::getMatchingOrders(OrderPtr order)
+const std::deque<OrderPtr>& OrderBook::getMatchingOrders(
+    const OrderPtr& incoming)
 {
-    auto sideIndex = static_cast<size_t>(order->orderSide());
+    auto oppositeOrderSide = (incoming->orderSide() == OrderSide::Buy)
+                                 ? OrderSide::Sell
+                                 : OrderSide::Buy;
 
-    return d_activeOrders[order->tkr()]
-        .activeOrders[order->orderSide()][sideIndex];
-}
-
-std::expected<OrderPtr, std::string> OrderBook::receiveOrder(
-    OrderPtr order)
-{
-    d_uidMap.emplace(order->uid(), order);
-
-    if (!order)
-    {
-        return std::unexpected("No order received by order book");
-    }
-
-    auto result = onNewOrder(order);
-
-    if (!result)
-    {
-        return std::unexpected(result.error());
-    }
-
-    return std::move(order);
+    return d_activeOrders[incoming->tkr()]
+        .activeOrders[oppositeOrderSide][incoming->price()];
 }
 
 void OrderBook::addOrderToOrderBook(OrderPtr order)
 {
-    auto sideIndex = static_cast<size_t>(order->orderSide());
-
     d_activeOrders[order->tkr()]
-        .activeOrders[order->orderSide()][sideIndex]
+        .activeOrders[order->orderSide()][order->price()]
         .push_back(order);
 }
 
