@@ -24,7 +24,7 @@ class Matcher
 
     Matcher(std::shared_ptr<OrderBook> orderbook);
 
-    std::expected<void, std::string> processOrder(OrderPtr order);
+    std::expected<void, std::string> matchOrder(OrderPtr order, std::optional<int> price);
 };
 }  // namespace solstice
 

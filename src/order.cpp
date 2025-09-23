@@ -109,6 +109,10 @@ OrderSide Order::orderSide() const { return d_orderSide; }
 
 TimePoint Order::timeOrderPlaced() const { return d_timeOrderPlaced; }
 
+bool Order::orderComplete() const { return d_orderComplete; }
+
+bool Order::orderComplete(bool isComplete) { d_orderComplete = isComplete; }
+
 std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
 {
     // Cannot return time of fulfillment if fulfillment hasn't yet occured

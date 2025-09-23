@@ -28,6 +28,7 @@ class Order
 
     std::expected<TimePoint, std::string> timeOrderFulfilled() const;
     bool orderComplete() const;
+    bool orderComplete(bool isComplete);
 
    private:
     Order(std::string uid, Ticker tkr, double price, double qnty,

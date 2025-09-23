@@ -9,11 +9,21 @@
 
 namespace solstice {
 
-std::expected<void, std::string> Matcher::processOrder(OrderPtr order) {
-
+std::expected<void, std::string> Matcher::matchOrder(OrderPtr order, std::optional<int> price) {
+    
+    // for a given order, get all orders with same ticker, price, and opposing order sides
     auto matchedOrders = d_orderBook->getMatchingOrders(order);
 
-    // TODO
+    OrderPtr orderToMatch = matchedOrders.at(0);
+    if (!orderToMatch)
+    {
+        auto result = matchOrder(order, order->price()-1);
+    }
+
+    if (orderToMatch->qnty() < order->qnty())
+    {
+        d_orderBook->markOrderAsComplete(order);
+    }
 
     return {};
 }

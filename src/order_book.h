@@ -31,7 +31,10 @@ class OrderBook
 
     const std::deque<OrderPtr>& getMatchingOrders(const OrderPtr& order);
 
-    void addOrderToOrderBook(OrderPtr order);
+    const std::deque<OrderPtr>& getMatchingOrders(const OrderPtr& order,
+                                                  int priceToMatch);
+
+    void markOrderAsComplete(OrderPtr completedOrder);
 
    private:
     // unordered map of order pointers for fast UID lookup
@@ -41,6 +44,14 @@ class OrderBook
     std::vector<Transaction> d_transactions;
 
     Transaction match(OrderPtr buyOrder, OrderPtr sellOrder);
+
+    void addOrderToBook(OrderPtr order);
+
+    void removeOrderFromBook(OrderPtr orderToRemove);
+
+    std::deque<OrderPtr>& getOrdersDequeAtPrice(OrderPtr order);
+
+    std::deque<OrderPtr>& getOrdersDequeAtPrice(OrderPtr order, int price);
 };
 }  // namespace solstice
 

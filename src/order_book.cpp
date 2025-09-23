@@ -18,6 +18,25 @@ const std::vector<Transaction>& OrderBook::transactions() const
     return d_transactions;
 }
 
+std::deque<OrderPtr>& OrderBook::getOrdersDequeAtPrice(OrderPtr order)
+{
+    auto& ordersDeque =
+        d_activeOrders[order->tkr()]
+            .activeOrders[order->orderSide()][order->price()];
+
+    return ordersDeque;
+}
+
+std::deque<OrderPtr>& OrderBook::getOrdersDequeAtPrice(OrderPtr order,
+                                                       int price)
+{
+    auto& ordersDeque =
+        d_activeOrders[order->tkr()]
+            .activeOrders[order->orderSide()][order->price()];
+
+    return ordersDeque;
+}
+
 const std::deque<OrderPtr>& OrderBook::getMatchingOrders(
     const OrderPtr& incoming)
 {
@@ -25,15 +44,39 @@ const std::deque<OrderPtr>& OrderBook::getMatchingOrders(
                                  ? OrderSide::Sell
                                  : OrderSide::Buy;
 
-    return d_activeOrders[incoming->tkr()]
-        .activeOrders[oppositeOrderSide][incoming->price()];
+    return getOrdersDequeAtPrice(incoming);
 }
 
-void OrderBook::addOrderToOrderBook(OrderPtr order)
+const std::deque<OrderPtr>& OrderBook::getMatchingOrders(
+    const OrderPtr& incoming, int priceToMatch)
 {
-    d_activeOrders[order->tkr()]
-        .activeOrders[order->orderSide()][order->price()]
-        .push_back(order);
+    auto oppositeOrderSide = (incoming->orderSide() == OrderSide::Buy)
+                                 ? OrderSide::Sell
+                                 : OrderSide::Buy;
+
+    return getOrdersDequeAtPrice(incoming, priceToMatch);
+}
+
+void OrderBook::addOrderToBook(OrderPtr order)
+{
+    d_uidMap[order->uid()] = order;
+
+    getOrdersDequeAtPrice(order).push_back(order);
+}
+
+void OrderBook::removeOrderFromBook(OrderPtr orderToRemove)
+{
+    d_uidMap.erase(orderToRemove->uid());
+
+    // always remove first element - FIFO
+    getOrdersDequeAtPrice(orderToRemove).at(0);
+}
+
+void OrderBook::markOrderAsComplete(OrderPtr completedOrder)
+{
+    completedOrder->orderComplete(true);
+
+    removeOrderFromBook(completedOrder);
 }
 
 /*

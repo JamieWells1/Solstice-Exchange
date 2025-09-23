@@ -125,7 +125,7 @@ std::expected<OrderPtr, std::string> OrderProcessor::onNewOrder(
         return std::unexpected("No order received by order book");
     }
 
-    d_orderBook->addOrderToOrderBook(order);
+    d_orderBook->addOrderToBook(order);
 
     auto processingResult = processOrder(order);
     if (!processingResult)

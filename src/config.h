@@ -15,7 +15,7 @@ struct Config
     static std::expected<Config, std::string> initConfig();
 
     // number of orders to generate
-    static constexpr int d_ordersToGenerate = 1000;
+    static constexpr int d_ordersToGenerate = 100;
 
     // min and max quantity of equities in each order
     static constexpr int d_minQnty = 1;
