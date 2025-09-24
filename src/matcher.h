@@ -24,7 +24,11 @@ class Matcher
 
     Matcher(std::shared_ptr<OrderBook> orderbook);
 
-    std::expected<void, std::string> matchOrder(OrderPtr order, double orderMatchingPrice = -1);
+    std::expected<void, std::string> matchOrder(
+        OrderPtr order, double orderMatchingPrice = -1) const;
+
+   private:
+    const bool withinPriceRange(double price, OrderPtr order) const;
 };
 }  // namespace solstice
 

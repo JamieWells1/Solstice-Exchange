@@ -106,6 +106,8 @@ double Order::price() const { return d_price; }
 
 double Order::qnty() const { return d_qnty; }
 
+double Order::outstandingQnty() const { return d_outstandingQnty; }
+
 double Order::outstandingQnty(double newOutstandingQnty)
 {
     d_outstandingQnty = newOutstandingQnty;

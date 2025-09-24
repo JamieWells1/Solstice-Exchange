@@ -40,6 +40,17 @@ std::deque<OrderPtr>& OrderBook::ordersDequeAtPrice(OrderPtr order,
     return ordersDeque;
 }
 
+std::map<double, std::deque<OrderPtr>>& OrderBook::priceLevelMap(OrderPtr order)
+{
+    auto& book = d_activeOrders[order->tkr()];
+
+    auto& priceLevelMap = (order->orderSide() == OrderSide::Buy)
+                            ? book.buyOrders
+                            : book.sellOrders;
+
+    return priceLevelMap;
+}
+
 std::set<double, std::greater<double>>& OrderBook::buyPricesAtPriceLevel(
     OrderPtr order)
 {

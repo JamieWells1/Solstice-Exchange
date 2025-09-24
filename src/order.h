@@ -23,6 +23,7 @@ class Order
     Ticker tkr() const;
     double price() const;
     double qnty() const;
+    double outstandingQnty() const;
     double outstandingQnty(double newQnty);
     OrderSide orderSide() const;
     TimePoint timeOrderPlaced() const;

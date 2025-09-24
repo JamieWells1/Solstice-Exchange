@@ -10,59 +10,113 @@
 namespace solstice
 {
 
-std::expected<void, std::string> Matcher::matchOrder(
-    OrderPtr incomingOrder, double orderMatchingPrice)
+const bool Matcher::withinPriceRange(double price, OrderPtr order) const
 {
-    const auto bestPrice = d_orderBook->getBestPrice(incomingOrder);
-    if (!bestPrice)
+    if (order->orderSide() == OrderSide::Buy)
     {
-        return std::unexpected(bestPrice.error());
+        return price > order->price() ? false : true;
     }
-
-    std::deque<OrderPtr>& ordersAtBestPrice =
-        d_orderBook->getOrdersAtPrice(incomingOrder, *bestPrice);
-
-    bool incomingOrderFulfilled = false;
-
-    while (!incomingOrderFulfilled)
+    else
     {
-        if (ordersAtBestPrice.size() == 0)
+        return price < order->price() ? false : true;
+    }
+}
+
+std::expected<void, std::string> Matcher::matchOrder(
+    OrderPtr incomingOrder, double orderMatchingPrice) const
+{
+    double bestPrice = orderMatchingPrice;
+    if (orderMatchingPrice == -1)
+    {
+        auto bestPriceAvailable = d_orderBook->getBestPrice(incomingOrder);
+        if (!bestPriceAvailable)
         {
-            return std::unexpected(std::format(
-                "No orders at price = ", *bestPrice, ", aborting"));
+            return std::unexpected(bestPriceAvailable.error());
         }
 
-        const OrderPtr bestOrder = ordersAtBestPrice.at(0);
+        bestPrice = *bestPriceAvailable;
+    }
+    // first get lowest buy or highest sell for ticker
 
-        // in the case where the best order's quantity isn't
-        // enough to fulfill incoming order
-        if (bestOrder->qnty() < incomingOrder->qnty())
+    // second get all orders at that price in FIFO order
+    std::deque<OrderPtr>& ordersAtBestPrice =
+        d_orderBook->getOrdersAtPrice(incomingOrder, bestPrice);
+
+    if (ordersAtBestPrice.empty())
+    {
+        std::map<double, std::deque<OrderPtr>>& priceLevelMap =
+            d_orderBook->priceLevelMap(incomingOrder);
+
+        auto it = priceLevelMap.find(bestPrice);
+        if (it != priceLevelMap.end() &&
+            std::next(it) != priceLevelMap.end())
         {
-            d_orderBook->markOrderAsFulfilled(bestOrder);
+            auto nextIt = std::next(it);
+            const double nextBestPrice = nextIt->first;
 
-            double oldOrderQnty = incomingOrder->qnty();
-            double newOutstandingQnty = incomingOrder->outstandingQnty(
-                oldOrderQnty - bestOrder->qnty());
-        }
-        else if (bestOrder->qnty() == incomingOrder->qnty())
-        {
-            d_orderBook->markOrderAsFulfilled(bestOrder);
-            d_orderBook->markOrderAsFulfilled(incomingOrder);
+            if (!withinPriceRange(nextBestPrice, incomingOrder))
+            {
+                return std::unexpected(
+                    "No matches found due to all other orders being "
+                    "out "
+                    "of "
+                    "pricing range");
+            }
 
-            incomingOrderFulfilled = true;
+            ordersAtBestPrice = d_orderBook->getOrdersAtPrice(
+                incomingOrder, nextBestPrice);
+
+            while (!ordersAtBestPrice.empty())
+            {
+                if (ordersAtBestPrice.at(0)->qnty() <
+                    incomingOrder->qnty())
+                {
+                    d_orderBook->markOrderAsFulfilled(
+                        ordersAtBestPrice.at(0));
+
+                    double oldOrderQnty = incomingOrder->qnty();
+                    double newOutstandingQnty =
+                        incomingOrder->outstandingQnty(
+                            oldOrderQnty -
+                            ordersAtBestPrice.at(0)->qnty());
+
+                    ordersAtBestPrice.pop_front();
+                    return matchOrder(incomingOrder, nextBestPrice);
+                }
+                else if (ordersAtBestPrice.at(0)->qnty() ==
+                         incomingOrder->qnty())
+                {
+                    d_orderBook->markOrderAsFulfilled(
+                        ordersAtBestPrice.at(0));
+                    d_orderBook->markOrderAsFulfilled(incomingOrder);
+
+                    ordersAtBestPrice.pop_front();
+                    return {};
+                }
+                else
+                // best order has a greater quantity than incoming
+                // order
+                {
+                    d_orderBook->markOrderAsFulfilled(incomingOrder);
+
+                    double oldOrderQnty = ordersAtBestPrice.at(0)->qnty();
+                    double newOutstandingQnty =
+                        ordersAtBestPrice.at(0)->outstandingQnty(
+                            oldOrderQnty - incomingOrder->qnty());
+
+                    ordersAtBestPrice.pop_front();
+                    return {};
+                }
+            }
         }
         else
-        // best order has a greater quantity than incoming order
         {
-            d_orderBook->markOrderAsFulfilled(incomingOrder);
-
-            double oldOrderQnty = bestOrder->qnty();
-            double newOutstandingQnty = bestOrder->outstandingQnty(
-                oldOrderQnty - incomingOrder->qnty());
-
-            incomingOrderFulfilled = true;
+            return std::unexpected(
+                "No matches found due to insufficient orders");
         }
     }
+
+    return {};
 }
 
 Matcher::Matcher(std::shared_ptr<OrderBook> orderbook)

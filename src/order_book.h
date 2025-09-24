@@ -41,12 +41,15 @@ class OrderBook
     std::deque<OrderPtr>& getOrdersAtPrice(const OrderPtr order);
 
     std::deque<OrderPtr>& getOrdersAtPrice(const OrderPtr order,
-                                                 int priceToMatch);
+                                           int priceToMatch);
 
-    std::deque<OrderPtr>& ordersDequeAtPrice(OrderPtr order);
+    std::map<double, std::deque<OrderPtr>>& priceLevelMap(OrderPtr order);
+
+        std::deque<OrderPtr>& ordersDequeAtPrice(OrderPtr order);
     std::deque<OrderPtr>& ordersDequeAtPrice(OrderPtr order, int price);
 
-    const std::expected<double, std::string> getBestPrice(OrderPtr orderToMatch);
+    const std::expected<double, std::string> getBestPrice(
+        OrderPtr orderToMatch);
 
     void markOrderAsFulfilled(OrderPtr completedOrder);
 
