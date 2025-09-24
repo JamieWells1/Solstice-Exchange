@@ -95,6 +95,7 @@ Order::Order(std::string uid, Ticker tkr, double price, double qnty,
       d_timeOrderPlaced(timeOrderPlaced)
 {
     d_orderComplete = false;
+    d_outstandingQnty = qnty;
 }
 
 std::string Order::uid() const { return d_uid; }
@@ -105,13 +106,22 @@ double Order::price() const { return d_price; }
 
 double Order::qnty() const { return d_qnty; }
 
+double Order::outstandingQnty(double newOutstandingQnty)
+{
+    d_outstandingQnty = newOutstandingQnty;
+    return newOutstandingQnty;
+};
+
 OrderSide Order::orderSide() const { return d_orderSide; }
 
 TimePoint Order::timeOrderPlaced() const { return d_timeOrderPlaced; }
 
 bool Order::orderComplete() const { return d_orderComplete; }
 
-bool Order::orderComplete(bool isComplete) { d_orderComplete = isComplete; }
+bool Order::orderComplete(bool isFulfilled)
+{
+    d_orderComplete = isFulfilled;
+}
 
 std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
 {
@@ -146,7 +156,8 @@ std::ostream& operator<<(std::ostream& os, const Order& order)
 {
     os << "Order UID: " << order.uid() << " | Ticker: " << order.tkr()
        << " | Price: " << order.price() << " | Quantity: " << order.qnty()
-       << " | Is buy: " << std::boolalpha << (order.orderSide() == OrderSide::Buy);
+       << " | Is buy: " << std::boolalpha
+       << (order.orderSide() == OrderSide::Buy);
 
     return os;
 }

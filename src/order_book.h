@@ -8,6 +8,7 @@
 
 #include <deque>
 #include <functional>
+#include <map>
 #include <memory>
 #include <set>
 #include <unordered_map>
@@ -16,7 +17,7 @@ namespace solstice
 {
 
 using OrderPtr = std::shared_ptr<Order>;
-using PriceLevelMap = std::unordered_map<double, std::deque<OrderPtr>>;
+using PriceLevelMap = std::map<double, std::deque<OrderPtr>>;
 
 using BuyPricesAtPriceLevel = std::set<double, std::greater<double>>;
 using SellPricesAtPriceLevel = std::set<double, std::less<double>>;
@@ -37,14 +38,17 @@ class OrderBook
    public:
     const std::vector<Transaction>& transactions() const;
 
-    const std::deque<OrderPtr>& getMatchingOrders(const OrderPtr order);
+    std::deque<OrderPtr>& getOrdersAtPrice(const OrderPtr order);
 
-    const std::deque<OrderPtr>& getMatchingOrders(const OrderPtr order,
-                                                  int priceToMatch);
+    std::deque<OrderPtr>& getOrdersAtPrice(const OrderPtr order,
+                                                 int priceToMatch);
 
-    const int getBestPrice(OrderPtr orderToMatch);
+    std::deque<OrderPtr>& ordersDequeAtPrice(OrderPtr order);
+    std::deque<OrderPtr>& ordersDequeAtPrice(OrderPtr order, int price);
 
-    void markOrderAsComplete(OrderPtr completedOrder);
+    const std::expected<double, std::string> getBestPrice(OrderPtr orderToMatch);
+
+    void markOrderAsFulfilled(OrderPtr completedOrder);
 
    private:
     // unordered map of order pointers for fast UID lookup
@@ -58,9 +62,6 @@ class OrderBook
     void addOrderToBook(OrderPtr order);
 
     void removeOrderFromBook(OrderPtr orderToRemove);
-
-    std::deque<OrderPtr>& ordersDequeAtPrice(OrderPtr order);
-    std::deque<OrderPtr>& ordersDequeAtPrice(OrderPtr order, int price);
 
     BuyPricesAtPriceLevel& buyPricesAtPriceLevel(OrderPtr order);
     SellPricesAtPriceLevel& sellPricesAtPriceLevel(OrderPtr order);

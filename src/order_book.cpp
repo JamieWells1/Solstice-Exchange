@@ -5,7 +5,6 @@
 #include <truncate.h>
 
 #include <deque>
-#include <iostream>
 #include <memory>
 
 #include "order_side.h"
@@ -41,22 +40,23 @@ std::deque<OrderPtr>& OrderBook::ordersDequeAtPrice(OrderPtr order,
     return ordersDeque;
 }
 
-std::set<double, std::greater<double>>& OrderBook::buyPricesAtPriceLevel(OrderPtr order)
+std::set<double, std::greater<double>>& OrderBook::buyPricesAtPriceLevel(
+    OrderPtr order)
 {
     auto& buyOrdersSet = d_activeOrders[order->tkr()].buyPrices;
 
     return buyOrdersSet;
 }
 
-std::set<double, std::less<double>>& OrderBook::sellPricesAtPriceLevel(OrderPtr order)
+std::set<double, std::less<double>>& OrderBook::sellPricesAtPriceLevel(
+    OrderPtr order)
 {
     auto& sellOrdersSet = d_activeOrders[order->tkr()].sellPrices;
 
     return sellOrdersSet;
 }
 
-const std::deque<OrderPtr>& OrderBook::getMatchingOrders(
-    const OrderPtr incoming)
+std::deque<OrderPtr>& OrderBook::getOrdersAtPrice(const OrderPtr incoming)
 {
     auto oppositeOrderSide = (incoming->orderSide() == OrderSide::Buy)
                                  ? OrderSide::Sell
@@ -65,8 +65,8 @@ const std::deque<OrderPtr>& OrderBook::getMatchingOrders(
     return ordersDequeAtPrice(incoming);
 }
 
-const std::deque<OrderPtr>& OrderBook::getMatchingOrders(
-    const OrderPtr incoming, int priceToMatch)
+std::deque<OrderPtr>& OrderBook::getOrdersAtPrice(const OrderPtr incoming,
+                                                  int priceToMatch)
 {
     auto oppositeOrderSide = (incoming->orderSide() == OrderSide::Buy)
                                  ? OrderSide::Sell
@@ -75,14 +75,50 @@ const std::deque<OrderPtr>& OrderBook::getMatchingOrders(
     return ordersDequeAtPrice(incoming, priceToMatch);
 }
 
-const int OrderBook::getBestPrice(OrderPtr orderToMatch)
+const std::expected<double, std::string> OrderBook::getBestPrice(
+    OrderPtr orderToMatch)
 {
     if (orderToMatch->orderSide() == OrderSide::Buy)
     {
+        auto& sellPricesSet = sellPricesAtPriceLevel(orderToMatch);
+
+        if (sellPricesSet.size() == 0)
+        {
+            return std::unexpected("No sell orders found for this ticker");
+        }
+
+        // find highest sell price at or below target price
+        auto it = sellPricesSet.upper_bound(orderToMatch->price());
+        if (it == sellPricesSet.begin())
+        {
+            return std::unexpected(
+                "No matching sell orders lower than or equal to buy "
+                "price");
+        }
+        --it;
+
+        return *sellPricesSet.begin();
+    }
+    else
+    {
         auto& buyPricesSet = buyPricesAtPriceLevel(orderToMatch);
 
-        // return by value
-        auto CHANGE_ME = buyPricesSet.begin();
+        if (buyPricesSet.size() == 0)
+        {
+            return std::unexpected("No buy orders found for this ticker");
+        }
+
+        // find highest buy price at or below target price
+        auto it = buyPricesSet.upper_bound(orderToMatch->price());
+        if (it == buyPricesSet.begin())
+        {
+            return std::unexpected(
+                "No matching buy orders lower than or equal to buy "
+                "price");
+        }
+        --it;
+
+        return *buyPricesSet.begin();
     }
 }
 
@@ -110,11 +146,12 @@ void OrderBook::removeOrderFromBook(OrderPtr orderToRemove)
     d_uidMap.erase(orderToRemove->uid());
 
     // always remove first element - FIFO
-    ordersDequeAtPrice(orderToRemove).at(0);
+    auto& ordersAtPrice = ordersDequeAtPrice(orderToRemove);
+    ordersAtPrice.pop_front();
 
     // only remove from prices set if it's the last order left at
     // that price
-    if (ordersDequeAtPrice(orderToRemove).size() == 0)
+    if (ordersAtPrice.size() == 0)
     {
         if (orderToRemove->orderSide() == OrderSide::Buy)
         {
@@ -129,7 +166,7 @@ void OrderBook::removeOrderFromBook(OrderPtr orderToRemove)
     }
 }
 
-void OrderBook::markOrderAsComplete(OrderPtr completedOrder)
+void OrderBook::markOrderAsFulfilled(OrderPtr completedOrder)
 {
     completedOrder->orderComplete(true);
 

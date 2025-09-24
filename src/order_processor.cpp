@@ -104,7 +104,7 @@ std::expected<void, std::string> OrderProcessor::processOrder(
     OrderPtr order)
 {
     const std::deque<OrderPtr>& matchedOrders =
-        d_orderBook->getMatchingOrders(order);
+        d_orderBook->getOrdersAtPrice(order);
 
     std::cout << "Found " << matchedOrders.size()
               << " matching orders for " << order->tkr() << " @ "

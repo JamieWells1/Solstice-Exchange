@@ -23,12 +23,13 @@ class Order
     Ticker tkr() const;
     double price() const;
     double qnty() const;
+    double outstandingQnty(double newQnty);
     OrderSide orderSide() const;
     TimePoint timeOrderPlaced() const;
 
     std::expected<TimePoint, std::string> timeOrderFulfilled() const;
     bool orderComplete() const;
-    bool orderComplete(bool isComplete);
+    bool orderComplete(bool isFulfilled);
 
    private:
     Order(std::string uid, Ticker tkr, double price, double qnty,
@@ -38,6 +39,7 @@ class Order
     Ticker d_tkr;
     double d_price;
     double d_qnty;
+    double d_outstandingQnty;
     OrderSide d_orderSide;
     TimePoint d_timeOrderPlaced;
 
