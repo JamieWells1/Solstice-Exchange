@@ -9,8 +9,8 @@
 #include <deque>
 #include <functional>
 #include <memory>
-#include <unordered_map>
 #include <set>
+#include <unordered_map>
 
 namespace solstice
 {
@@ -18,12 +18,16 @@ namespace solstice
 using OrderPtr = std::shared_ptr<Order>;
 using PriceLevelMap = std::unordered_map<double, std::deque<OrderPtr>>;
 
-using BuyPrices = std::set<int, std::greater<int>>;
-using SellPrices = std::set<int, std::less<int>>;
+using BuyPricesAtPriceLevel = std::set<double, std::greater<double>>;
+using SellPricesAtPriceLevel = std::set<double, std::less<double>>;
 
 struct ActiveOrders
 {
-    std::unordered_map<OrderSide, PriceLevelMap> activeOrders;
+    PriceLevelMap buyOrders;
+    PriceLevelMap sellOrders;
+
+    BuyPricesAtPriceLevel buyPrices;
+    SellPricesAtPriceLevel sellPrices;
 };
 
 class OrderBook
@@ -33,10 +37,12 @@ class OrderBook
    public:
     const std::vector<Transaction>& transactions() const;
 
-    const std::deque<OrderPtr>& getMatchingOrders(const OrderPtr& order);
+    const std::deque<OrderPtr>& getMatchingOrders(const OrderPtr order);
 
-    const std::deque<OrderPtr>& getMatchingOrders(const OrderPtr& order,
+    const std::deque<OrderPtr>& getMatchingOrders(const OrderPtr order,
                                                   int priceToMatch);
+
+    const int getBestPrice(OrderPtr orderToMatch);
 
     void markOrderAsComplete(OrderPtr completedOrder);
 
@@ -44,9 +50,6 @@ class OrderBook
     // unordered map of order pointers for fast UID lookup
     std::unordered_map<std::string, OrderPtr> d_uidMap;
     std::unordered_map<Ticker, ActiveOrders> d_activeOrders;
-
-    BuyPrices d_buyPrices;
-    SellPrices d_sellPrices;
 
     std::vector<Transaction> d_transactions;
 
@@ -56,9 +59,11 @@ class OrderBook
 
     void removeOrderFromBook(OrderPtr orderToRemove);
 
-    std::deque<OrderPtr>& getOrdersDequeAtPrice(OrderPtr order);
+    std::deque<OrderPtr>& ordersDequeAtPrice(OrderPtr order);
+    std::deque<OrderPtr>& ordersDequeAtPrice(OrderPtr order, int price);
 
-    std::deque<OrderPtr>& getOrdersDequeAtPrice(OrderPtr order, int price);
+    BuyPricesAtPriceLevel& buyPricesAtPriceLevel(OrderPtr order);
+    SellPricesAtPriceLevel& sellPricesAtPriceLevel(OrderPtr order);
 };
 }  // namespace solstice
 

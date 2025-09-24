@@ -103,7 +103,7 @@ std::expected<void, std::string> OrderProcessor::produceOrders()
 std::expected<void, std::string> OrderProcessor::processOrder(
     OrderPtr order)
 {
-    std::deque<OrderPtr> matchedOrders =
+    const std::deque<OrderPtr>& matchedOrders =
         d_orderBook->getMatchingOrders(order);
 
     std::cout << "Found " << matchedOrders.size()
