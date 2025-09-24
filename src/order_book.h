@@ -10,12 +10,16 @@
 #include <functional>
 #include <memory>
 #include <unordered_map>
+#include <set>
 
 namespace solstice
 {
 
 using OrderPtr = std::shared_ptr<Order>;
 using PriceLevelMap = std::unordered_map<double, std::deque<OrderPtr>>;
+
+using BuyPrices = std::set<int, std::greater<int>>;
+using SellPrices = std::set<int, std::less<int>>;
 
 struct ActiveOrders
 {
@@ -40,6 +44,9 @@ class OrderBook
     // unordered map of order pointers for fast UID lookup
     std::unordered_map<std::string, OrderPtr> d_uidMap;
     std::unordered_map<Ticker, ActiveOrders> d_activeOrders;
+
+    BuyPrices d_buyPrices;
+    SellPrices d_sellPrices;
 
     std::vector<Transaction> d_transactions;
 

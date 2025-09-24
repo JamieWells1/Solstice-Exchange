@@ -59,8 +59,20 @@ const std::deque<OrderPtr>& OrderBook::getMatchingOrders(
 
 void OrderBook::addOrderToBook(OrderPtr order)
 {
+    // add to UID lookup map
     d_uidMap[order->uid()] = order;
 
+    // add price to price lookup map
+    if (order->orderSide() == OrderSide::Buy)
+    {
+        d_buyPrices.insert(order->price());
+    }
+    else
+    {
+        d_sellPrices.insert(order->price());
+    }
+
+    // add order to map of active orders
     getOrdersDequeAtPrice(order).push_back(order);
 }
 
