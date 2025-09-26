@@ -83,57 +83,27 @@ std::expected<void, std::string> OrderProcessor::produceOrders()
     for (size_t i = 0; i < d_config.d_ordersToGenerate; i++)
     {
         std::expected<OrderPtr, std::string> order = generateOrder();
-
         if (!order)
         {
             return std::unexpected(order.error());
         }
 
-        auto processedOrder = processOrder(*order);
-
-        if (!processedOrder)
-        {
-            return std::unexpected(processedOrder.error());
-        }
+        processOrder(*order);
     }
 
     return {};
 }
 
-std::expected<void, std::string> OrderProcessor::processOrder(
-    OrderPtr order)
-{
-    const std::deque<OrderPtr>& matchedOrders =
-        d_orderBook->getOrdersAtPrice(order);
-
-    std::cout << "Found " << matchedOrders.size()
-              << " matching orders for " << order->tkr() << " @ "
-              << order->price() << " ["
-              << (order->orderSide() == OrderSide::Buy ? "BUY" : "SELL")
-              << "]" << std::endl;
-
-    return {};
-}
-
-std::expected<OrderPtr, std::string> OrderProcessor::onNewOrder(
-    OrderPtr order)
+void OrderProcessor::processOrder(OrderPtr order)
 {
     d_orderBook->d_uidMap.emplace(order->uid(), order);
-
-    if (!order)
-    {
-        return std::unexpected("No order received by order book");
-    }
-
     d_orderBook->addOrderToBook(order);
 
-    auto processingResult = processOrder(order);
-    if (!processingResult)
+    bool orderMatched = d_matcher.matchOrder(order);
+    if (orderMatched)
     {
-        return std::unexpected(processingResult.error());
+        d_orderBook->markOrderAsFulfilled(order);
     }
-
-    return std::move(order);
 }
 
 std::expected<void, std::string> OrderProcessor::start()
@@ -146,18 +116,16 @@ std::expected<void, std::string> OrderProcessor::start()
     }
 
     auto orderBook = std::make_shared<OrderBook>();
-
     Matcher matcher{orderBook};
+    OrderProcessor processor{*config, orderBook, matcher};
 
-    OrderProcessor processor(*config, orderBook, matcher);
+    std::expected<void, std::string> result = processor.produceOrders();
 
-    auto response = processor.produceOrders();
-
-    if (!response)
+    if (!result)
     {
         return std::unexpected(
             "An error occured when trying to create orders: " +
-            response.error());
+            result.error());
     }
 
     return {};

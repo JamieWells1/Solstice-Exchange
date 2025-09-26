@@ -21,9 +21,7 @@ class OrderProcessor
     std::shared_ptr<OrderBook> d_orderBook;
     Matcher d_matcher;
 
-    std::expected<OrderPtr, std::string> onNewOrder(OrderPtr order);
-
-    std::expected<void, std::string> processOrder(OrderPtr order);
+    void processOrder(OrderPtr order);
 
    private:
     OrderProcessor(Config config, std::shared_ptr<OrderBook> orderBook,

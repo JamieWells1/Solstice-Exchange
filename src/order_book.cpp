@@ -40,13 +40,14 @@ std::deque<OrderPtr>& OrderBook::ordersDequeAtPrice(OrderPtr order,
     return ordersDeque;
 }
 
-std::map<double, std::deque<OrderPtr>>& OrderBook::priceLevelMap(OrderPtr order)
+std::map<double, std::deque<OrderPtr>>& OrderBook::priceLevelMap(
+    OrderPtr order)
 {
     auto& book = d_activeOrders[order->tkr()];
 
     auto& priceLevelMap = (order->orderSide() == OrderSide::Buy)
-                            ? book.buyOrders
-                            : book.sellOrders;
+                              ? book.buyOrders
+                              : book.sellOrders;
 
     return priceLevelMap;
 }
@@ -154,32 +155,33 @@ void OrderBook::addOrderToBook(OrderPtr order)
 
 void OrderBook::removeOrderFromBook(OrderPtr orderToRemove)
 {
-    d_uidMap.erase(orderToRemove->uid());
-
-    // always remove first element - FIFO
     auto& ordersAtPrice = ordersDequeAtPrice(orderToRemove);
+    // remove first entry - FIFO
     ordersAtPrice.pop_front();
-
-    // only remove from prices set if it's the last order left at
-    // that price
-    if (ordersAtPrice.size() == 0)
-    {
-        if (orderToRemove->orderSide() == OrderSide::Buy)
-        {
-            buyPricesAtPriceLevel(orderToRemove)
-                .erase(orderToRemove->price());
-        }
-        else
-        {
-            sellPricesAtPriceLevel(orderToRemove)
-                .erase(orderToRemove->price());
-        }
-    }
 }
 
 void OrderBook::markOrderAsFulfilled(OrderPtr completedOrder)
 {
     completedOrder->orderComplete(true);
+
+    // remove references
+    d_uidMap.erase(completedOrder->uid());
+
+    // only remove from prices set if it's the last order left at
+    // that price
+    if (ordersDequeAtPrice(completedOrder).size() == 0)
+    {
+        if (completedOrder->orderSide() == OrderSide::Buy)
+        {
+            buyPricesAtPriceLevel(completedOrder)
+                .erase(completedOrder->price());
+        }
+        else
+        {
+            sellPricesAtPriceLevel(completedOrder)
+                .erase(completedOrder->price());
+        }
+    }
 
     removeOrderFromBook(completedOrder);
 }

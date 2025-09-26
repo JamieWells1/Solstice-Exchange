@@ -24,7 +24,7 @@ class Matcher
 
     Matcher(std::shared_ptr<OrderBook> orderbook);
 
-    std::expected<void, std::string> matchOrder(
+    bool matchOrder(
         OrderPtr order, double orderMatchingPrice = -1) const;
 
    private:

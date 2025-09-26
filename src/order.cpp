@@ -4,6 +4,7 @@
 #include <chrono>
 #include <format>
 #include <memory>
+#include <ostream>
 
 namespace
 {
@@ -12,7 +13,8 @@ std::expected<void, std::string> validatePrice(const double price)
 {
     if (price < 0)
     {
-        return std::unexpected(std::format("Invalid price: {}", price));
+        return std::unexpected(
+            std::format("Invalid price: {}", price, "\n"));
     }
 
     return {};
@@ -22,7 +24,8 @@ std::expected<void, std::string> validateQnty(const double qnty)
 {
     if (qnty < 0)
     {
-        return std::unexpected(std::format("Invalid quantity: {}", qnty));
+        return std::unexpected(
+            std::format("Invalid quantity: {}", qnty, "\n"));
     }
 
     return {};
@@ -36,7 +39,7 @@ std::expected<void, std::string> validateTimeOrderPlaced(
     if (timeOrderPlaced > now)
     {
         return std::unexpected(
-            std::format("Order cannot be placed in the future"));
+            std::format("Order cannot be placed in the future", "\n"));
     }
 
     auto delayInSeconds = std::chrono::duration_cast<std::chrono::seconds>(
@@ -45,7 +48,7 @@ std::expected<void, std::string> validateTimeOrderPlaced(
     if (delayInSeconds > 10)
     {
         return std::unexpected(std::format(
-            "Order timed out due to extensive processing time"));
+            "Order timed out due to extensive processing time", "\n"));
     }
 
     return {};
@@ -131,7 +134,7 @@ std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
     // Cannot return time of fulfillment if fulfillment hasn't yet occured
     if (!d_orderComplete)
     {
-        return std::unexpected("Order has not been fulfilled yet");
+        return std::unexpected("Order has not been fulfilled yet\n");
     }
     return d_timeOrderFulfilled;
 }

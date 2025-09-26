@@ -2,6 +2,7 @@
 #include <order.h>
 
 #include <expected>
+#include <iostream>
 #include <memory>
 #include <string>
 
@@ -22,8 +23,8 @@ const bool Matcher::withinPriceRange(double price, OrderPtr order) const
     }
 }
 
-std::expected<void, std::string> Matcher::matchOrder(
-    OrderPtr incomingOrder, double orderMatchingPrice) const
+bool Matcher::matchOrder(OrderPtr incomingOrder,
+                         double orderMatchingPrice) const
 {
     double bestPrice = orderMatchingPrice;
 
@@ -32,7 +33,8 @@ std::expected<void, std::string> Matcher::matchOrder(
         auto bestPriceAvailable = d_orderBook->getBestPrice(incomingOrder);
         if (!bestPriceAvailable)
         {
-            return std::unexpected(bestPriceAvailable.error());
+            std::cout << bestPriceAvailable.error() << std::endl;
+            return false;
         }
 
         bestPrice = *bestPriceAvailable;
@@ -44,8 +46,10 @@ std::expected<void, std::string> Matcher::matchOrder(
     auto it = priceLevelMap.find(bestPrice);
     if (it == priceLevelMap.end() || std::next(it) == priceLevelMap.end())
     {
-        return std::unexpected(
-            "No matches found due to insufficient orders");
+        std::cout
+            << "Insufficient orders available to fulfill incoming order"
+            << std::endl;
+        return false;
     }
 
     std::deque<OrderPtr>& ordersAtBestPrice =
@@ -53,13 +57,12 @@ std::expected<void, std::string> Matcher::matchOrder(
 
     if (ordersAtBestPrice.empty())
     {
-        return std::unexpected("No orders available to match");
+        std::cout << "No orders available to match" << std::endl;
+        return false;
     }
 
     if (ordersAtBestPrice.at(0)->qnty() < incomingOrder->qnty())
     {
-        d_orderBook->markOrderAsFulfilled(ordersAtBestPrice.at(0));
-
         double oldOrderQnty = incomingOrder->qnty();
         double newOutstandingQnty = incomingOrder->outstandingQnty(
             oldOrderQnty - ordersAtBestPrice.at(0)->qnty());
@@ -77,12 +80,9 @@ std::expected<void, std::string> Matcher::matchOrder(
 
             if (!withinPriceRange(nextBestPrice, incomingOrder))
             {
-                return std::unexpected(
-                    "No matches found due to all other orders "
-                    "being "
-                    "out "
-                    "of "
-                    "pricing range");
+                std::cout << "All other orders out of price range"
+                          << std::endl;
+                return false;
             }
 
             return matchOrder(incomingOrder, nextBestPrice);
@@ -91,27 +91,22 @@ std::expected<void, std::string> Matcher::matchOrder(
     else if (ordersAtBestPrice.at(0)->qnty() == incomingOrder->qnty())
     {
         d_orderBook->markOrderAsFulfilled(ordersAtBestPrice.at(0));
-        d_orderBook->markOrderAsFulfilled(incomingOrder);
 
         ordersAtBestPrice.pop_front();
-        return {};
+        return true;
     }
     else
     // best order has a greater quantity than incoming
     // order
     {
-        d_orderBook->markOrderAsFulfilled(incomingOrder);
-
         double oldOrderQnty = ordersAtBestPrice.at(0)->qnty();
         double newOutstandingQnty =
             ordersAtBestPrice.at(0)->outstandingQnty(
                 oldOrderQnty - incomingOrder->qnty());
 
         ordersAtBestPrice.pop_front();
-        return {};
+        return true;
     }
-
-    return {};
 }
 
 Matcher::Matcher(std::shared_ptr<OrderBook> orderbook)
