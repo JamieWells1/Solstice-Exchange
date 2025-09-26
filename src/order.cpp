@@ -123,6 +123,7 @@ bool Order::orderComplete() const { return d_orderComplete; }
 bool Order::orderComplete(bool isFulfilled)
 {
     d_orderComplete = isFulfilled;
+    return d_orderComplete;
 }
 
 std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
