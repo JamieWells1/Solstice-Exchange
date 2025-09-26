@@ -6,7 +6,9 @@
 #include <memory>
 #include <string>
 
-#include "order_book.h"
+#include <order_book.h>
+#include <order_side.h>
+#include <ticker.h>
 
 namespace solstice
 {
@@ -23,13 +25,17 @@ const bool Matcher::withinPriceRange(double price, OrderPtr order) const
     }
 }
 
+std::string orderSideToString(solstice::OrderSide side) {
+    return side == solstice::OrderSide::Buy ? "Buy" : "Sell";
+}
 const std::string Matcher::matchSuccessOutput(OrderPtr matchedOrder) const
 {
-    return std::format("Order fulfilled successfully: ",
-                       matchedOrder->uid());
+    std::string side = orderSideToString(matchedOrder->orderSide());
 
-    // improve output - print info about both orders depending on match
-    // status
+    std::cout << matchedOrder->orderSide();
+    return "Order fulfilled successfully: " + side + matchedOrder->tkr();
+
+    // print info about both orders depending on match status
 }
 
 std::expected<std::string, std::string> Matcher::matchOrder(

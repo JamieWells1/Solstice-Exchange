@@ -2,6 +2,10 @@
 #define ORDER_SIDE_H
 
 #include <cstdint>
+#include <ostream>
+
+namespace solstice
+{
 
 enum class OrderSide : uint8_t
 {
@@ -9,4 +13,7 @@ enum class OrderSide : uint8_t
     Sell = 0
 };
 
-#endif // ORDER_SIDE_H
+std::ostream& operator<<(std::ostream& os, OrderSide orderSide);
+}
+
+#endif  // ORDER_SIDE_H

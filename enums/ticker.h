@@ -4,6 +4,9 @@
 #include <string>
 #include <unordered_map>
 
+namespace solstice
+{
+
 enum class Ticker
 {
     AAPL,
@@ -12,9 +15,9 @@ enum class Ticker
     AMZN,
     MSFT,
     GOOG,
-    INVALID,
     NVDA,
-    COIN
+    COIN,
+    INVALID,
 };
 
 inline const std::unordered_map<std::string, Ticker> kTickerMap = {
@@ -36,5 +39,7 @@ inline const std::unordered_map<Ticker, std::string> kTickerNameMap = []
 }();
 
 std::ostream& operator<<(std::ostream& os, Ticker tkr);
+
+}  // namespace solstice
 
 #endif  // TICKER_H
