@@ -23,8 +23,17 @@ const bool Matcher::withinPriceRange(double price, OrderPtr order) const
     }
 }
 
-bool Matcher::matchOrder(OrderPtr incomingOrder,
-                         double orderMatchingPrice) const
+const std::string Matcher::matchSuccessOutput(OrderPtr matchedOrder) const
+{
+    return std::format("Order fulfilled successfully: ",
+                       matchedOrder->uid());
+
+    // improve output - print info about both orders depending on match
+    // status
+}
+
+std::expected<std::string, std::string> Matcher::matchOrder(
+    OrderPtr incomingOrder, double orderMatchingPrice) const
 {
     double bestPrice = orderMatchingPrice;
 
@@ -33,8 +42,7 @@ bool Matcher::matchOrder(OrderPtr incomingOrder,
         auto bestPriceAvailable = d_orderBook->getBestPrice(incomingOrder);
         if (!bestPriceAvailable)
         {
-            std::cout << bestPriceAvailable.error() << std::endl;
-            return false;
+            return std::unexpected(bestPriceAvailable.error());
         }
 
         bestPrice = *bestPriceAvailable;
@@ -46,10 +54,8 @@ bool Matcher::matchOrder(OrderPtr incomingOrder,
     auto it = priceLevelMap.find(bestPrice);
     if (it == priceLevelMap.end() || std::next(it) == priceLevelMap.end())
     {
-        std::cout
-            << "Insufficient orders available to fulfill incoming order"
-            << std::endl;
-        return false;
+        return std::unexpected(
+            "Insufficient orders available to fulfill incoming order\n");
     }
 
     std::deque<OrderPtr>& ordersAtBestPrice =
@@ -57,8 +63,7 @@ bool Matcher::matchOrder(OrderPtr incomingOrder,
 
     if (ordersAtBestPrice.empty())
     {
-        std::cout << "No orders available to match" << std::endl;
-        return false;
+        return std::unexpected("No orders available to match\n");
     }
 
     if (ordersAtBestPrice.at(0)->qnty() < incomingOrder->qnty())
@@ -80,9 +85,8 @@ bool Matcher::matchOrder(OrderPtr incomingOrder,
 
             if (!withinPriceRange(nextBestPrice, incomingOrder))
             {
-                std::cout << "All other orders out of price range"
-                          << std::endl;
-                return false;
+                return std::unexpected(
+                    "All other orders out of price range\n");
             }
 
             return matchOrder(incomingOrder, nextBestPrice);
@@ -90,22 +94,24 @@ bool Matcher::matchOrder(OrderPtr incomingOrder,
     }
     else if (ordersAtBestPrice.at(0)->qnty() == incomingOrder->qnty())
     {
-        d_orderBook->markOrderAsFulfilled(ordersAtBestPrice.at(0));
+        auto matchedOrder = ordersAtBestPrice.at(0);
+        d_orderBook->markOrderAsFulfilled(matchedOrder);
 
         ordersAtBestPrice.pop_front();
-        return true;
+        return matchSuccessOutput(matchedOrder);
     }
     else
     // best order has a greater quantity than incoming
     // order
     {
-        double oldOrderQnty = ordersAtBestPrice.at(0)->qnty();
-        double newOutstandingQnty =
-            ordersAtBestPrice.at(0)->outstandingQnty(
-                oldOrderQnty - incomingOrder->qnty());
+        auto matchedOrder = ordersAtBestPrice.at(0);
+
+        double oldOrderQnty = matchedOrder->qnty();
+        double newOutstandingQnty = matchedOrder->outstandingQnty(
+            oldOrderQnty - incomingOrder->qnty());
 
         ordersAtBestPrice.pop_front();
-        return true;
+        return matchSuccessOutput(matchedOrder);
     }
 }
 

@@ -96,7 +96,7 @@ const std::expected<double, std::string> OrderBook::getBestPrice(
 
         if (sellPricesSet.size() == 0)
         {
-            return std::unexpected("No sell orders found for this ticker");
+            return std::unexpected("No sell orders found for this ticker\n");
         }
 
         // find highest sell price at or below target price
@@ -105,7 +105,7 @@ const std::expected<double, std::string> OrderBook::getBestPrice(
         {
             return std::unexpected(
                 "No matching sell orders lower than or equal to buy "
-                "price");
+                "price\n");
         }
         --it;
 
@@ -117,7 +117,7 @@ const std::expected<double, std::string> OrderBook::getBestPrice(
 
         if (buyPricesSet.size() == 0)
         {
-            return std::unexpected("No buy orders found for this ticker");
+            return std::unexpected("No buy orders found for this ticker\n");
         }
 
         // find highest buy price at or below target price
@@ -126,7 +126,7 @@ const std::expected<double, std::string> OrderBook::getBestPrice(
         {
             return std::unexpected(
                 "No matching buy orders lower than or equal to buy "
-                "price");
+                "price\n");
         }
         --it;
 

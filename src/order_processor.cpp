@@ -99,11 +99,14 @@ void OrderProcessor::processOrder(OrderPtr order)
     d_orderBook->d_uidMap.emplace(order->uid(), order);
     d_orderBook->addOrderToBook(order);
 
-    bool orderMatched = d_matcher.matchOrder(order);
-    if (orderMatched)
+    auto orderMatched = d_matcher.matchOrder(order);
+    if (!orderMatched)
     {
-        d_orderBook->markOrderAsFulfilled(order);
+        std::cout << orderMatched.error();
     }
+
+    d_orderBook->markOrderAsFulfilled(order);
+    std::cout << *orderMatched;
 }
 
 std::expected<void, std::string> OrderProcessor::start()
