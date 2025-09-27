@@ -45,7 +45,7 @@ class OrderBook
 
     std::map<double, std::deque<OrderPtr>>& priceLevelMap(OrderPtr order);
 
-        std::deque<OrderPtr>& ordersDequeAtPrice(OrderPtr order);
+    std::deque<OrderPtr>& ordersDequeAtPrice(OrderPtr order);
     std::deque<OrderPtr>& ordersDequeAtPrice(OrderPtr order, int price);
 
     const std::expected<double, std::string> getBestPrice(
@@ -59,8 +59,6 @@ class OrderBook
     std::unordered_map<Ticker, ActiveOrders> d_activeOrders;
 
     std::vector<Transaction> d_transactions;
-
-    Transaction match(OrderPtr buyOrder, OrderPtr sellOrder);
 
     void addOrderToBook(OrderPtr order);
 
