@@ -30,9 +30,11 @@ class Matcher
    private:
     const bool withinPriceRange(double price, OrderPtr order) const;
 
-    const double getDealPrice(OrderPtr firstOrder, OrderPtr secondOrder) const;
+    const double getDealPrice(OrderPtr firstOrder,
+                              OrderPtr secondOrder) const;
 
-    const std::string matchSuccessOutput(OrderPtr incomingOrder, OrderPtr matchedOrder) const;
+    const std::string matchSuccessOutput(OrderPtr incomingOrder,
+                                          OrderPtr matchedOrder) const;
 };
 }  // namespace solstice
 

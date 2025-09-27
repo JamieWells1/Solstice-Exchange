@@ -54,17 +54,21 @@ const double Matcher::getDealPrice(OrderPtr firstOrder,
                                               : buyOrder->price();
 }
 
-const std::string Matcher::matchSuccessOutput(OrderPtr incomingOrder, OrderPtr matchedOrder) const
+const std::string Matcher::matchSuccessOutput(OrderPtr incomingOrder,
+                                               OrderPtr matchedOrder) const
 {
     const double dealPrice = getDealPrice(incomingOrder, matchedOrder);
 
-    return "Order fulfilled successfully: " +
-           matchedOrder->orderSideString() + " " +
-           matchedOrder->tkrString() + " with " +
-           matchedOrder->orderSideString() + " " +
-           matchedOrder->tkrString() + " @";
+    std::ostringstream oss;
+    oss << "MATCHED TRADE @ " << dealPrice << "\n"
+        << "  Incoming: " << incomingOrder->orderSideString() << " "
+        << incomingOrder->tkrString()
+        << " | Remaining: " << incomingOrder->outstandingQnty() << "\n"
+        << "  Matched : " << matchedOrder->orderSideString() << " "
+        << matchedOrder->tkrString()
+        << " | Remaining: " << matchedOrder->outstandingQnty();
 
-    // print info about both orders depending on match status
+    return oss.str();
 }
 
 std::expected<std::string, std::string> Matcher::matchOrder(
@@ -131,9 +135,13 @@ std::expected<std::string, std::string> Matcher::matchOrder(
     {
         auto matchedOrder = ordersAtBestPrice.at(0);
         d_orderBook->markOrderAsFulfilled(matchedOrder);
-
         ordersAtBestPrice.pop_front();
-        return matchSuccessOutput(incomingOrder, matchedOrder);
+
+        const std::string& finalMatchResult =
+            matchSuccessOutput(incomingOrder, matchedOrder);
+        std::cout << finalMatchResult;
+
+        return finalMatchResult;
     }
     else
     // best order has a greater quantity than incoming
@@ -144,9 +152,13 @@ std::expected<std::string, std::string> Matcher::matchOrder(
         double oldOrderQnty = matchedOrder->qnty();
         double newOutstandingQnty = matchedOrder->outstandingQnty(
             oldOrderQnty - incomingOrder->qnty());
-
         ordersAtBestPrice.pop_front();
-        return matchSuccessOutput(incomingOrder, matchedOrder);
+
+        const std::string& finalMatchResult =
+            matchSuccessOutput(incomingOrder, matchedOrder);
+        std::cout << finalMatchResult;
+
+        return finalMatchResult;
     }
 }
 
