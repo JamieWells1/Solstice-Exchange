@@ -17,26 +17,28 @@ class Order
 {
    public:
     static std::expected<std::shared_ptr<Order>, std::string> createOrder(
-        Ticker tkr, double price, double qnty, OrderSide orderSide);
+        int uid, Ticker tkr, double price, double qnty, OrderSide orderSide);
 
-    std::string uid() const;
-    Ticker tkr() const;
-    double price() const;
-    double qnty() const;
-    double outstandingQnty() const;
+    const int uid() const;
+    const Ticker tkr() const;
+    const std::string tkrString() const;
+    const double price() const;
+    const double qnty() const;
+    const double outstandingQnty() const;
     double outstandingQnty(double newQnty);
-    OrderSide orderSide() const;
-    TimePoint timeOrderPlaced() const;
+    const OrderSide orderSide() const;
+    const std::string orderSideString() const;
+    const TimePoint timeOrderPlaced() const;
 
-    std::expected<TimePoint, std::string> timeOrderFulfilled() const;
-    bool orderComplete() const;
+    const std::expected<TimePoint, std::string> timeOrderFulfilled() const;
+    const bool orderComplete() const;
     bool orderComplete(bool isFulfilled);
 
    private:
-    Order(std::string uid, Ticker tkr, double price, double qnty,
+    Order(int uid, Ticker tkr, double price, double qnty,
           OrderSide orderSide, TimePoint timeOrderPlaced);
 
-    std::string d_uid;
+    int d_uid;
     Ticker d_tkr;
     double d_price;
     double d_qnty;

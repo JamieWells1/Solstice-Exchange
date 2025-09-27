@@ -62,13 +62,14 @@ OrderProcessor::OrderProcessor(Config config,
 
 std::expected<OrderPtr, std::string> OrderProcessor::generateOrder()
 {
-    Ticker d_ticker = getTicker();
-    double d_price = getPrice(d_config.d_minPrice, d_config.d_maxPrice);
-    double d_qnty = getQnty(d_config.d_minQnty, d_config.d_maxQnty);
-    OrderSide d_orderSide = getOrderSide();
+    int uid = d_orderBook->d_uidMap.size();
+    Ticker ticker = getTicker();
+    double price = getPrice(d_config.d_minPrice, d_config.d_maxPrice);
+    double qnty = getQnty(d_config.d_minQnty, d_config.d_maxQnty);
+    OrderSide orderSide = getOrderSide();
 
     auto order =
-        Order::createOrder(d_ticker, d_price, d_qnty, d_orderSide);
+        Order::createOrder(uid, ticker, price, qnty, orderSide);
 
     if (!order)
     {

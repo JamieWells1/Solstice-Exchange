@@ -28,6 +28,8 @@ inline const std::unordered_map<std::string, Ticker> kTickerMap = {
 
 Ticker validateTkr(const std::string& tkr);
 
+inline std::string to_string(Ticker tkr);
+
 inline const std::unordered_map<Ticker, std::string> kTickerNameMap = []
 {
     std::unordered_map<Ticker, std::string> out;

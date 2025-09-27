@@ -6,6 +6,9 @@
 #include <memory>
 #include <ostream>
 
+#include "order_side.h"
+#include "ticker.h"
+
 namespace
 {
 
@@ -88,7 +91,7 @@ std::expected<void, std::string> validateOrderAttributes(
 namespace solstice
 {
 
-Order::Order(std::string uid, Ticker tkr, double price, double qnty,
+Order::Order(int uid, Ticker tkr, double price, double qnty,
              OrderSide orderSide, TimePoint timeOrderPlaced)
     : d_uid(uid),
       d_tkr(tkr),
@@ -101,15 +104,17 @@ Order::Order(std::string uid, Ticker tkr, double price, double qnty,
     d_outstandingQnty = qnty;
 }
 
-std::string Order::uid() const { return d_uid; }
+const int Order::uid() const { return d_uid; }
 
-Ticker Order::tkr() const { return d_tkr; }
+const Ticker Order::tkr() const { return d_tkr; }
 
-double Order::price() const { return d_price; }
+const std::string Order::tkrString() const { return to_string(d_tkr); }
 
-double Order::qnty() const { return d_qnty; }
+const double Order::price() const { return d_price; }
 
-double Order::outstandingQnty() const { return d_outstandingQnty; }
+const double Order::qnty() const { return d_qnty; }
+
+const double Order::outstandingQnty() const { return d_outstandingQnty; }
 
 double Order::outstandingQnty(double newOutstandingQnty)
 {
@@ -117,11 +122,19 @@ double Order::outstandingQnty(double newOutstandingQnty)
     return newOutstandingQnty;
 };
 
-OrderSide Order::orderSide() const { return d_orderSide; }
+const OrderSide Order::orderSide() const { return d_orderSide; }
 
-TimePoint Order::timeOrderPlaced() const { return d_timeOrderPlaced; }
+const std::string Order::orderSideString() const
+{
+    return d_orderSide == solstice::OrderSide::Buy ? "Buy" : "Sell";
+}
 
-bool Order::orderComplete() const { return d_orderComplete; }
+const TimePoint Order::timeOrderPlaced() const
+{
+    return d_timeOrderPlaced;
+}
+
+const bool Order::orderComplete() const { return d_orderComplete; }
 
 bool Order::orderComplete(bool isFulfilled)
 {
@@ -129,7 +142,7 @@ bool Order::orderComplete(bool isFulfilled)
     return d_orderComplete;
 }
 
-std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
+const std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
 {
     // Cannot return time of fulfillment if fulfillment hasn't yet occured
     if (!d_orderComplete)
@@ -140,9 +153,8 @@ std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
 }
 
 std::expected<std::shared_ptr<Order>, std::string> Order::createOrder(
-    Ticker tkr, double price, double qnty, OrderSide orderSide)
+    int uid, Ticker tkr, double price, double qnty, OrderSide orderSide)
 {
-    std::string uid = Random::getRandomUid();
     TimePoint timeOrderPlaced = getTimeNow();
 
     auto isOrderValid =

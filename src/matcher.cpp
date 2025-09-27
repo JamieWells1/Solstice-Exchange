@@ -1,14 +1,13 @@
 #include <matcher.h>
 #include <order.h>
+#include <order_book.h>
+#include <order_side.h>
+#include <ticker.h>
 
 #include <expected>
 #include <iostream>
 #include <memory>
 #include <string>
-
-#include <order_book.h>
-#include <order_side.h>
-#include <ticker.h>
 
 namespace solstice
 {
@@ -25,15 +24,45 @@ const bool Matcher::withinPriceRange(double price, OrderPtr order) const
     }
 }
 
-std::string orderSideToString(solstice::OrderSide side) {
-    return side == solstice::OrderSide::Buy ? "Buy" : "Sell";
-}
-const std::string Matcher::matchSuccessOutput(OrderPtr matchedOrder) const
+const double Matcher::getDealPrice(OrderPtr firstOrder,
+                                   OrderPtr secondOrder) const
 {
-    std::string side = orderSideToString(matchedOrder->orderSide());
+    if (firstOrder->price() == secondOrder->price())
+    {
+        // doesn't matter which price is returned as they are equal
+        return firstOrder->price();
+    }
 
-    std::cout << matchedOrder->orderSide();
-    return "Order fulfilled successfully: " + side + matchedOrder->tkr();
+    OrderPtr buyOrder = firstOrder->orderSide() == OrderSide::Buy
+                            ? firstOrder
+                            : secondOrder;
+    OrderPtr sellOrder = firstOrder == buyOrder ? secondOrder : firstOrder;
+
+    // always return price of resting order
+    if (sellOrder->timeOrderPlaced() > buyOrder->timeOrderPlaced())
+    {
+        return sellOrder->price();
+    }
+
+    if (buyOrder->timeOrderPlaced() > sellOrder->timeOrderPlaced())
+    {
+        return buyOrder->price();
+    }
+
+    // tiebreaker - uid as this is based on position in book
+    return buyOrder->uid() > sellOrder->uid() ? sellOrder->price()
+                                              : buyOrder->price();
+}
+
+const std::string Matcher::matchSuccessOutput(OrderPtr incomingOrder, OrderPtr matchedOrder) const
+{
+    const double dealPrice = getDealPrice(incomingOrder, matchedOrder);
+
+    return "Order fulfilled successfully: " +
+           matchedOrder->orderSideString() + " " +
+           matchedOrder->tkrString() + " with " +
+           matchedOrder->orderSideString() + " " +
+           matchedOrder->tkrString() + " @";
 
     // print info about both orders depending on match status
 }
@@ -104,7 +133,7 @@ std::expected<std::string, std::string> Matcher::matchOrder(
         d_orderBook->markOrderAsFulfilled(matchedOrder);
 
         ordersAtBestPrice.pop_front();
-        return matchSuccessOutput(matchedOrder);
+        return matchSuccessOutput(incomingOrder, matchedOrder);
     }
     else
     // best order has a greater quantity than incoming
@@ -117,7 +146,7 @@ std::expected<std::string, std::string> Matcher::matchOrder(
             oldOrderQnty - incomingOrder->qnty());
 
         ordersAtBestPrice.pop_front();
-        return matchSuccessOutput(matchedOrder);
+        return matchSuccessOutput(incomingOrder, matchedOrder);
     }
 }
 
