@@ -1,6 +1,7 @@
 #include <ticker.h>
 
 #include <random>
+#include <algorithm>
 
 namespace solstice
 {
@@ -18,16 +19,43 @@ const std::string tkrToString(Ticker tkr)
     return "UNKNOWN";
 }
 
-Ticker getRandomTkr()
+const std::vector<Ticker>& getTickerPool(int tkrPoolCount)
 {
+    static std::vector<Ticker> tickerPool;
+    static bool d_tkrPoolInitialized = false;
+
+    if (!d_tkrPoolInitialized) {
+        d_tkrPoolInitialized = true;
+
+        // start with all tickers
+        tickerPool = kValidTickers;
+
+        // if config specifies a smaller pool, shuffle and trim
+        if (tkrPoolCount > 0 && tkrPoolCount < tickerPool.size()) {
+            static std::random_device rd;
+            static std::mt19937 gen(rd());
+
+            std::shuffle(tickerPool.begin(), tickerPool.end(), gen);
+            tickerPool.resize(tkrPoolCount);
+        }
+    }
+
+    return tickerPool;
+}
+
+Ticker getRandomTkr(int tkrPoolCount)
+{
+    if (tkrPoolCount > kValidTickers.size())
+        tkrPoolCount = kValidTickers.size();
+
+    const auto& pool = getTickerPool(tkrPoolCount);
+
     static std::random_device rd;
     static std::mt19937 gen(rd());
 
-    int numberOfTkrs = Config::d_numberOfTkrs;
-
     std::uniform_int_distribution<> dist(
-        0, kValidTickers.size() - 2);  // exclude INVALID
-    return kValidTickers[dist(gen)];
+        0, pool.size() - 1);  // exclude INVALID
+    return pool[dist(gen)];
 }
 
 std::ostream& operator<<(std::ostream& os, Ticker tkr)

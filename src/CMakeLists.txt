@@ -1,4 +1,5 @@
-add_subdirectory(utils config)
+add_subdirectory(utils)
+add_subdirectory(config)
 
 
 add_executable(solstice

@@ -13,7 +13,10 @@ using namespace solstice;
 namespace
 {
 
-inline Ticker getTkr() { return getRandomTkr(); }
+inline Ticker getTkr(int tkrPoolCount)
+{
+    return getRandomTkr(tkrPoolCount);
+}
 
 double getPrice(int minPrice, int maxPrice)
 {
@@ -52,7 +55,7 @@ OrderProcessor::OrderProcessor(Config config,
 std::expected<OrderPtr, std::string> OrderProcessor::generateOrder()
 {
     int uid = d_orderBook->d_uidMap.size();
-    Ticker tkr = getTkr();
+    Ticker tkr = getTkr(d_config.d_tkrPoolCount);
     double price = getPrice(d_config.d_minPrice, d_config.d_maxPrice);
     double qnty = getQnty(d_config.d_minQnty, d_config.d_maxQnty);
     OrderSide orderSide = getOrderSide();

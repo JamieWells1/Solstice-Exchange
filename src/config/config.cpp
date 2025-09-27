@@ -1,7 +1,6 @@
 #include <config.h>
 
 #include <algorithm>
-#include <iostream>
 
 namespace solstice
 {
@@ -36,4 +35,5 @@ std::expected<Config, std::string> Config::initConfig()
 
     return config;
 }
+
 }  // namespace solstice

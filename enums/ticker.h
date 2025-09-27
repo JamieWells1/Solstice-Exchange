@@ -12,18 +12,17 @@ namespace solstice
     X(AAPL)            \
     X(TSLA)            \
     X(GOOGL)           \
-    X(GOOG)            \
     X(AMZN)            \
     X(MSFT)            \
     X(NVDA)            \
-    X(COIN)            \
-    X(INVALID)
+    X(COIN)
 
 enum class Ticker
 {
 #define X(name) name,
     TICKER_LIST(X)
 #undef X
+        INVALID
 };
 
 inline const std::unordered_map<std::string, Ticker> kTickerMap = {
@@ -44,7 +43,9 @@ inline const std::vector<Ticker> kValidTickers = {
 #undef X
 };
 
-Ticker getRandomTkr();
+const std::vector<Ticker>& getTickerPool(int tkrPoolCount);
+
+Ticker getRandomTkr(int tkrPoolCount);
 
 Ticker validateTkr(const std::string& tkr);
 
