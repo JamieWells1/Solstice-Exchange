@@ -96,7 +96,9 @@ const std::expected<double, std::string> OrderBook::getBestPrice(
 
         if (sellPricesSet.size() == 0)
         {
-            return std::unexpected("No sell orders found for this ticker\n");
+            return std::unexpected(
+                std::format("No sell orders found for ticker {}\n",
+                            orderToMatch->tkrString()));
         }
 
         // find highest sell price at or below target price
@@ -117,7 +119,9 @@ const std::expected<double, std::string> OrderBook::getBestPrice(
 
         if (buyPricesSet.size() == 0)
         {
-            return std::unexpected("No buy orders found for this ticker\n");
+            return std::unexpected(
+                std::format("No buy orders found for ticker {}\n",
+                            orderToMatch->tkrString()));
         }
 
         // find highest buy price at or below target price
@@ -165,11 +169,12 @@ void OrderBook::markOrderAsFulfilled(OrderPtr completedOrder)
     completedOrder->orderComplete(true);
 
     // remove references
+    removeOrderFromBook(completedOrder);
     d_uidMap.erase(completedOrder->uid());
 
     // only remove from prices set if it's the last order left at
     // that price
-    if (ordersDequeAtPrice(completedOrder).size() == 0)
+    if (ordersDequeAtPrice(completedOrder).empty())
     {
         if (completedOrder->orderSide() == OrderSide::Buy)
         {
@@ -182,8 +187,6 @@ void OrderBook::markOrderAsFulfilled(OrderPtr completedOrder)
                 .erase(completedOrder->price());
         }
     }
-
-    removeOrderFromBook(completedOrder);
 }
 
 /*

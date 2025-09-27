@@ -41,8 +41,7 @@ std::expected<void, std::string> validateTimeOrderPlaced(
 
     if (timeOrderPlaced > now)
     {
-        return std::unexpected(
-            std::format("Order cannot be placed in the future", "\n"));
+        return std::unexpected("Order cannot be placed in the future\n");
     }
 
     auto delayInSeconds = std::chrono::duration_cast<std::chrono::seconds>(
@@ -50,8 +49,8 @@ std::expected<void, std::string> validateTimeOrderPlaced(
                               .count();
     if (delayInSeconds > 10)
     {
-        return std::unexpected(std::format(
-            "Order timed out due to extensive processing time", "\n"));
+        return std::unexpected(
+            "Order timed out due to extensive processing time\n");
     }
 
     return {};
@@ -108,7 +107,7 @@ const int Order::uid() const { return d_uid; }
 
 const Ticker Order::tkr() const { return d_tkr; }
 
-const std::string Order::tkrString() const { return to_string(d_tkr); }
+const std::string Order::tkrString() const { return tkrToString(d_tkr); }
 
 const double Order::price() const { return d_price; }
 
@@ -142,7 +141,8 @@ bool Order::orderComplete(bool isFulfilled)
     return d_orderComplete;
 }
 
-const std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
+const std::expected<TimePoint, std::string> Order::timeOrderFulfilled()
+    const
 {
     // Cannot return time of fulfillment if fulfillment hasn't yet occured
     if (!d_orderComplete)

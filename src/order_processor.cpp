@@ -4,27 +4,16 @@
 #include <order_book.h>
 #include <order_processor.h>
 #include <order_side.h>
+#include <ticker.h>
 
-#include <deque>
 #include <memory>
-#include <random>
 
 using namespace solstice;
 
 namespace
 {
 
-inline Ticker getTicker()
-{
-    static const std::array<Ticker, 6> validTickers = {
-        Ticker::AAPL, Ticker::TSLA, Ticker::GOOGL,
-        Ticker::AMZN, Ticker::MSFT, Ticker::GOOG};
-
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dist(0, validTickers.size() - 1);
-    return validTickers[dist(gen)];
-}
+inline Ticker getTkr() { return getRandomTkr(); }
 
 double getPrice(int minPrice, int maxPrice)
 {
@@ -63,13 +52,12 @@ OrderProcessor::OrderProcessor(Config config,
 std::expected<OrderPtr, std::string> OrderProcessor::generateOrder()
 {
     int uid = d_orderBook->d_uidMap.size();
-    Ticker ticker = getTicker();
+    Ticker tkr = getTkr();
     double price = getPrice(d_config.d_minPrice, d_config.d_maxPrice);
     double qnty = getQnty(d_config.d_minQnty, d_config.d_maxQnty);
     OrderSide orderSide = getOrderSide();
 
-    auto order =
-        Order::createOrder(uid, ticker, price, qnty, orderSide);
+    auto order = Order::createOrder(uid, tkr, price, qnty, orderSide);
 
     if (!order)
     {

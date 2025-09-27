@@ -55,7 +55,7 @@ const double Matcher::getDealPrice(OrderPtr firstOrder,
 }
 
 const std::string Matcher::matchSuccessOutput(OrderPtr incomingOrder,
-                                               OrderPtr matchedOrder) const
+                                              OrderPtr matchedOrder) const
 {
     const double dealPrice = getDealPrice(incomingOrder, matchedOrder);
 
@@ -66,7 +66,8 @@ const std::string Matcher::matchSuccessOutput(OrderPtr incomingOrder,
         << " | Remaining: " << incomingOrder->outstandingQnty() << "\n"
         << "  Matched : " << matchedOrder->orderSideString() << " "
         << matchedOrder->tkrString()
-        << " | Remaining: " << matchedOrder->outstandingQnty();
+        << " | Remaining: " << matchedOrder->outstandingQnty()
+        << std::endl;
 
     return oss.str();
 }
@@ -105,6 +106,19 @@ std::expected<std::string, std::string> Matcher::matchOrder(
         return std::unexpected("No orders available to match\n");
     }
 
+    for (size_t i = 0; i < ordersAtBestPrice.size(); ++i)
+    {
+        if (!ordersAtBestPrice[i])
+        {
+            std::cout << "Null order at index " << i << "\n";
+        }
+        else
+        {
+            std::cout << "Order at index " << i
+                      << " qnty=" << ordersAtBestPrice[i]->qnty() << "\n";
+        }
+    }
+
     if (ordersAtBestPrice.at(0)->qnty() < incomingOrder->qnty())
     {
         double oldOrderQnty = incomingOrder->qnty();
@@ -139,7 +153,6 @@ std::expected<std::string, std::string> Matcher::matchOrder(
 
         const std::string& finalMatchResult =
             matchSuccessOutput(incomingOrder, matchedOrder);
-        std::cout << finalMatchResult;
 
         return finalMatchResult;
     }
@@ -156,7 +169,6 @@ std::expected<std::string, std::string> Matcher::matchOrder(
 
         const std::string& finalMatchResult =
             matchSuccessOutput(incomingOrder, matchedOrder);
-        std::cout << finalMatchResult;
 
         return finalMatchResult;
     }

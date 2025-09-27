@@ -1,10 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <ticker.h>
-
 #include <expected>
-#include <deque>
+#include <string>
 
 namespace solstice
 {
@@ -16,6 +14,7 @@ struct Config
 
     // number of orders to generate
     static constexpr int d_ordersToGenerate = 2000;
+    static constexpr int d_numberOfTkrs = 3;
 
     // min and max quantity of equities in each order
     static constexpr int d_minQnty = 1;

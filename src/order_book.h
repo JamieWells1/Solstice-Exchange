@@ -55,7 +55,7 @@ class OrderBook
 
    private:
     // unordered map of order pointers for fast UID lookup
-    std::unordered_map<std::string, OrderPtr> d_uidMap;
+    std::unordered_map<int, OrderPtr> d_uidMap;
     std::unordered_map<Ticker, ActiveOrders> d_activeOrders;
 
     std::vector<Transaction> d_transactions;

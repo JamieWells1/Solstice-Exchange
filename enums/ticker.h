@@ -3,42 +3,52 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace solstice
 {
 
+#define TICKER_LIST(X) \
+    X(AAPL)            \
+    X(TSLA)            \
+    X(GOOGL)           \
+    X(GOOG)            \
+    X(AMZN)            \
+    X(MSFT)            \
+    X(NVDA)            \
+    X(COIN)            \
+    X(INVALID)
+
 enum class Ticker
 {
-    AAPL,
-    TSLA,
-    GOOGL,
-    AMZN,
-    MSFT,
-    GOOG,
-    NVDA,
-    COIN,
-    INVALID,
+#define X(name) name,
+    TICKER_LIST(X)
+#undef X
 };
 
 inline const std::unordered_map<std::string, Ticker> kTickerMap = {
-    {"AAPL", Ticker::AAPL},   {"TSLA", Ticker::TSLA},
-    {"GOOGL", Ticker::GOOGL}, {"AMZN", Ticker::AMZN},
-    {"MSFT", Ticker::MSFT},   {"NVDA", Ticker::NVDA},
-    {"COIN", Ticker::COIN},   {"INVALID", Ticker::INVALID}};
+#define X(name) {#name, Ticker::name},
+    TICKER_LIST(X)
+#undef X
+};
+
+inline const std::unordered_map<Ticker, std::string> kTickerNameMap = {
+#define X(name) {Ticker::name, #name},
+    TICKER_LIST(X)
+#undef X
+};
+
+inline const std::vector<Ticker> kValidTickers = {
+#define X(name) Ticker::name,
+    TICKER_LIST(X)
+#undef X
+};
+
+Ticker getRandomTkr();
 
 Ticker validateTkr(const std::string& tkr);
 
-inline std::string to_string(Ticker tkr);
-
-inline const std::unordered_map<Ticker, std::string> kTickerNameMap = []
-{
-    std::unordered_map<Ticker, std::string> out;
-    for (const auto& [name, ticker] : kTickerMap)
-    {
-        out[ticker] = name;
-    }
-    return out;
-}();
+const std::string tkrToString(Ticker tkr);
 
 std::ostream& operator<<(std::ostream& os, Ticker tkr);
 

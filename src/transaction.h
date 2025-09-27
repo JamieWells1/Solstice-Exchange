@@ -22,8 +22,8 @@ struct Transaction
 
    public:
     std::string d_uid;
-    std::string d_buyOrderUid;
-    std::string d_sellOrderUid;
+    int d_buyOrderUid;
+    int d_sellOrderUid;
     Ticker d_tkr;
     double d_price;
     double d_qnty;
