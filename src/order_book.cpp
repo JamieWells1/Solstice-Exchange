@@ -5,6 +5,7 @@
 #include <truncate.h>
 
 #include <deque>
+#include <iostream>
 #include <memory>
 
 #include "order_side.h"
@@ -17,39 +18,49 @@ const std::vector<Transaction>& OrderBook::transactions() const
     return d_transactions;
 }
 
+std::deque<OrderPtr>& OrderBook::getOrdersDequeAtPrice(OrderPtr order)
+{
+    auto& book = d_activeOrders.at(order->tkr());
+
+    return (order->orderSide() == OrderSide::Buy)
+               ? book.buyOrders.at(order->price())
+               : book.sellOrders.at(order->price());
+}
+
+std::deque<OrderPtr>& OrderBook::getOrdersDequeAtPrice(OrderPtr order,
+                                                       int priceToMatch)
+{
+    auto& book = d_activeOrders.at(order->tkr());
+
+    return (order->orderSide() == OrderSide::Buy)
+               ? book.buyOrders.at(priceToMatch)
+               : book.sellOrders.at(priceToMatch);
+}
+
 std::deque<OrderPtr>& OrderBook::ordersDequeAtPrice(OrderPtr order)
 {
     auto& book = d_activeOrders[order->tkr()];
 
-    auto& ordersDeque = (order->orderSide() == OrderSide::Buy)
-                            ? book.buyOrders[order->price()]
-                            : book.sellOrders[order->price()];
-
-    return ordersDeque;
-}
-
-std::deque<OrderPtr>& OrderBook::ordersDequeAtPrice(OrderPtr order,
-                                                    int price)
-{
-    auto& book = d_activeOrders[order->tkr()];
-
-    auto& ordersDeque = (order->orderSide() == OrderSide::Buy)
-                            ? book.buyOrders[order->price()]
-                            : book.sellOrders[order->price()];
-
-    return ordersDeque;
+    return (order->orderSide() == OrderSide::Buy)
+               ? book.buyOrders[order->price()]
+               : book.sellOrders[order->price()];
 }
 
 std::map<double, std::deque<OrderPtr>>& OrderBook::priceLevelMap(
     OrderPtr order)
 {
-    auto& book = d_activeOrders[order->tkr()];
+    auto& book = d_activeOrders.at(order->tkr());
 
-    auto& priceLevelMap = (order->orderSide() == OrderSide::Buy)
-                              ? book.buyOrders
-                              : book.sellOrders;
+    return (order->orderSide() == OrderSide::Buy) ? book.buyOrders
+                                                  : book.sellOrders;
+}
 
-    return priceLevelMap;
+std::set<double, std::greater<double>>& OrderBook::getBuyPricesAtPriceLevel(
+    OrderPtr order)
+{
+    auto& buyOrdersSet = d_activeOrders.at(order->tkr()).buyPrices;
+
+    return buyOrdersSet;
 }
 
 std::set<double, std::greater<double>>& OrderBook::buyPricesAtPriceLevel(
@@ -60,6 +71,14 @@ std::set<double, std::greater<double>>& OrderBook::buyPricesAtPriceLevel(
     return buyOrdersSet;
 }
 
+std::set<double, std::less<double>>& OrderBook::getSellPricesAtPriceLevel(
+    OrderPtr order)
+{
+    auto& sellOrdersSet = d_activeOrders.at(order->tkr()).sellPrices;
+
+    return sellOrdersSet;
+}
+
 std::set<double, std::less<double>>& OrderBook::sellPricesAtPriceLevel(
     OrderPtr order)
 {
@@ -68,31 +87,12 @@ std::set<double, std::less<double>>& OrderBook::sellPricesAtPriceLevel(
     return sellOrdersSet;
 }
 
-std::deque<OrderPtr>& OrderBook::getOrdersAtPrice(const OrderPtr incoming)
-{
-    auto oppositeOrderSide = (incoming->orderSide() == OrderSide::Buy)
-                                 ? OrderSide::Sell
-                                 : OrderSide::Buy;
-
-    return ordersDequeAtPrice(incoming);
-}
-
-std::deque<OrderPtr>& OrderBook::getOrdersAtPrice(const OrderPtr incoming,
-                                                  int priceToMatch)
-{
-    auto oppositeOrderSide = (incoming->orderSide() == OrderSide::Buy)
-                                 ? OrderSide::Sell
-                                 : OrderSide::Buy;
-
-    return ordersDequeAtPrice(incoming, priceToMatch);
-}
-
 const std::expected<double, std::string> OrderBook::getBestPrice(
     OrderPtr orderToMatch)
 {
     if (orderToMatch->orderSide() == OrderSide::Buy)
     {
-        auto& sellPricesSet = sellPricesAtPriceLevel(orderToMatch);
+        auto& sellPricesSet = getSellPricesAtPriceLevel(orderToMatch);
 
         if (sellPricesSet.size() == 0)
         {
@@ -115,7 +115,7 @@ const std::expected<double, std::string> OrderBook::getBestPrice(
     }
     else
     {
-        auto& buyPricesSet = buyPricesAtPriceLevel(orderToMatch);
+        auto& buyPricesSet = getBuyPricesAtPriceLevel(orderToMatch);
 
         if (buyPricesSet.size() == 0)
         {
@@ -140,6 +140,10 @@ const std::expected<double, std::string> OrderBook::getBestPrice(
 
 void OrderBook::addOrderToBook(OrderPtr order)
 {
+    std::cout << "Adding order " << order->uid()
+              << " price=" << order->price()
+              << " side=" << order->orderSideString() << "\n";
+
     // add to UID lookup map
     d_uidMap[order->uid()] = order;
 
@@ -159,7 +163,7 @@ void OrderBook::addOrderToBook(OrderPtr order)
 
 void OrderBook::removeOrderFromBook(OrderPtr orderToRemove)
 {
-    auto& ordersAtPrice = ordersDequeAtPrice(orderToRemove);
+    auto& ordersAtPrice = getOrdersDequeAtPrice(orderToRemove);
 
     // remove first entry - FIFO
     ordersAtPrice.pop_front();
@@ -175,7 +179,7 @@ void OrderBook::markOrderAsFulfilled(OrderPtr completedOrder)
 
     // only remove from prices set if it's the last order left at
     // that price
-    if (ordersDequeAtPrice(completedOrder).empty())
+    if (getOrdersDequeAtPrice(completedOrder).empty())
     {
         if (completedOrder->orderSide() == OrderSide::Buy)
         {

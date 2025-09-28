@@ -18,7 +18,7 @@ struct Config
     // number of unique tickers that orders can come in for
     int d_tkrPoolCount = 3;
 
-    // min and max quantity of equities in each order
+    // min and max quanties of each order
     int d_minQnty = 1;
     int d_maxQnty = 10;
 

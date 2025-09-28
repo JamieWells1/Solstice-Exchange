@@ -38,15 +38,13 @@ class OrderBook
    public:
     const std::vector<Transaction>& transactions() const;
 
-    std::deque<OrderPtr>& getOrdersAtPrice(const OrderPtr order);
-
-    std::deque<OrderPtr>& getOrdersAtPrice(const OrderPtr order,
-                                           int priceToMatch);
-
     std::map<double, std::deque<OrderPtr>>& priceLevelMap(OrderPtr order);
 
+    std::deque<OrderPtr>& getOrdersDequeAtPrice(const OrderPtr order);
+
     std::deque<OrderPtr>& ordersDequeAtPrice(OrderPtr order);
-    std::deque<OrderPtr>& ordersDequeAtPrice(OrderPtr order, int price);
+    std::deque<OrderPtr>& getOrdersDequeAtPrice(OrderPtr order,
+                                                int priceToMatch);
 
     const std::expected<double, std::string> getBestPrice(
         OrderPtr orderToMatch);
@@ -64,6 +62,9 @@ class OrderBook
 
     void removeOrderFromBook(OrderPtr orderToRemove);
 
+    BuyPricesAtPriceLevel& getBuyPricesAtPriceLevel(OrderPtr order);
+    SellPricesAtPriceLevel& getSellPricesAtPriceLevel(OrderPtr order);
+    
     BuyPricesAtPriceLevel& buyPricesAtPriceLevel(OrderPtr order);
     SellPricesAtPriceLevel& sellPricesAtPriceLevel(OrderPtr order);
 };

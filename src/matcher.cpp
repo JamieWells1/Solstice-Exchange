@@ -99,7 +99,7 @@ std::expected<std::string, std::string> Matcher::matchOrder(
     }
 
     std::deque<OrderPtr>& ordersAtBestPrice =
-        d_orderBook->getOrdersAtPrice(incomingOrder, bestPrice);
+        d_orderBook->getOrdersDequeAtPrice(incomingOrder, bestPrice);
 
     if (ordersAtBestPrice.empty())
     {
