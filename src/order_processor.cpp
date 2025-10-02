@@ -94,11 +94,13 @@ void OrderProcessor::processOrder(OrderPtr order)
     auto orderMatched = d_matcher.matchOrder(order);
     if (!orderMatched)
     {
-        std::cout << orderMatched.error();
+        std::cout << "Order failed to match: " << orderMatched.error();
     }
-
-    d_orderBook->markOrderAsFulfilled(order);
-    std::cout << *orderMatched;
+    else
+    {
+        d_orderBook->markOrderAsFulfilled(order);
+        std::cout << *orderMatched;
+    }
 }
 
 std::expected<void, std::string> OrderProcessor::start()

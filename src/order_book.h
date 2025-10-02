@@ -40,7 +40,7 @@ class OrderBook
 
     std::map<double, std::deque<OrderPtr>>& priceLevelMap(OrderPtr order);
 
-    std::deque<OrderPtr>& getOrdersDequeAtPrice(const OrderPtr order);
+    std::optional<std::reference_wrapper<std::deque<OrderPtr>>> getOrdersDequeAtPrice(const OrderPtr order);
 
     std::deque<OrderPtr>& ordersDequeAtPrice(OrderPtr order);
     std::deque<OrderPtr>& getOrdersDequeAtPrice(OrderPtr order,

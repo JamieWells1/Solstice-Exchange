@@ -18,9 +18,16 @@ const std::vector<Transaction>& OrderBook::transactions() const
     return d_transactions;
 }
 
-std::deque<OrderPtr>& OrderBook::getOrdersDequeAtPrice(OrderPtr order)
+std::optional<std::reference_wrapper<std::deque<OrderPtr>>>
+OrderBook::getOrdersDequeAtPrice(OrderPtr order)
 {
-    auto& book = d_activeOrders.at(order->tkr());
+    auto it = d_activeOrders.find(order->tkr());
+    if (it == d_activeOrders.end())
+    {
+        return std::nullopt;
+    }
+
+    ActiveOrders& book = d_activeOrders.at(order->tkr());
 
     return (order->orderSide() == OrderSide::Buy)
                ? book.buyOrders.at(order->price())
@@ -55,8 +62,8 @@ std::map<double, std::deque<OrderPtr>>& OrderBook::priceLevelMap(
                                                   : book.sellOrders;
 }
 
-std::set<double, std::greater<double>>& OrderBook::getBuyPricesAtPriceLevel(
-    OrderPtr order)
+std::set<double, std::greater<double>>&
+OrderBook::getBuyPricesAtPriceLevel(OrderPtr order)
 {
     auto& buyOrdersSet = d_activeOrders.at(order->tkr()).buyPrices;
 
@@ -111,7 +118,7 @@ const std::expected<double, std::string> OrderBook::getBestPrice(
         }
         --it;
 
-        return *sellPricesSet.begin();
+        return *it;
     }
     else
     {
@@ -134,15 +141,20 @@ const std::expected<double, std::string> OrderBook::getBestPrice(
         }
         --it;
 
-        return *buyPricesSet.begin();
+        return *it;
     }
 }
 
 void OrderBook::addOrderToBook(OrderPtr order)
 {
-    std::cout << "Adding order " << order->uid()
-              << " price=" << order->price()
-              << " side=" << order->orderSideString() << "\n";
+    std::cout << "|| OrderBook::addOrderToBook\n";
+
+    std::cout << "=> old order book: [";
+    for (OrderPtr order : ordersDequeAtPrice(order))
+    {
+        std::cout << order << ", ";
+    }
+    std::cout << "]\n";
 
     // add to UID lookup map
     d_uidMap[order->uid()] = order;
@@ -159,14 +171,18 @@ void OrderBook::addOrderToBook(OrderPtr order)
 
     // add order to map of active orders
     ordersDequeAtPrice(order).push_back(order);
+
+    std::cout << "=> new order book: [";
+    for (OrderPtr order : ordersDequeAtPrice(order))
+    {
+        std::cout << order << ", ";
+    }
+    std::cout << "]\n";
 }
 
 void OrderBook::removeOrderFromBook(OrderPtr orderToRemove)
 {
-    auto& ordersAtPrice = getOrdersDequeAtPrice(orderToRemove);
-
-    // remove first entry - FIFO
-    ordersAtPrice.pop_front();
+    ordersDequeAtPrice(orderToRemove).pop_front();
 }
 
 void OrderBook::markOrderAsFulfilled(OrderPtr completedOrder)
@@ -179,7 +195,8 @@ void OrderBook::markOrderAsFulfilled(OrderPtr completedOrder)
 
     // only remove from prices set if it's the last order left at
     // that price
-    if (getOrdersDequeAtPrice(completedOrder).empty())
+    auto dequeOptional = getOrdersDequeAtPrice(completedOrder);
+    if (dequeOptional && dequeOptional->get().empty())
     {
         if (completedOrder->orderSide() == OrderSide::Buy)
         {

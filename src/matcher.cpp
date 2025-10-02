@@ -75,6 +75,8 @@ const std::string Matcher::matchSuccessOutput(OrderPtr incomingOrder,
 std::expected<std::string, std::string> Matcher::matchOrder(
     OrderPtr incomingOrder, double orderMatchingPrice) const
 {
+    std::cout << "|| Matcher::matchOrder\n";
+
     double bestPrice = orderMatchingPrice;
 
     if (orderMatchingPrice == -1)
@@ -165,7 +167,6 @@ std::expected<std::string, std::string> Matcher::matchOrder(
         double oldOrderQnty = matchedOrder->qnty();
         double newOutstandingQnty = matchedOrder->outstandingQnty(
             oldOrderQnty - incomingOrder->qnty());
-        ordersAtBestPrice.pop_front();
 
         const std::string& finalMatchResult =
             matchSuccessOutput(incomingOrder, matchedOrder);
