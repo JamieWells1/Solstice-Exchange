@@ -121,13 +121,15 @@ std::expected<std::string, std::string> Matcher::matchOrder(
         }
     }
 
-    if (ordersAtBestPrice.at(0)->qnty() < incomingOrder->qnty())
+    OrderPtr bestOrder = ordersAtBestPrice.at(0);
+
+    if (bestOrder->qnty() < incomingOrder->qnty())
     {
         double oldOrderQnty = incomingOrder->qnty();
         double newOutstandingQnty = incomingOrder->outstandingQnty(
-            oldOrderQnty - ordersAtBestPrice.at(0)->qnty());
+            oldOrderQnty - bestOrder->qnty());
 
-        ordersAtBestPrice.pop_front();
+        d_orderBook->markOrderAsFulfilled(bestOrder);
 
         if (!ordersAtBestPrice.empty())
         {
@@ -147,14 +149,13 @@ std::expected<std::string, std::string> Matcher::matchOrder(
             return matchOrder(incomingOrder, nextBestPrice);
         }
     }
-    else if (ordersAtBestPrice.at(0)->qnty() == incomingOrder->qnty())
+    else if (bestOrder->qnty() == incomingOrder->qnty())
     {
-        auto matchedOrder = ordersAtBestPrice.at(0);
-        d_orderBook->markOrderAsFulfilled(matchedOrder);
-        ordersAtBestPrice.pop_front();
+        d_orderBook->markOrderAsFulfilled(bestOrder);
+        d_orderBook->markOrderAsFulfilled(incomingOrder);
 
         const std::string& finalMatchResult =
-            matchSuccessOutput(incomingOrder, matchedOrder);
+            matchSuccessOutput(incomingOrder, bestOrder);
 
         return finalMatchResult;
     }
@@ -162,14 +163,14 @@ std::expected<std::string, std::string> Matcher::matchOrder(
     // best order has a greater quantity than incoming
     // order
     {
-        auto matchedOrder = ordersAtBestPrice.at(0);
-
-        double oldOrderQnty = matchedOrder->qnty();
-        double newOutstandingQnty = matchedOrder->outstandingQnty(
+        double oldOrderQnty = bestOrder->qnty();
+        double newOutstandingQnty = bestOrder->outstandingQnty(
             oldOrderQnty - incomingOrder->qnty());
 
+        d_orderBook->markOrderAsFulfilled(incomingOrder);
+
         const std::string& finalMatchResult =
-            matchSuccessOutput(incomingOrder, matchedOrder);
+            matchSuccessOutput(incomingOrder, bestOrder);
 
         return finalMatchResult;
     }
