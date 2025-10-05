@@ -3,7 +3,7 @@ name: Auto Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 permissions:
   contents: write
@@ -34,25 +34,24 @@ jobs:
       - name: Generate release notes from template
         id: notes
         run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          SHORT_TITLE=${SHORT_TITLE}
           SUMMARY="${SUMMARY_PREFIX} ${VERSION}"
-          FEATURE_GROUP_1=${FEATURE_GROUP_1}
-          DETAIL_1_1=${DETAIL_1_1}
-          DETAIL_1_2=${DETAIL_1_2}
-          FEATURE_GROUP_2=${FEATURE_GROUP_2}
-          DETAIL_2_1=${DETAIL_2_1}
-          DETAIL_2_2=${DETAIL_2_2}
-          ENHANCEMENT_1=${ENHANCEMENT_1}
-          ENHANCEMENT_2=${ENHANCEMENT_2}
-          BUG_DESCRIPTION_1=${BUG_DESCRIPTION_1}
-          BUG_DESCRIPTION_2=${BUG_DESCRIPTION_2}
-          DOC_UPDATE_1=${DOC_UPDATE_1}
-          DOC_UPDATE_2=${DOC_UPDATE_2}
-          sed -e "s/{{VERSION}}/${VERSION}/g" \
-              -e "s/{{SHORT_TITLE}}/${SHORT_TITLE}/g" \
-              -e "s/{{SUMMARY}}/${SUMMARY}/g" \
-              .github/RELEASE_TEMPLATE.md > release_notes.md
+          set +u sed -e "s/{{VERSION}}/${VERSION}/g" \
+          -e "s/{{SHORT_TITLE}}/${SHORT_TITLE}/g" \
+          -e "s/{{SUMMARY}}/${SUMMARY}/g" \
+          -e "s/{{FEATURE_GROUP_1}}/${FEATURE_GROUP_1}/g" \
+          -e "s/{{DETAIL_1_1}}/${DETAIL_1_1}/g" \
+          -e "s/{{DETAIL_1_2}}/${DETAIL_1_2}/g" \
+          -e "s/{{FEATURE_GROUP_2}}/${FEATURE_GROUP_2}/g" \
+          -e "s/{{DETAIL_2_1}}/${DETAIL_2_1}/g" \
+          -e "s/{{DETAIL_2_2}}/${DETAIL_2_2}/g" \
+          -e "s/{{ENHANCEMENT_1}}/${ENHANCEMENT_1}/g" \
+          -e "s/{{ENHANCEMENT_2}}/${ENHANCEMENT_2}/g" \
+          -e "s/{{BUG_DESCRIPTION_1}}/${BUG_DESCRIPTION_1}/g" \
+          -e "s/{{BUG_DESCRIPTION_2}}/${BUG_DESCRIPTION_2}/g" \
+          -e "s/{{DOC_UPDATE_1}}/${DOC_UPDATE_1}/g" \
+          -e "s/{{DOC_UPDATE_2}}/${DOC_UPDATE_2}/g" \
+          -e "s/{{BACKWARD_COMPATIBILITY_NOTE}}/${BACKWARD_COMPATIBILITY_NOTE}/g" \
+          .github/RELEASE_TEMPLATE.md > release_notes.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
