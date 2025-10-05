@@ -169,11 +169,11 @@ OrderProcessor::produceOrders()
     std::atomic<int> ordersExecuted{0};
 
     const int numThreads = std::thread::hardware_concurrency();
-    std::vector<std::thread> workers;
+    std::vector<std::thread> threadPool;
 
     for (int i = 0; i < numThreads; i++)
     {
-        workers.emplace_back(&OrderProcessor::workerThread, this,
+        threadPool.emplace_back(&OrderProcessor::workerThread, this,
                              std::ref(ordersMatched),
                              std::ref(ordersExecuted));
     }
@@ -185,7 +185,7 @@ OrderProcessor::produceOrders()
         {
             d_done.store(true);
             d_queueConditionVar.notify_all();
-            for (auto& w : workers) w.join();
+            for (auto& thread : threadPool) thread.join();
             return std::unexpected(order.error());
         }
         pushToQueue(*order);
@@ -195,7 +195,7 @@ OrderProcessor::produceOrders()
     d_queueConditionVar.notify_all();
 
     // 5. Wait for workers
-    for (auto& worker : workers)
+    for (auto& worker : threadPool)
     {
         worker.join();
     }
