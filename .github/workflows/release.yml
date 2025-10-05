@@ -118,15 +118,30 @@ jobs:
         run: |
           set -Eeuo pipefail
 
-          sed -e "s|{{VERSION}}|${VERSION}|g" \
-              -e "s|{{SHORT_TITLE}}|${SHORT_TITLE}|g" \
-              -e "s|{{SUMMARY}}|${SUMMARY}|g" \
-              -e "s|{{FEATURE_GROUP}}|${FEATURE_GROUP}|g" \
-              -e "s|{{DETAILS}}|${DETAILS}|g" \
-              -e "s|{{ENHANCEMENTS}}|${ENHANCEMENTS}|g" \
-              -e "s|{{BUG_DESCRIPTIONS}}|${BUG_DESCRIPTIONS}|g" \
-              -e "s|{{DOC_UPDATES}}|${DOC_UPDATES}|g" \
+          escape_sed() {
+            # Escapes &, /, and | for sed
+            echo "$1" | sed -e 's/[&/\|]/\\&/g'
+          }
+
+          ESC_VERSION=$(escape_sed "${VERSION}")
+          ESC_SHORT_TITLE=$(escape_sed "${SHORT_TITLE}")
+          ESC_SUMMARY=$(escape_sed "${SUMMARY}")
+          ESC_FEATURE_GROUP=$(escape_sed "${FEATURE_GROUP}")
+          ESC_DETAILS=$(escape_sed "${DETAILS}")
+          ESC_ENHANCEMENTS=$(escape_sed "${ENHANCEMENTS}")
+          ESC_BUG_DESCRIPTIONS=$(escape_sed "${BUG_DESCRIPTIONS}")
+          ESC_DOC_UPDATES=$(escape_sed "${DOC_UPDATES}")
+
+          sed -e "s|{{VERSION}}|${ESC_VERSION}|g" \
+              -e "s|{{SHORT_TITLE}}|${ESC_SHORT_TITLE}|g" \
+              -e "s|{{SUMMARY}}|${ESC_SUMMARY}|g" \
+              -e "s|{{FEATURE_GROUP}}|${ESC_FEATURE_GROUP}|g" \
+              -e "s|{{DETAILS}}|${ESC_DETAILS}|g" \
+              -e "s|{{ENHANCEMENTS}}|${ESC_ENHANCEMENTS}|g" \
+              -e "s|{{BUG_DESCRIPTIONS}}|${ESC_BUG_DESCRIPTIONS}|g" \
+              -e "s|{{DOC_UPDATES}}|${ESC_DOC_UPDATES}|g" \
               .github/RELEASE_TEMPLATE.md > release_notes.md
+
 
       # ==============================================================
       # STEP 3: Publish Release
