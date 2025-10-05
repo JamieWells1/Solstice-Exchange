@@ -217,6 +217,7 @@ std::expected<void, std::string> OrderProcessor::start()
     OrderProcessor processor{*config, orderBook, matcher};
 
     processor.initialiseMutexes();
+    orderBook->initialiseActiveOrders();
 
     auto start = getTimeNow();
     auto result = processor.produceOrders();

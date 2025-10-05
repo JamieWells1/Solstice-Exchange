@@ -266,4 +266,12 @@ void OrderBook::markOrderAsFulfilled(OrderPtr completedOrder)
     }
 }
 
+void OrderBook::initialiseActiveOrders()
+{
+    for (Ticker tkr : ALL_TICKERS)
+    {
+        d_activeOrders[tkr];
+    }
+}
+
 }  // namespace solstice

@@ -28,7 +28,7 @@ class OrderProcessor
     OrderProcessor(Config config, std::shared_ptr<OrderBook> orderBook,
                    Matcher matcher);
 
-    std::unordered_map<Ticker, std::mutex> d_tickerMutexes;
+    std::map<Ticker, std::mutex> d_tickerMutexes;
 
     std::queue<OrderPtr> d_orderProcessQueue;
     std::mutex d_queueMutex;

@@ -57,6 +57,8 @@ class OrderBook
 
     void markOrderAsFulfilled(OrderPtr completedOrder);
 
+    void initialiseActiveOrders();
+
    private:
     std::unordered_map<Ticker, ActiveOrders> d_activeOrders;
 

@@ -65,5 +65,3 @@ After completing the first working version of the matching engine and eradicatin
 - Throughput: ~523,600 orders/sec
 
 ### Execution Time Plotted Against Throughput
-
-
