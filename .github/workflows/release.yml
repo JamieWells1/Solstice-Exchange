@@ -11,7 +11,7 @@ permissions:
 env:
   VERSION: ${{ github.ref_name }}
   SHORT_TITLE: "Short description here"
-  SUMMARY_PREFIX: "Auto-generated summary for ${VERSION}"
+  SUMMARY_PREFIX: "Auto-generated summary for"
   FEATURE_GROUP_1: "First feature group"
   DETAIL_1_1: "Feature detail"
   DETAIL_1_2: "Feature detail"
@@ -37,6 +37,18 @@ jobs:
           VERSION=${GITHUB_REF#refs/tags/}
           SHORT_TITLE=${SHORT_TITLE}
           SUMMARY="${SUMMARY_PREFIX} ${VERSION}"
+          FEATURE_GROUP_1=${FEATURE_GROUP_1}
+          DETAIL_1_1=${DETAIL_1_1}
+          DETAIL_1_2=${DETAIL_1_2}
+          FEATURE_GROUP_2=${FEATURE_GROUP_2}
+          DETAIL_2_1=${DETAIL_2_1}
+          DETAIL_2_2=${DETAIL_2_2}
+          ENHANCEMENT_1=${ENHANCEMENT_1}
+          ENHANCEMENT_2=${ENHANCEMENT_2}
+          BUG_DESCRIPTION_1=${BUG_DESCRIPTION_1}
+          BUG_DESCRIPTION_2=${BUG_DESCRIPTION_2}
+          DOC_UPDATE_1=${DOC_UPDATE_1}
+          DOC_UPDATE_2=${DOC_UPDATE_2}
           sed -e "s/{{VERSION}}/${VERSION}/g" \
               -e "s/{{SHORT_TITLE}}/${SHORT_TITLE}/g" \
               -e "s/{{SUMMARY}}/${SUMMARY}/g" \
@@ -46,3 +58,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           body_path: release_notes.md
+          draft: false
+          prerelease: false
