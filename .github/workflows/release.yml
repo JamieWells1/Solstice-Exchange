@@ -38,8 +38,10 @@ jobs:
             git log "$PREV_TAG".."$CURR_TAG" --pretty=format:"%h %s" > commits.txt
             git diff "$PREV_TAG".."$CURR_TAG" > diff.txt
           else
-            git log -n 50 --pretty=format:"%h %s" > commits.txt
-            git diff HEAD~50 > diff.txt
+            git log --pretty=format:"%h %s" > commits.txt
+            # Get diff from first commit to HEAD
+            FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
+            git diff "$FIRST_COMMIT"..HEAD > diff.txt
           fi
 
           python3 <<'PYCODE'
