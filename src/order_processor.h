@@ -6,6 +6,7 @@
 #include <order.h>
 #include <order_book.h>
 
+#include <mutex>
 #include <memory>
 
 namespace solstice
@@ -25,6 +26,10 @@ class OrderProcessor
    private:
     OrderProcessor(Config config, std::shared_ptr<OrderBook> orderBook,
                    Matcher matcher);
+
+    const void initialiseMutexes();
+
+    std::unordered_map<Ticker, std::mutex> d_tickerMutexes;
 
     std::expected<OrderPtr, std::string> generateOrder(int ordersGenerated);
 

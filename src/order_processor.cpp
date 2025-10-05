@@ -7,6 +7,7 @@
 #include <order_side.h>
 #include <ticker.h>
 
+#include <mutex>
 #include <iostream>
 #include <memory>
 #include <utility>
@@ -74,6 +75,33 @@ std::expected<OrderPtr, std::string> OrderProcessor::generateOrder(
     return order;
 }
 
+bool OrderProcessor::processOrder(OrderPtr order)
+{
+    std::lock_guard<std::mutex> lock(d_tickerMutexes[order->tkr()]);
+
+    d_orderBook->addOrderToBook(order);
+
+    auto orderMatched = d_matcher.matchOrder(order);
+    if (!orderMatched)
+    {
+        if (d_config.d_logLevel >= LogLevel::DEBUG)
+        {
+            std::cout << "Order " << order->uid()
+                      << " failed to match: " << orderMatched.error();
+        }
+        return false;
+    }
+    else
+    {
+        d_orderBook->markOrderAsFulfilled(order);
+        if (d_config.d_logLevel >= LogLevel::DEBUG)
+        {
+            std::cout << *orderMatched;
+        }
+        return true;
+    }
+}
+
 std::expected<std::pair<int, int>, std::string>
 OrderProcessor::produceOrders()
 {
@@ -98,28 +126,12 @@ OrderProcessor::produceOrders()
     return std::pair{ordersExecuted, ordersMatched};
 }
 
-bool OrderProcessor::processOrder(OrderPtr order)
+const void OrderProcessor::initialiseMutexes()
 {
-    d_orderBook->addOrderToBook(order);
-
-    auto orderMatched = d_matcher.matchOrder(order);
-    if (!orderMatched)
+    // create a new mutex for each ticker
+    for (Ticker tkr : ALL_TICKERS)
     {
-        if (d_config.d_logLevel >= LogLevel::DEBUG)
-        {
-            std::cout << "Order " << order->uid()
-                      << " failed to match: " << orderMatched.error();
-        }
-        return false;
-    }
-    else
-    {
-        d_orderBook->markOrderAsFulfilled(order);
-        if (d_config.d_logLevel >= LogLevel::DEBUG)
-        {
-            std::cout << *orderMatched;
-        }
-        return true;
+        d_tickerMutexes[tkr];
     }
 }
 
@@ -135,6 +147,8 @@ std::expected<void, std::string> OrderProcessor::start()
     auto orderBook = std::make_shared<OrderBook>();
     Matcher matcher{orderBook};
     OrderProcessor processor{*config, orderBook, matcher};
+
+    processor.initialiseMutexes();
 
     auto start = getTimeNow();
     auto result = processor.produceOrders();

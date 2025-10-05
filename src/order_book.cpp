@@ -60,8 +60,9 @@ OrderBook::getPriceLevelOppositeOrders(OrderPtr order, double priceToUse)
     auto it = d_activeOrders.find(order->tkr());
     if (it == d_activeOrders.end())
     {
-        return std::unexpected(std::format("No orders at ticker {} on opposite order side\n",
-                                           order->tkrString()));
+        return std::unexpected(
+            std::format("No orders at ticker {} on opposite order side\n",
+                        order->tkrString()));
     }
 
     ActiveOrders& book = d_activeOrders.at(order->tkr());
@@ -71,8 +72,9 @@ OrderBook::getPriceLevelOppositeOrders(OrderPtr order, double priceToUse)
         auto priceIt = book.sellOrders.find(priceToUse);
         if (priceIt == book.sellOrders.end() || priceIt->second.empty())
         {
-            return std::unexpected(std::format("No prices at ticker {} on opposite order side\n",
-                                               order->tkrString()));
+            return std::unexpected(std::format(
+                "No prices at ticker {} on opposite order side\n",
+                order->tkrString()));
         }
         return std::ref(priceIt->second);
     }
@@ -81,15 +83,16 @@ OrderBook::getPriceLevelOppositeOrders(OrderPtr order, double priceToUse)
         auto priceIt = book.buyOrders.find(priceToUse);
         if (priceIt == book.buyOrders.end() || priceIt->second.empty())
         {
-            return std::unexpected(std::format("No prices at ticker {} on opposite order side\n",
-                                               order->tkrString()));
+            return std::unexpected(std::format(
+                "No prices at ticker {} on opposite order side\n",
+                order->tkrString()));
         }
         return std::ref(priceIt->second);
     }
 }
 
-std::map<double, std::deque<OrderPtr>>& OrderBook::sameOrderSidePriceLevelMap(
-    OrderPtr order)
+std::map<double, std::deque<OrderPtr>>&
+OrderBook::sameOrderSidePriceLevelMap(OrderPtr order)
 {
     auto& book = d_activeOrders.at(order->tkr());
 
@@ -97,8 +100,8 @@ std::map<double, std::deque<OrderPtr>>& OrderBook::sameOrderSidePriceLevelMap(
                                                   : book.sellOrders;
 }
 
-std::map<double, std::deque<OrderPtr>>& OrderBook::oppositeOrderSidePriceLevelMap(
-    OrderPtr order)
+std::map<double, std::deque<OrderPtr>>&
+OrderBook::oppositeOrderSidePriceLevelMap(OrderPtr order)
 {
     auto& book = d_activeOrders.at(order->tkr());
 

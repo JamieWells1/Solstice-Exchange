@@ -129,6 +129,12 @@ enum class Ticker
         INVALID
 };
 
+constexpr Ticker ALL_TICKERS[] = {
+#define X(name) Ticker::name,
+    TICKER_LIST(X)
+#undef X
+};
+
 inline const std::unordered_map<std::string, Ticker> kTickerMap = {
 #define X(name) {#name, Ticker::name},
     TICKER_LIST(X)
