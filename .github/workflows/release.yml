@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install OpenAI dependency
-        run: pip install --upgrade openai
+        run: pip install --quiet --upgrade openai
 
       - name: Generate AI release summary
         id: ai_release
@@ -29,6 +29,7 @@ jobs:
           set -Eeuo pipefail
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           CURR_TAG=${GITHUB_REF#refs/tags/}
+
           if [ -n "$PREV_TAG" ]; then
             git log "$PREV_TAG".."$CURR_TAG" --pretty=format:"%h %s" > commits.txt
             git diff --stat "$PREV_TAG".."$CURR_TAG" > diffstat.txt
@@ -38,7 +39,7 @@ jobs:
           fi
 
           python3 <<'PYCODE'
-          import os
+          import os, re
           from openai import OpenAI
 
           api_key = os.getenv("OPENAI_API_KEY")
@@ -48,8 +49,9 @@ jobs:
 
           client = OpenAI(api_key=api_key)
           prompt = f"""
-          You are a professional release writer. Generate concise GitHub release notes for {tag}.
-          Include clear bullet points under: Summary, What's New, Enhancements, Bug Fixes, Documentation Updates.
+          Generate concise, developer-focused GitHub release notes for {tag}.
+          Include sections: Summary, What's New, Enhancements, Bug Fixes, Documentation Updates.
+          Provide bullet points and keep tone technical.
           Commits:
           {commits}
           Diff summary:
@@ -59,61 +61,50 @@ jobs:
           resp = client.chat.completions.create(
               model="gpt-4o-mini",
               messages=[
-                  {"role":"system","content":"You write structured, clean release notes."},
-                  {"role":"user","content":prompt},
+                  {"role": "system", "content": "You write clean, factual software release notes."},
+                  {"role": "user", "content": prompt},
               ],
           )
-          with open("ai_release_notes.md","w") as f:
-              f.write(resp.choices[0].message.content)
+          text = resp.choices[0].message.content.strip()
+          with open("ai_release_notes.md", "w") as f:
+              f.write(text)
           PYCODE
 
-      - name: Inject OpenAI response values into env
+      - name: Inject OpenAI response into environment
         id: inject
         run: |
           set -Eeuo pipefail
+
           extract_section () {
-            sed -n "/^## $1$/,/^## /p" ai_release_notes.md | sed "1d;$d" | sed '/^$/d' || true
+            # Handles final section too (no trailing ##)
+            awk "/^## $1/{flag=1;next}/^## /{flag=0}flag" ai_release_notes.md | sed '/^$/d'
           }
 
           SUMMARY=$(extract_section "Summary" | tr '\n' ' ')
-          FEATURE_GROUP_1=$(extract_section "What's New" | head -n 1 | tr '\n' ' ')
-          DETAIL_1_1=$(extract_section "What's New" | sed -n '2p' | tr '\n' ' ')
-          DETAIL_1_2=$(extract_section "What's New" | sed -n '3p' | tr '\n' ' ')
-          ENHANCEMENT_1=$(extract_section "Enhancements" | head -n 1 | tr '\n' ' ')
-          ENHANCEMENT_2=$(extract_section "Enhancements" | sed -n '2p' | tr '\n' ' ')
-          BUG_DESCRIPTION_1=$(extract_section "Bug Fixes" | head -n 1 | tr '\n' ' ')
-          BUG_DESCRIPTION_2=$(extract_section "Bug Fixes" | sed -n '2p' | tr '\n' ' ')
-          DOC_UPDATE_1=$(extract_section "Documentation Updates" | head -n 1 | tr '\n' ' ')
-          DOC_UPDATE_2=$(extract_section "Documentation Updates" | sed -n '2p' | tr '\n' ' ')
+          WHATS_NEW=$(extract_section "What's New" | tr '\n' ' ')
+          ENHANCEMENTS=$(extract_section "Enhancements" | tr '\n' ' ')
+          BUG_FIXES=$(extract_section "Bug Fixes" | tr '\n' ' ')
+          DOC_UPDATES=$(extract_section "Documentation Updates" | tr '\n' ' ')
 
           {
             echo "SUMMARY=$SUMMARY"
-            echo "FEATURE_GROUP_1=$FEATURE_GROUP_1"
-            echo "DETAIL_1_1=$DETAIL_1_1"
-            echo "DETAIL_1_2=$DETAIL_1_2"
-            echo "ENHANCEMENT_1=$ENHANCEMENT_1"
-            echo "ENHANCEMENT_2=$ENHANCEMENT_2"
-            echo "BUG_DESCRIPTION_1=$BUG_DESCRIPTION_1"
-            echo "BUG_DESCRIPTION_2=$BUG_DESCRIPTION_2"
-            echo "DOC_UPDATE_1=$DOC_UPDATE_1"
-            echo "DOC_UPDATE_2=$DOC_UPDATE_2"
+            echo "WHATS_NEW=$WHATS_NEW"
+            echo "ENHANCEMENTS=$ENHANCEMENTS"
+            echo "BUG_FIXES=$BUG_FIXES"
+            echo "DOC_UPDATES=$DOC_UPDATES"
           } >> "$GITHUB_ENV"
 
-      - name: Populate release notes from template
-        id: notes
+      - name: Populate release notes template
+        id: populate
         run: |
           set -Eeuo pipefail
+
           sed -e "s|{{VERSION}}|${VERSION}|g" \
               -e "s|{{SUMMARY}}|${SUMMARY}|g" \
-              -e "s|{{FEATURE_GROUP_1}}|${FEATURE_GROUP_1}|g" \
-              -e "s|{{DETAIL_1_1}}|${DETAIL_1_1}|g" \
-              -e "s|{{DETAIL_1_2}}|${DETAIL_1_2}|g" \
-              -e "s|{{ENHANCEMENT_1}}|${ENHANCEMENT_1}|g" \
-              -e "s|{{ENHANCEMENT_2}}|${ENHANCEMENT_2}|g" \
-              -e "s|{{BUG_DESCRIPTION_1}}|${BUG_DESCRIPTION_1}|g" \
-              -e "s|{{BUG_DESCRIPTION_2}}|${BUG_DESCRIPTION_2}|g" \
-              -e "s|{{DOC_UPDATE_1}}|${DOC_UPDATE_1}|g" \
-              -e "s|{{DOC_UPDATE_2}}|${DOC_UPDATE_2}|g" \
+              -e "s|{{FEATURE_GROUP_1}}|${WHATS_NEW}|g" \
+              -e "s|{{ENHANCEMENT_1}}|${ENHANCEMENTS}|g" \
+              -e "s|{{BUG_DESCRIPTION_1}}|${BUG_FIXES}|g" \
+              -e "s|{{DOC_UPDATE_1}}|${DOC_UPDATES}|g" \
               .github/RELEASE_TEMPLATE.md > release_notes.md
 
       - name: Create GitHub Release
@@ -123,23 +114,21 @@ jobs:
           draft: false
           prerelease: false
 
-  # 🧩 FINAL CLEANUP JOB
   reset_placeholders:
     runs-on: ubuntu-latest
     needs: release
-    if: always()      # ensures it runs even if the release job fails
+    if: always()
     steps:
       - uses: actions/checkout@v4
 
-      - name: Restore placeholder .yml to default values
+      - name: Restore placeholder workflow
         run: |
           set -Eeuo pipefail
           git fetch origin main
-          # Reset only the release workflow to its canonical version
           git checkout origin/main -- .github/workflows/auto-release.yml || true
-          echo "✓ Workflow restored to default placeholder values."
+          echo "✓ Workflow restored to placeholder defaults."
 
-      - name: Commit and push reset (optional)
+      - name: Commit and push reset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -150,5 +139,5 @@ jobs:
             git commit -m "Reset auto-release.yml to placeholder defaults"
             git push origin HEAD:main
           else
-            echo "No changes to commit."
+            echo "No workflow changes to reset."
           fi
