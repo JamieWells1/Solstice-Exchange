@@ -9,7 +9,6 @@
 #include <memory>
 #include <string>
 
-#include <iostream>
 #include "order_side.h"
 
 namespace solstice

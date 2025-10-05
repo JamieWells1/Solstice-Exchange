@@ -17,7 +17,7 @@ struct Config
     LogLevel d_logLevel = LogLevel::INFO;
 
     // number of orders to generate
-    int d_ordersToGenerate = 10000;
+    int d_ordersToGenerate = 100000;
 
     // number of unique tickers that orders can come in for
     int d_tkrPoolCount = 10;
@@ -27,7 +27,7 @@ struct Config
     int d_maxQnty = 20;
 
     // mix and max price of each order
-    double d_minPrice = 1.0;
+    double d_minPrice = 8.0;
     double d_maxPrice = 10.0;
 
    private:
