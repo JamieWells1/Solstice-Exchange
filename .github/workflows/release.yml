@@ -11,13 +11,28 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.ref_name }}
+      SHORT_TITLE: "Short description here"
+      SUMMARY_PREFIX: "Auto-generated summary for"
+      FEATURE_GROUP_1: "First feature group"
+      DETAIL_1_1: "Feature detail"
+      DETAIL_1_2: "Feature detail"
+      FEATURE_GROUP_2: "Second feature group"
+      DETAIL_2_1: "Feature detail"
+      DETAIL_2_2: "Feature detail"
+      ENHANCEMENT_1: "First enhancement"
+      ENHANCEMENT_2: "Second enhancement"
+      BUG_DESCRIPTION_1: "First bug description"
+      BUG_DESCRIPTION_2: "Second bug description"
+      DOC_UPDATE_1: "First documentation update"
+      DOC_UPDATE_2: "First documentation update"
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Generate release notes from template
         id: notes
-        env:
-          VERSION: ${{ github.ref_name }}
         run: |
           set -Eeuo pipefail
 
