@@ -55,19 +55,33 @@ const double Matcher::getDealPrice(OrderPtr firstOrder,
 }
 
 const std::string Matcher::matchSuccessOutput(OrderPtr incomingOrder,
-                                              OrderPtr matchedOrder) const
+                                              OrderPtr matchedOrder, double matchedPrice) const
 {
     const double dealPrice = getDealPrice(incomingOrder, matchedOrder);
 
     std::ostringstream oss;
-    oss << "MATCHED TRADE @ " << dealPrice << "\n"
-        << "  Incoming: " << incomingOrder->orderSideString() << " "
-        << incomingOrder->tkrString()
-        << " | Remaining: " << incomingOrder->outstandingQnty() << "\n"
-        << "  Matched : " << matchedOrder->orderSideString() << " "
-        << matchedOrder->tkrString()
-        << " | Remaining: " << matchedOrder->outstandingQnty()
-        << std::endl;
+    oss << incomingOrder->uid() << ", " << matchedOrder->uid() << "]\n"
+        << "Incoming: " << incomingOrder->orderSideString() << " "
+        << incomingOrder->tkrString() << " @ " << incomingOrder->price()
+        << ", total: " << incomingOrder->qnty()
+        << ", remaining: " << incomingOrder->outstandingQnty();
+
+    if (incomingOrder->outstandingQnty() == 0)
+    {
+        oss << " [FULFILLED]";
+    }
+    oss << "\n";
+
+    oss << "Matched: " << matchedOrder->orderSideString() << " "
+        << matchedOrder->tkrString() << " @ " << matchedOrder->price()
+        << ", total: " << matchedOrder->qnty()
+        << ", remaining: " << matchedOrder->outstandingQnty();
+
+    if (matchedOrder->outstandingQnty() == 0)
+    {
+        oss << " [FULFILLED]";
+    }
+    oss << "\n\n";
 
     return oss.str();
 }
@@ -75,8 +89,6 @@ const std::string Matcher::matchSuccessOutput(OrderPtr incomingOrder,
 std::expected<std::string, std::string> Matcher::matchOrder(
     OrderPtr incomingOrder, double orderMatchingPrice) const
 {
-    std::cout << "|| Matcher::matchOrder\n";
-
     double bestPrice = orderMatchingPrice;
 
     if (orderMatchingPrice == -1)
@@ -94,40 +106,35 @@ std::expected<std::string, std::string> Matcher::matchOrder(
         d_orderBook->priceLevelMap(incomingOrder);
 
     auto it = priceLevelMap.find(bestPrice);
-    if (it == priceLevelMap.end() || std::next(it) == priceLevelMap.end())
+    if (it == priceLevelMap.end())
     {
         return std::unexpected(
             "Insufficient orders available to fulfill incoming order\n");
     }
 
-    std::deque<OrderPtr>& ordersAtBestPrice =
-        d_orderBook->getOrdersDequeAtPrice(incomingOrder, bestPrice);
+    auto ordersResult =
+        d_orderBook->getPriceLevelOppositeOrders(incomingOrder, bestPrice);
 
-    if (ordersAtBestPrice.empty())
+    if (!ordersResult)
     {
-        return std::unexpected("No orders available to match\n");
+        return std::unexpected(ordersResult.error());
     }
 
-    for (size_t i = 0; i < ordersAtBestPrice.size(); ++i)
-    {
-        if (!ordersAtBestPrice[i])
-        {
-            std::cout << "Null order at index " << i << "\n";
-        }
-        else
-        {
-            std::cout << "Order at index " << i
-                      << " qnty=" << ordersAtBestPrice[i]->qnty() << "\n";
-        }
-    }
-
+    std::deque<OrderPtr>& ordersAtBestPrice = *ordersResult;
     OrderPtr bestOrder = ordersAtBestPrice.at(0);
+
+    if (ordersAtBestPrice.size() == 1 &&
+        bestOrder->uid() == incomingOrder->uid())
+    {
+        return std::unexpected("Orders cannot match themselves\n");
+    }
 
     if (bestOrder->qnty() < incomingOrder->qnty())
     {
-        double oldOrderQnty = incomingOrder->qnty();
-        double newOutstandingQnty = incomingOrder->outstandingQnty(
-            oldOrderQnty - bestOrder->qnty());
+        double transactionQnty = bestOrder->qnty();
+        incomingOrder->outstandingQnty(incomingOrder->qnty() -
+                                       transactionQnty);
+        bestOrder->outstandingQnty(0);
 
         d_orderBook->markOrderAsFulfilled(bestOrder);
 
@@ -151,11 +158,14 @@ std::expected<std::string, std::string> Matcher::matchOrder(
     }
     else if (bestOrder->qnty() == incomingOrder->qnty())
     {
-        d_orderBook->markOrderAsFulfilled(bestOrder);
-        d_orderBook->markOrderAsFulfilled(incomingOrder);
+        bestOrder->outstandingQnty(0);
+        incomingOrder->outstandingQnty(0);
 
         const std::string& finalMatchResult =
-            matchSuccessOutput(incomingOrder, bestOrder);
+            matchSuccessOutput(incomingOrder, bestOrder, bestPrice);
+
+        d_orderBook->markOrderAsFulfilled(bestOrder);
+        d_orderBook->markOrderAsFulfilled(incomingOrder);
 
         return finalMatchResult;
     }
@@ -163,14 +173,15 @@ std::expected<std::string, std::string> Matcher::matchOrder(
     // best order has a greater quantity than incoming
     // order
     {
-        double oldOrderQnty = bestOrder->qnty();
-        double newOutstandingQnty = bestOrder->outstandingQnty(
-            oldOrderQnty - incomingOrder->qnty());
+        double transactionQnty = incomingOrder->qnty();
 
-        d_orderBook->markOrderAsFulfilled(incomingOrder);
+        bestOrder->outstandingQnty(bestOrder->qnty() - transactionQnty);
+        incomingOrder->outstandingQnty(0);
 
         const std::string& finalMatchResult =
-            matchSuccessOutput(incomingOrder, bestOrder);
+            matchSuccessOutput(incomingOrder, bestOrder, bestPrice);
+
+        d_orderBook->markOrderAsFulfilled(incomingOrder);
 
         return finalMatchResult;
     }

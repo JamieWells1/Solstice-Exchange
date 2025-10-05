@@ -16,12 +16,22 @@ std::string Random::getRandomUid()
     return uid;
 }
 
-double Random::getRandomNumber(double min, double max)
+int Random::getRandomInt(int min, int max)
 {
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dist(min, max);
 
     return dist(gen);
+}
+
+double Random::getRandomDouble(double min, double max)
+{
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dist(min, max);
+
+    double value = dist(gen);
+
+    return std::round(value * 100.0) / 100.0;
 }
 
 int Random::getRandomBool()

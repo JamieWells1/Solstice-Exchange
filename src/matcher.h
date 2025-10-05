@@ -34,7 +34,7 @@ class Matcher
                               OrderPtr secondOrder) const;
 
     const std::string matchSuccessOutput(OrderPtr incomingOrder,
-                                          OrderPtr matchedOrder) const;
+                                          OrderPtr matchedOrder, double matchedPrice) const;
 };
 }  // namespace solstice
 

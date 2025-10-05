@@ -1,6 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <log_level.h>
+
 #include <expected>
 #include <string>
 
@@ -12,8 +14,10 @@ struct Config
    public:
     static std::expected<Config, std::string> initConfig();
 
+    LogLevel d_logLevel = LogLevel::INFO;
+
     // number of orders to generate
-    int d_ordersToGenerate = 2000;
+    int d_ordersToGenerate = 100000;
 
     // number of unique tickers that orders can come in for
     int d_tkrPoolCount = 3;
@@ -25,9 +29,6 @@ struct Config
     // mix and max price of each order
     double d_minPrice = 10.0;
     double d_maxPrice = 20.0;
-
-    // price volatility of the market -- values can be in the range (0, 1)
-    double d_priceVolatility = 0.5;
 
    private:
     Config();

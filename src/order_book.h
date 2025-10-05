@@ -40,11 +40,15 @@ class OrderBook
 
     std::map<double, std::deque<OrderPtr>>& priceLevelMap(OrderPtr order);
 
-    std::optional<std::reference_wrapper<std::deque<OrderPtr>>> getOrdersDequeAtPrice(const OrderPtr order);
+    std::optional<std::reference_wrapper<std::deque<OrderPtr>>>
+    getOrdersDequeAtPrice(const OrderPtr order);
 
     std::deque<OrderPtr>& ordersDequeAtPrice(OrderPtr order);
     std::deque<OrderPtr>& getOrdersDequeAtPrice(OrderPtr order,
                                                 int priceToMatch);
+
+    std::expected<std::reference_wrapper<std::deque<OrderPtr>>, std::string>
+    getPriceLevelOppositeOrders(OrderPtr order, double priceToUse);
 
     const std::expected<double, std::string> getBestPrice(
         OrderPtr orderToMatch);
@@ -52,8 +56,6 @@ class OrderBook
     void markOrderAsFulfilled(OrderPtr completedOrder);
 
    private:
-    // unordered map of order pointers for fast UID lookup
-    std::unordered_map<int, OrderPtr> d_uidMap;
     std::unordered_map<Ticker, ActiveOrders> d_activeOrders;
 
     std::vector<Transaction> d_transactions;
@@ -62,9 +64,12 @@ class OrderBook
 
     void removeOrderFromBook(OrderPtr orderToRemove);
 
-    BuyPricesAtPriceLevel& getBuyPricesAtPriceLevel(OrderPtr order);
-    SellPricesAtPriceLevel& getSellPricesAtPriceLevel(OrderPtr order);
-    
+    std::expected<std::reference_wrapper<BuyPricesAtPriceLevel>, std::string>
+    getBuyPricesAtPriceLevel(OrderPtr order);
+
+    std::expected<std::reference_wrapper<SellPricesAtPriceLevel>, std::string>
+    getSellPricesAtPriceLevel(OrderPtr order);
+
     BuyPricesAtPriceLevel& buyPricesAtPriceLevel(OrderPtr order);
     SellPricesAtPriceLevel& sellPricesAtPriceLevel(OrderPtr order);
 };

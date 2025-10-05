@@ -1,6 +1,6 @@
 add_subdirectory(utils)
 add_subdirectory(config)
-
+add_subdirectory(enums)
 
 add_executable(solstice
     main.cpp
@@ -15,9 +15,10 @@ target_include_directories(solstice PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/utils
     ${CMAKE_CURRENT_SOURCE_DIR}/config
+    ${CMAKE_CURRENT_SOURCE_DIR}/enums
 )
 
 # enable/disable logging
 target_compile_definitions(solstice PRIVATE ENABLE_LOGGING)
 
-target_link_libraries(solstice PRIVATE utils config)
+target_link_libraries(solstice PRIVATE utils config enums)

@@ -1,4 +1,5 @@
 #include <config.h>
+#include <log_level.h>
 #include <logging.h>
 #include <order.h>
 #include <order_book.h>
@@ -6,7 +7,9 @@
 #include <order_side.h>
 #include <ticker.h>
 
+#include <iostream>
 #include <memory>
+#include <utility>
 
 using namespace solstice;
 
@@ -20,12 +23,12 @@ inline Ticker getTkr(int tkrPoolCount)
 
 double getPrice(int minPrice, int maxPrice)
 {
-    return Random::getRandomNumber(minPrice, maxPrice);
+    return Random::getRandomInt(minPrice, maxPrice);
 }
 
 double getQnty(int minQnty, int maxQnty)
 {
-    return Random::getRandomNumber(minQnty, maxQnty);
+    return Random::getRandomInt(minQnty, maxQnty);
 }
 
 OrderSide getOrderSide()
@@ -52,9 +55,10 @@ OrderProcessor::OrderProcessor(Config config,
 {
 }
 
-std::expected<OrderPtr, std::string> OrderProcessor::generateOrder()
+std::expected<OrderPtr, std::string> OrderProcessor::generateOrder(
+    int ordersGenerated)
 {
-    int uid = d_orderBook->d_uidMap.size();
+    int uid = ordersGenerated;
     Ticker tkr = getTkr(d_config.d_tkrPoolCount);
     double price = getPrice(d_config.d_minPrice, d_config.d_maxPrice);
     double qnty = getQnty(d_config.d_minQnty, d_config.d_maxQnty);
@@ -70,36 +74,52 @@ std::expected<OrderPtr, std::string> OrderProcessor::generateOrder()
     return order;
 }
 
-std::expected<void, std::string> OrderProcessor::produceOrders()
+std::expected<std::pair<int, int>, std::string>
+OrderProcessor::produceOrders()
 {
+    int ordersMatched = 0;
+    int ordersExecuted = 0;
+
     for (size_t i = 0; i < d_config.d_ordersToGenerate; i++)
     {
-        std::expected<OrderPtr, std::string> order = generateOrder();
+        std::expected<OrderPtr, std::string> order = generateOrder(i);
         if (!order)
         {
             return std::unexpected(order.error());
         }
 
-        processOrder(*order);
+        if (processOrder(*order))
+        {
+            ordersMatched++;
+        }
+        ordersExecuted++;
     }
 
-    return {};
+    return std::pair{ordersExecuted, ordersMatched};
 }
 
-void OrderProcessor::processOrder(OrderPtr order)
+bool OrderProcessor::processOrder(OrderPtr order)
 {
-    d_orderBook->d_uidMap.emplace(order->uid(), order);
     d_orderBook->addOrderToBook(order);
 
     auto orderMatched = d_matcher.matchOrder(order);
     if (!orderMatched)
     {
-        std::cout << "Order failed to match: " << orderMatched.error();
+        if (d_config.d_logLevel >= LogLevel::DEBUG)
+        {
+            std::cout << "Order " << order->uid()
+                      << " failed to match: " << orderMatched.error();
+        }
+        return false;
     }
     else
     {
         d_orderBook->markOrderAsFulfilled(order);
-        std::cout << *orderMatched;
+        if (d_config.d_logLevel >= LogLevel::DEBUG)
+        {
+            std::cout << *orderMatched;
+        }
+        return true;
     }
 }
 
@@ -116,13 +136,26 @@ std::expected<void, std::string> OrderProcessor::start()
     Matcher matcher{orderBook};
     OrderProcessor processor{*config, orderBook, matcher};
 
-    std::expected<void, std::string> result = processor.produceOrders();
+    auto start = getTimeNow();
+    auto result = processor.produceOrders();
+    auto end = getTimeNow();
 
     if (!result)
     {
         return std::unexpected(
             "An error occured when trying to create orders: " +
             result.error());
+    }
+
+    auto duration =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    if (config->d_logLevel >= LogLevel::INFO)
+    {
+        std::cout << "\nSUMMARY:"
+                  << "\nOrders executed: " << result->first
+                  << "\nOrders matched: " << result->second
+                  << "\nTime taken: " << duration;
     }
 
     return {};

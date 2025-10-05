@@ -5,7 +5,6 @@
 #include <matcher.h>
 #include <order.h>
 #include <order_book.h>
-#include <string.h>
 
 #include <memory>
 
@@ -21,15 +20,15 @@ class OrderProcessor
     std::shared_ptr<OrderBook> d_orderBook;
     Matcher d_matcher;
 
-    void processOrder(OrderPtr order);
+    bool processOrder(OrderPtr order);
 
    private:
     OrderProcessor(Config config, std::shared_ptr<OrderBook> orderBook,
                    Matcher matcher);
 
-    std::expected<OrderPtr, std::string> generateOrder();
+    std::expected<OrderPtr, std::string> generateOrder(int ordersGenerated);
 
-    std::expected<void, std::string> produceOrders();
+    std::expected<std::pair<int, int>, std::string> produceOrders();
 };
 
 std::ostream& operator<<(std::ostream& os, ActiveOrders activeOrders);
