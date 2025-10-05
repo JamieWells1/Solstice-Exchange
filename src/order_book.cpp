@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 
+#include <iostream>
 #include "order_side.h"
 
 namespace solstice
@@ -88,13 +89,22 @@ OrderBook::getPriceLevelOppositeOrders(OrderPtr order, double priceToUse)
     }
 }
 
-std::map<double, std::deque<OrderPtr>>& OrderBook::priceLevelMap(
+std::map<double, std::deque<OrderPtr>>& OrderBook::sameOrderSidePriceLevelMap(
     OrderPtr order)
 {
     auto& book = d_activeOrders.at(order->tkr());
 
     return (order->orderSide() == OrderSide::Buy) ? book.buyOrders
                                                   : book.sellOrders;
+}
+
+std::map<double, std::deque<OrderPtr>>& OrderBook::oppositeOrderSidePriceLevelMap(
+    OrderPtr order)
+{
+    auto& book = d_activeOrders.at(order->tkr());
+
+    return (order->orderSide() == OrderSide::Buy) ? book.sellOrders
+                                                  : book.buyOrders;
 }
 
 std::expected<std::reference_wrapper<BuyPricesAtPriceLevel>, std::string>
@@ -162,7 +172,7 @@ const std::expected<double, std::string> OrderBook::getBestPrice(
         }
 
         double lowestSellPrice = *sellPrices.begin();
-        if (lowestSellPrice >= orderToMatch->price())
+        if (lowestSellPrice > orderToMatch->price())
         {
             return std::unexpected(
                 "No matching sell orders lower than or equal to buy "
@@ -190,7 +200,7 @@ const std::expected<double, std::string> OrderBook::getBestPrice(
 
         // find highest buy price at or below target price
         double highestBuyPrice = *buyPrices.begin();
-        if (highestBuyPrice <= orderToMatch->price())
+        if (highestBuyPrice < orderToMatch->price())
         {
             return std::unexpected(
                 "No matching buy orders lower than or equal to buy "

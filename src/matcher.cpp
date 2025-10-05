@@ -55,7 +55,8 @@ const double Matcher::getDealPrice(OrderPtr firstOrder,
 }
 
 const std::string Matcher::matchSuccessOutput(OrderPtr incomingOrder,
-                                              OrderPtr matchedOrder, double matchedPrice) const
+                                              OrderPtr matchedOrder,
+                                              double matchedPrice) const
 {
     const double dealPrice = getDealPrice(incomingOrder, matchedOrder);
 
@@ -103,7 +104,7 @@ std::expected<std::string, std::string> Matcher::matchOrder(
     }
 
     std::map<double, std::deque<OrderPtr>>& priceLevelMap =
-        d_orderBook->priceLevelMap(incomingOrder);
+        d_orderBook->oppositeOrderSidePriceLevelMap(incomingOrder);
 
     auto it = priceLevelMap.find(bestPrice);
     if (it == priceLevelMap.end())

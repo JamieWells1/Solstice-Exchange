@@ -38,7 +38,9 @@ class OrderBook
    public:
     const std::vector<Transaction>& transactions() const;
 
-    std::map<double, std::deque<OrderPtr>>& priceLevelMap(OrderPtr order);
+    std::map<double, std::deque<OrderPtr>>& sameOrderSidePriceLevelMap(OrderPtr order);
+    std::map<double, std::deque<OrderPtr>>& oppositeOrderSidePriceLevelMap(
+    OrderPtr order);
 
     std::optional<std::reference_wrapper<std::deque<OrderPtr>>>
     getOrdersDequeAtPrice(const OrderPtr order);

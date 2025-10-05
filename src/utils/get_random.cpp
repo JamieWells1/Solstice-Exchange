@@ -18,7 +18,7 @@ std::string Random::getRandomUid()
 
 int Random::getRandomInt(int min, int max)
 {
-    std::mt19937 gen(rd());
+    static std::mt19937 gen(std::random_device{}());
     std::uniform_int_distribution<> dist(min, max);
 
     return dist(gen);
@@ -26,7 +26,7 @@ int Random::getRandomInt(int min, int max)
 
 double Random::getRandomDouble(double min, double max)
 {
-    std::mt19937 gen(rd());
+    static std::mt19937 gen(std::random_device{}());
     std::uniform_real_distribution<> dist(min, max);
 
     double value = dist(gen);
@@ -36,8 +36,8 @@ double Random::getRandomDouble(double min, double max)
 
 int Random::getRandomBool()
 {
+    static std::mt19937 gen(std::random_device{}());
     std::uniform_int_distribution<> dist(0, 1);
-    std::mt19937 gen(rd());
 
     return dist(gen) == 1;
 }

@@ -23,7 +23,7 @@ inline Ticker getTkr(int tkrPoolCount)
 
 double getPrice(int minPrice, int maxPrice)
 {
-    return Random::getRandomInt(minPrice, maxPrice);
+    return Random::getRandomDouble(minPrice, maxPrice);
 }
 
 double getQnty(int minQnty, int maxQnty)
