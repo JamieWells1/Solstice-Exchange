@@ -31,8 +31,7 @@
 ---
 
 ## Documentation Updates
-- {{DOC_UPDATES}}
+- {{DOC_UPDATE_1}}
+- {{DOC_UPDATE_2}}
 
 ---
-
-## Assets
