@@ -115,7 +115,7 @@ def cmd_test():
     build()
 
     test_dir = os.path.join(PROJECT_ROOT, BUILD_DIR, "bin")
-    test_binaries = sorted(glob.glob(os.path.join(test_dir, "test_*")))
+    test_binaries = sorted(glob.glob(os.path.join(test_dir, "*")))
 
     if not test_binaries:
         log_error(f"No test binaries starting with 'test_' found in {test_dir}")
