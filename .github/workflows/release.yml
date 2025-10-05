@@ -36,10 +36,10 @@ jobs:
 
           if [ -n "$PREV_TAG" ]; then
             git log "$PREV_TAG".."$CURR_TAG" --pretty=format:"%h %s" > commits.txt
-            git diff --stat "$PREV_TAG".."$CURR_TAG" > diffstat.txt
+            git diff "$PREV_TAG".."$CURR_TAG" > diff.txt
           else
             git log -n 50 --pretty=format:"%h %s" > commits.txt
-            git diff --stat > diffstat.txt
+            git diff HEAD~50 > diff.txt
           fi
 
           python3 <<'PYCODE'
@@ -50,7 +50,7 @@ jobs:
           client = OpenAI(api_key=api_key)
 
           commits = open("commits.txt").read()
-          diffstat = open("diffstat.txt").read()
+          diff = open("diff.txt").read()
           tag = os.getenv("GITHUB_REF_NAME", "unknown")
 
           prompt = f"""
@@ -66,14 +66,15 @@ jobs:
           - Do NOT include code fences or backticks in the JSON values.
           - Focus on clarity, developer insight, and impact.
           - Your goal: a professional, public GitHub release.
+          - Analyze the actual code changes in the diff to understand what was modified, not just the commit messages.
 
           Context:
           Version: {tag}
           Commit messages:
           {commits}
 
-          File changes:
-          {diffstat}
+          Code changes (full diff):
+          {diff}
 
           Example (simplified JSON shape):
           {{
