@@ -21,7 +21,11 @@ jobs:
       - name: Install OpenAI dependency
         run: pip install --quiet --upgrade openai
 
-      - name: Generate AI release summary
+      # ==============================================================
+      # STEP 1: AI generates section content (multi-line safe)
+      # ==============================================================
+
+      - name: Generate AI release content
         id: ai_release
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -39,73 +43,94 @@ jobs:
           fi
 
           python3 <<'PYCODE'
-          import os, re
+          import os, json, textwrap
           from openai import OpenAI
 
           api_key = os.getenv("OPENAI_API_KEY")
+          client = OpenAI(api_key=api_key)
+
           commits = open("commits.txt").read()
           diffstat = open("diffstat.txt").read()
           tag = os.getenv("GITHUB_REF_NAME", "unknown")
 
-          client = OpenAI(api_key=api_key)
           prompt = f"""
-          Generate concise, developer-focused GitHub release notes for {tag}.
-          Include sections: Summary, What's New, Enhancements, Bug Fixes, Documentation Updates.
-          Provide bullet points and keep tone technical.
-          Commits:
+          You are an expert technical release writer.
+          Generate rich, Markdown-formatted content for each of the following placeholders.
+
+          **Rules:**
+          - Output valid JSON with the following keys exactly:
+            ["SHORT_TITLE", "SUMMARY", "FEATURE_GROUP", "DETAILS", "ENHANCEMENTS", "BUG_DESCRIPTIONS", "DOC_UPDATES"]
+          - Each value can be multiline Markdown (with newlines and bullet lists).
+          - Combine similar items into unified bullet sections when appropriate.
+          - Be concise, factual, and use proper Markdown syntax.
+          - Do NOT include code fences or backticks in the JSON values.
+          - Focus on clarity, developer insight, and impact.
+          - Your goal: a professional, public GitHub release.
+
+          Context:
+          Version: {tag}
+          Commit messages:
           {commits}
-          Diff summary:
+
+          File changes:
           {diffstat}
+
+          Example (simplified JSON shape):
+          {{
+            "SHORT_TITLE": "Initial Alpha",
+            "SUMMARY": "Introduces the first stable foundation for automated releases.",
+            "FEATURE_GROUP": "AI Release System",
+            "DETAILS": "- Integrated OpenAI API for release note generation\\n- Added automated workflow triggers",
+            "ENHANCEMENTS": "- Refactored pipeline structure\\n- Improved reliability of tagging logic",
+            "BUG_DESCRIPTIONS": "- Fixed incorrect env propagation\\n- Resolved crash in release script",
+            "DOC_UPDATES": "- Added developer setup guide\\n- Documented CI process"
+          }}
           """
 
           resp = client.chat.completions.create(
               model="gpt-4o-mini",
               messages=[
-                  {"role": "system", "content": "You write clean, factual software release notes."},
+                  {"role": "system", "content": "You produce structured JSON for software release notes."},
                   {"role": "user", "content": prompt},
               ],
           )
+
           text = resp.choices[0].message.content.strip()
-          with open("ai_release_notes.md", "w") as f:
-              f.write(text)
+
+          # Basic JSON cleanup (removes Markdown fences if the model adds them)
+          text = text.replace('```json', '').replace('```', '').strip()
+
+          data = json.loads(text)
+
+          # Write each key into env file for GitHub Actions
+          with open(os.getenv("GITHUB_ENV"), "a") as envfile:
+              for key, value in data.items():
+                  value = value.replace("%", "%%")  # avoid sed expansion issues
+                  envfile.write(f"{key}<<EOF\n{value}\nEOF\n")
           PYCODE
 
-      - name: Inject OpenAI response into environment
-        id: inject
-        run: |
-          set -Eeuo pipefail
+      # ==============================================================
+      # STEP 2: Substitute the placeholders with AI output
+      # ==============================================================
 
-          extract_section () {
-            # Handles final section too (no trailing ##)
-            awk "/^## $1/{flag=1;next}/^## /{flag=0}flag" ai_release_notes.md | sed '/^$/d'
-          }
-
-          SUMMARY=$(extract_section "Summary" | tr '\n' ' ')
-          WHATS_NEW=$(extract_section "What's New" | tr '\n' ' ')
-          ENHANCEMENTS=$(extract_section "Enhancements" | tr '\n' ' ')
-          BUG_FIXES=$(extract_section "Bug Fixes" | tr '\n' ' ')
-          DOC_UPDATES=$(extract_section "Documentation Updates" | tr '\n' ' ')
-
-          {
-            echo "SUMMARY=$SUMMARY"
-            echo "WHATS_NEW=$WHATS_NEW"
-            echo "ENHANCEMENTS=$ENHANCEMENTS"
-            echo "BUG_FIXES=$BUG_FIXES"
-            echo "DOC_UPDATES=$DOC_UPDATES"
-          } >> "$GITHUB_ENV"
-
-      - name: Populate release notes template
+      - name: Populate template with AI output
         id: populate
         run: |
           set -Eeuo pipefail
 
           sed -e "s|{{VERSION}}|${VERSION}|g" \
+              -e "s|{{SHORT_TITLE}}|${SHORT_TITLE}|g" \
               -e "s|{{SUMMARY}}|${SUMMARY}|g" \
-              -e "s|{{FEATURE_GROUP_1}}|${WHATS_NEW}|g" \
-              -e "s|{{ENHANCEMENT_1}}|${ENHANCEMENTS}|g" \
-              -e "s|{{BUG_DESCRIPTION_1}}|${BUG_FIXES}|g" \
-              -e "s|{{DOC_UPDATE_1}}|${DOC_UPDATES}|g" \
+              -e "s|{{FEATURE_GROUP}}|${FEATURE_GROUP}|g" \
+              -e "s|{{DETAILS}}|${DETAILS}|g" \
+              -e "s|{{ENHANCEMENTS}}|${ENHANCEMENTS}|g" \
+              -e "s|{{BUG_DESCRIPTIONS}}|${BUG_DESCRIPTIONS}|g" \
+              -e "s|{{DOC_UPDATES}}|${DOC_UPDATES}|g" \
               .github/RELEASE_TEMPLATE.md > release_notes.md
+
+      # ==============================================================
+      # STEP 3: Publish Release
+      # ==============================================================
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -113,6 +138,10 @@ jobs:
           body_path: release_notes.md
           draft: false
           prerelease: false
+
+  # ==============================================================
+  # STEP 4: Reset Workflow
+  # ==============================================================
 
   reset_placeholders:
     runs-on: ubuntu-latest

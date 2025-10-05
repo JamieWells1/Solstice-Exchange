@@ -3,35 +3,33 @@
 ---
 
 ## Summary
+
 {{SUMMARY}}
 
 ---
 
 ## What's New
-#### {{FEATURE_GROUP_1}}
-- {{DETAIL_1_1}}
-- {{DETAIL_1_2}}
 
-#### {{FEATURE_GROUP_2}}
-- {{DETAIL_2_1}}
-- {{DETAIL_2_2}}
+#### {{FEATURE_GROUP}}
+
+- {{DETAILS}}
 
 ---
 
 ## Enhancements
-- {{ENHANCEMENT_1}}
-- {{ENHANCEMENT_2}}
+
+- {{ENHANCEMENTS}}
 
 ---
 
 ## Bug Fixes
-- {{BUG_DESCRIPTION_1}}
-- {{BUG_DESCRIPTION_2}}
+
+- {{BUG_DESCRIPTIONS}}
 
 ---
 
 ## Documentation Updates
-- {{DOC_UPDATE_1}}
-- {{DOC_UPDATE_2}}
+
+- {{DOC_UPDATES}}
 
 ---
