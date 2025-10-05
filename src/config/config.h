@@ -14,7 +14,7 @@ struct Config
    public:
     static std::expected<Config, std::string> initConfig();
 
-    LogLevel d_logLevel = LogLevel::INFO;
+    LogLevel d_logLevel = LogLevel::DEBUG;
 
     // number of orders to generate
     int d_ordersToGenerate = 100000;

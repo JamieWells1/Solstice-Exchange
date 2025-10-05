@@ -173,9 +173,9 @@ OrderProcessor::produceOrders()
 
     for (int i = 0; i < numThreads; i++)
     {
-        workers.emplace_back(
-            &OrderProcessor::workerThread,
-            this, std::ref(ordersMatched), std::ref(ordersExecuted));
+        workers.emplace_back(&OrderProcessor::workerThread, this,
+                             std::ref(ordersMatched),
+                             std::ref(ordersExecuted));
     }
 
     for (size_t i = 0; i < d_config.d_ordersToGenerate; i++)
