@@ -13,7 +13,7 @@ class Random
     static std::string getRandomUid();
 
     static int getRandomInt(int min, int max);
-    double getRandomDouble(double min, double max);
+    static double getRandomDouble(double min, double max);
 
     static int getRandomBool();
 

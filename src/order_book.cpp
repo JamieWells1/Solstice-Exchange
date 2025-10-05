@@ -162,7 +162,7 @@ const std::expected<double, std::string> OrderBook::getBestPrice(
         }
 
         double lowestSellPrice = *sellPrices.begin();
-        if (lowestSellPrice > orderToMatch->price())
+        if (lowestSellPrice >= orderToMatch->price())
         {
             return std::unexpected(
                 "No matching sell orders lower than or equal to buy "
@@ -190,7 +190,7 @@ const std::expected<double, std::string> OrderBook::getBestPrice(
 
         // find highest buy price at or below target price
         double highestBuyPrice = *buyPrices.begin();
-        if (highestBuyPrice < orderToMatch->price())
+        if (highestBuyPrice <= orderToMatch->price())
         {
             return std::unexpected(
                 "No matching buy orders lower than or equal to buy "
