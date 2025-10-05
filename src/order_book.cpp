@@ -225,7 +225,7 @@ void OrderBook::addOrderToBook(OrderPtr order)
         sellPricesAtPriceLevel(order).insert(order->price());
     }
 
-    // add order to map of active orders
+    // add order to map of active orders safely
     ordersDequeAtPrice(order).push_back(order);
 }
 

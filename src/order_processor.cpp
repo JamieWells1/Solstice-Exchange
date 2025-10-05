@@ -7,9 +7,10 @@
 #include <order_side.h>
 #include <ticker.h>
 
-#include <mutex>
 #include <iostream>
 #include <memory>
+#include <mutex>
+#include <thread>
 #include <utility>
 
 using namespace solstice;
@@ -77,7 +78,7 @@ std::expected<OrderPtr, std::string> OrderProcessor::generateOrder(
 
 bool OrderProcessor::processOrder(OrderPtr order)
 {
-    std::lock_guard<std::mutex> lock(d_tickerMutexes[order->tkr()]);
+    std::lock_guard<std::mutex> lock(d_tickerMutexes.at(order->tkr()));
 
     d_orderBook->addOrderToBook(order);
 
@@ -94,6 +95,7 @@ bool OrderProcessor::processOrder(OrderPtr order)
     else
     {
         d_orderBook->markOrderAsFulfilled(order);
+
         if (d_config.d_logLevel >= LogLevel::DEBUG)
         {
             std::cout << *orderMatched;
@@ -102,37 +104,103 @@ bool OrderProcessor::processOrder(OrderPtr order)
     }
 }
 
-std::expected<std::pair<int, int>, std::string>
-OrderProcessor::produceOrders()
+void OrderProcessor::pushToQueue(OrderPtr order)
 {
-    int ordersMatched = 0;
-    int ordersExecuted = 0;
-
-    for (size_t i = 0; i < d_config.d_ordersToGenerate; i++)
     {
-        std::expected<OrderPtr, std::string> order = generateOrder(i);
-        if (!order)
-        {
-            return std::unexpected(order.error());
-        }
-
-        if (processOrder(*order))
-        {
-            ordersMatched++;
-        }
-        ordersExecuted++;
+        std::lock_guard<std::mutex> lock(d_queueMutex);
+        d_orderProcessQueue.push(order);
     }
-
-    return std::pair{ordersExecuted, ordersMatched};
+    d_queueConditionVar.notify_one();
 }
 
-const void OrderProcessor::initialiseMutexes()
+OrderPtr OrderProcessor::popFromQueue()
+{
+    std::unique_lock<std::mutex> lock(d_queueMutex);
+
+    d_queueConditionVar.wait(
+        lock,
+        [this] { return !d_orderProcessQueue.empty() || d_done.load(); });
+
+    if (d_orderProcessQueue.empty())
+    {
+        return nullptr;
+    }
+
+    OrderPtr order = d_orderProcessQueue.front();
+    d_orderProcessQueue.pop();
+    return order;
+}
+
+void OrderProcessor::workerThread(std::atomic<int>& matched,
+                                  std::atomic<int>& executed)
+{
+    while (true)
+    {
+        OrderPtr order = popFromQueue();
+
+        if (!order)
+        {
+            break;
+        }
+
+        if (processOrder(order))
+        {
+            matched++;
+        }
+        executed++;
+    }
+}
+
+void OrderProcessor::initialiseMutexes()
 {
     // create a new mutex for each ticker
     for (Ticker tkr : ALL_TICKERS)
     {
         d_tickerMutexes[tkr];
     }
+}
+
+std::expected<std::pair<int, int>, std::string>
+OrderProcessor::produceOrders()
+{
+    d_done.store(false);
+
+    std::atomic<int> ordersMatched{0};
+    std::atomic<int> ordersExecuted{0};
+
+    const int numThreads = std::thread::hardware_concurrency();
+    std::vector<std::thread> workers;
+
+    for (int i = 0; i < numThreads; i++)
+    {
+        workers.emplace_back(
+            &OrderProcessor::workerThread,
+            this, std::ref(ordersMatched), std::ref(ordersExecuted));
+    }
+
+    for (size_t i = 0; i < d_config.d_ordersToGenerate; i++)
+    {
+        auto order = generateOrder(i);
+        if (!order)
+        {
+            d_done.store(true);
+            d_queueConditionVar.notify_all();
+            for (auto& w : workers) w.join();
+            return std::unexpected(order.error());
+        }
+        pushToQueue(*order);
+    }
+
+    d_done.store(true);
+    d_queueConditionVar.notify_all();
+
+    // 5. Wait for workers
+    for (auto& worker : workers)
+    {
+        worker.join();
+    }
+
+    return std::pair{ordersExecuted.load(), ordersMatched.load()};
 }
 
 std::expected<void, std::string> OrderProcessor::start()

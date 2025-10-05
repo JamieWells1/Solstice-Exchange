@@ -6,8 +6,9 @@
 #include <order.h>
 #include <order_book.h>
 
-#include <mutex>
 #include <memory>
+#include <mutex>
+#include <queue>
 
 namespace solstice
 {
@@ -27,11 +28,23 @@ class OrderProcessor
     OrderProcessor(Config config, std::shared_ptr<OrderBook> orderBook,
                    Matcher matcher);
 
-    const void initialiseMutexes();
-
     std::unordered_map<Ticker, std::mutex> d_tickerMutexes;
 
-    std::expected<OrderPtr, std::string> generateOrder(int ordersGenerated);
+    std::queue<OrderPtr> d_orderProcessQueue;
+    std::mutex d_queueMutex;
+    std::condition_variable d_queueConditionVar;
+    std::atomic<bool> d_done{false};
+
+    void initialiseMutexes();
+
+    void pushToQueue(OrderPtr order);
+    OrderPtr popFromQueue();
+
+    void workerThread(std::atomic<int>& matched,
+                                      std::atomic<int>& executed);
+
+        std::expected<OrderPtr, std::string> generateOrder(
+            int ordersGenerated);
 
     std::expected<std::pair<int, int>, std::string> produceOrders();
 };
