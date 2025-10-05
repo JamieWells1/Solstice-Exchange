@@ -15,9 +15,10 @@ A high-performance limit order book written in modern C++ (C++23), designed for 
 - Time Taken: 14,041 ms
 - Throughput: ~71,200 orders/sec
 
-## ⚙️ Build
+## Build
 
 ```bash
 cmake -S . -B build
 cmake --build build
 ./build/bin/solstice
+```

@@ -1,0 +1,28 @@
+name: Auto Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate release notes from template
+        id: notes
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          SHORT_TITLE="Short description here"
+          SUMMARY="Auto-generated summary for ${VERSION}"
+          sed -e "s/{{VERSION}}/${VERSION}/g" \
+              -e "s/{{SHORT_TITLE}}/${SHORT_TITLE}/g" \
+              -e "s/{{SUMMARY}}/${SUMMARY}/g" \
+              .github/RELEASE_TEMPLATE.md > release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
