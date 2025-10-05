@@ -49,7 +49,7 @@ Since patching and using `double`s instead of integer prices, the engine has see
 
 ## Multi-threaded Order Processing (v0.2.0)
 
-After completing the first working version of the matching engine and eradicating all bugs that affected functionality, I decided to introduce multi-threading to order processing. Order generation is still done with a single thread, as this is trivial to do in parallel. The number of threads created is determined by `std::thread::hardware_concurrency()`, and are stored in thread pool, `workers`.
+After completing the first working version of the matching engine and eradicating all bugs that affected functionality, I decided to introduce multi-threading to order processing. Order generation is still done with a single thread, as this is trivial to do in parallel. The number of threads created is determined by `std::thread::hardware_concurrency()`, and are stored in thread pool, `threadPool`.
 
 **Config:**
 
@@ -63,3 +63,7 @@ After completing the first working version of the matching engine and eradicatin
 - Matched: 54652
 - Time Taken: 191 ms
 - Throughput: ~523,600 orders/sec
+
+### Execution Time Plotted Against Throughput
+
+
