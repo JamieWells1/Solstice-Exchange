@@ -8,6 +8,23 @@ on:
 permissions:
   contents: write
 
+env:
+  VERSION: ${{ github.ref_name }}
+  SHORT_TITLE: "Short description here"
+  SUMMARY_PREFIX: "Auto-generated summary for ${VERSION}"
+  FEATURE_GROUP_1: "First feature group"
+  DETAIL_1_1: "Feature detail"
+  DETAIL_1_2: "Feature detail"
+  FEATURE_GROUP_2: "Second feature group"
+  DETAIL_2_1: "Feature detail"
+  DETAIL_2_2: "Feature detail"
+  ENHANCEMENT_1: "First enhancement"
+  ENHANCEMENT_2: "Second enhancement"
+  BUG_DESCRIPTION_1: "First bug description"
+  BUG_DESCRIPTION_2: "First bug description"
+  DOC_UPDATE_1: "First documentation update"
+  DOC_UPDATE_2: "First documentation update"
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -18,8 +35,8 @@ jobs:
         id: notes
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
-          SHORT_TITLE="Short description here"
-          SUMMARY="Auto-generated summary for ${VERSION}"
+          SHORT_TITLE=${SHORT_TITLE}
+          SUMMARY="${SUMMARY_PREFIX} ${VERSION}"
           sed -e "s/{{VERSION}}/${VERSION}/g" \
               -e "s/{{SHORT_TITLE}}/${SHORT_TITLE}/g" \
               -e "s/{{SUMMARY}}/${SUMMARY}/g" \

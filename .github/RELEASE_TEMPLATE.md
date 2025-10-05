@@ -9,12 +9,12 @@
 
 ## What's New
 #### {{FEATURE_GROUP_1}}
-- {{DETAIL_1}}
-- {{DETAIL_2}}
+- {{DETAIL_1_1}}
+- {{DETAIL_1_2}}
 
 #### {{FEATURE_GROUP_2}}
-- {{DETAIL_1}}
-- {{DETAIL_2}}
+- {{DETAIL_2_1}}
+- {{DETAIL_2_2}}
 
 ---
 
@@ -25,7 +25,8 @@
 ---
 
 ## Bug Fixes
-- {{BUG_DESCRIPTION}}
+- {{BUG_DESCRIPTION_1}}
+- {{BUG_DESCRIPTION_2}}
 
 ---
 
@@ -33,12 +34,5 @@
 - {{DOC_UPDATES}}
 
 ---
-
-## Migration Notes
-- {{BACKWARD_COMPATIBILITY_NOTE}}
-- Example:
-  ```cpp
-  use solstice::OrderBook::*;
-  ```
 
 ## Assets
