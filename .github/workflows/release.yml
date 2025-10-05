@@ -113,34 +113,33 @@ jobs:
       # STEP 2: Substitute the placeholders with AI output
       # ==============================================================
 
-      - name: Populate template with AI output
+      - name: Populate template with AI output (multiline safe)
         id: populate
         run: |
           set -Eeuo pipefail
+          cp .github/RELEASE_TEMPLATE.md release_notes.md
 
-          escape_sed() {
-            # Escapes &, /, and | for sed
-            echo "$1" | sed -e 's/[&/\|]/\\&/g'
-          }
+          awk -v VERSION="$VERSION" \
+              -v SHORT_TITLE="$SHORT_TITLE" \
+              -v SUMMARY="$SUMMARY" \
+              -v FEATURE_GROUP="$FEATURE_GROUP" \
+              -v DETAILS="$DETAILS" \
+              -v ENHANCEMENTS="$ENHANCEMENTS" \
+              -v BUG_DESCRIPTIONS="$BUG_DESCRIPTIONS" \
+              -v DOC_UPDATES="$DOC_UPDATES" '
+              {
+                gsub(/\{\{VERSION\}\}/, VERSION);
+                gsub(/\{\{SHORT_TITLE\}\}/, SHORT_TITLE);
+                gsub(/\{\{SUMMARY\}\}/, SUMMARY);
+                gsub(/\{\{FEATURE_GROUP\}\}/, FEATURE_GROUP);
+                gsub(/\{\{DETAILS\}\}/, DETAILS);
+                gsub(/\{\{ENHANCEMENTS\}\}/, ENHANCEMENTS);
+                gsub(/\{\{BUG_DESCRIPTIONS\}\}/, BUG_DESCRIPTIONS);
+                gsub(/\{\{DOC_UPDATES\}\}/, DOC_UPDATES);
+                print;
+              }' release_notes.md > release_notes_filled.md
 
-          ESC_VERSION=$(escape_sed "${VERSION}")
-          ESC_SHORT_TITLE=$(escape_sed "${SHORT_TITLE}")
-          ESC_SUMMARY=$(escape_sed "${SUMMARY}")
-          ESC_FEATURE_GROUP=$(escape_sed "${FEATURE_GROUP}")
-          ESC_DETAILS=$(escape_sed "${DETAILS}")
-          ESC_ENHANCEMENTS=$(escape_sed "${ENHANCEMENTS}")
-          ESC_BUG_DESCRIPTIONS=$(escape_sed "${BUG_DESCRIPTIONS}")
-          ESC_DOC_UPDATES=$(escape_sed "${DOC_UPDATES}")
-
-          sed -e "s|{{VERSION}}|${ESC_VERSION}|g" \
-              -e "s|{{SHORT_TITLE}}|${ESC_SHORT_TITLE}|g" \
-              -e "s|{{SUMMARY}}|${ESC_SUMMARY}|g" \
-              -e "s|{{FEATURE_GROUP}}|${ESC_FEATURE_GROUP}|g" \
-              -e "s|{{DETAILS}}|${ESC_DETAILS}|g" \
-              -e "s|{{ENHANCEMENTS}}|${ESC_ENHANCEMENTS}|g" \
-              -e "s|{{BUG_DESCRIPTIONS}}|${ESC_BUG_DESCRIPTIONS}|g" \
-              -e "s|{{DOC_UPDATES}}|${ESC_DOC_UPDATES}|g" \
-              .github/RELEASE_TEMPLATE.md > release_notes.md
+          mv release_notes_filled.md release_notes.md
 
 
       # ==============================================================
