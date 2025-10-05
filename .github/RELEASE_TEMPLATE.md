@@ -1,13 +1,13 @@
-**Version {{VERSION}} – {{SHORT_TITLE}}**
+# **Version {{VERSION}} – {{SHORT_TITLE}}**
 
 ---
 
-### Summary
+## Summary
 {{SUMMARY}}
 
 ---
 
-### What's New
+## What's New
 #### {{FEATURE_GROUP_1}}
 - {{DETAIL_1}}
 - {{DETAIL_2}}
@@ -18,27 +18,27 @@
 
 ---
 
-### Enhancements
+## Enhancements
 - {{ENHANCEMENT_1}}
 - {{ENHANCEMENT_2}}
 
 ---
 
-### Bug Fixes
+## Bug Fixes
 - {{BUG_DESCRIPTION}}
 
 ---
 
-### Documentation Updates
+## Documentation Updates
 - {{DOC_UPDATES}}
 
 ---
 
-### Migration Notes
+## Migration Notes
 - {{BACKWARD_COMPATIBILITY_NOTE}}
 - Example:
   ```cpp
   use solstice::OrderBook::*;
   ```
 
-### Assets
+## Assets
