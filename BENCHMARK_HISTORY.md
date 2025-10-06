@@ -1,0 +1,58 @@
+## Benchmark (v0.1.0)
+
+This MVP implementation is single-threaded, with plans for future iterations to
+support multithreading and concurrent order processing.
+
+[Full release notes](https://github.com/JamieWells1/Solstice-Limit-Order-Book/releases/tag/v0.1)
+
+**Config:**
+
+- Orders: 100,000
+- Tickers: 10
+- Price Range: $8–$10 (to 2 d.p)
+- Quantity Range: 1–20
+
+**Result:**
+
+- Matched: 49,788
+- Time Taken: 1,225 ms
+- Throughput: ~81,600 orders/sec
+
+## Optimise Random Number Generation (v0.1.2)
+
+Switched from creating new mt19937 generators on every call to using
+static generators, used for generating random order values.
+
+[Full release notes](https://github.com/JamieWells1/Solstice-Limit-Order-Book/releases/tag/v0.1.2)
+
+**Config:**
+
+- Orders: 100,000
+- Tickers: 10
+- Price Range: $8–$10 (to 2 d.p)
+- Quantity Range: 1–20
+
+**Result:**
+
+- Matched: 54888
+- Time Taken: 487 ms
+- Throughput: ~205,300 orders/sec
+
+## Multi-threaded Order Processing (v0.2.0)
+
+Introduced multi-threading to order processing via a thread pool that's initialised before order processing.
+
+[Full release notes](https://github.com/JamieWells1/Solstice-Limit-Order-Book/releases/tag/v0.2.0)
+
+**Config:**
+
+- Orders: 100,000
+- Tickers: 10
+- Price Range: $8–$10 (to 2 d.p)
+- Quantity Range: 1–20
+
+**Result:**
+
+- Matched: 54652
+- Time Taken: 191 ms
+- Throughput: ~523,600 orders/sec
