@@ -11,7 +11,7 @@
 
 #include "order_side.h"
 
-namespace solstice
+namespace solstice::matching
 {
 
 const std::vector<Transaction>& OrderBook::transactions() const
@@ -274,4 +274,4 @@ void OrderBook::initialiseActiveOrders()
     }
 }
 
-}  // namespace solstice
+}  // namespace solstice::matching

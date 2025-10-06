@@ -10,7 +10,7 @@
 #include <ostream>
 #include <string>
 
-namespace solstice
+namespace solstice::matching
 {
 using OrderPtr = std::shared_ptr<Order>;
 
@@ -36,6 +36,6 @@ struct Transaction
 
 std::ostream& operator<<(std::ostream os, const Transaction& transaction);
 
-}  // namespace solstice
+}  // namespace solstice::matching
 
 #endif  // TRANSACTION_H

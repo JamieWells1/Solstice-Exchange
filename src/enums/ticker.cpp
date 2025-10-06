@@ -3,7 +3,7 @@
 #include <random>
 #include <algorithm>
 
-namespace solstice
+namespace solstice::matching
 {
 
 Ticker validateTkr(const std::string& tkrStr)
@@ -62,4 +62,4 @@ std::ostream& operator<<(std::ostream& os, Ticker tkr)
 {
     return os << tkrToString(tkr);
 }
-}  // namespace solstice
+}  // namespace solstice::matching

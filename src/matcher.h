@@ -8,7 +8,7 @@
 #include <memory>
 #include <string>
 
-namespace solstice
+namespace solstice::matching
 {
 
 using OrderPtr = std::shared_ptr<Order>;
@@ -36,6 +36,6 @@ class Matcher
     const std::string matchSuccessOutput(OrderPtr incomingOrder,
                                           OrderPtr matchedOrder, double matchedPrice) const;
 };
-}  // namespace solstice
+}  // namespace solstice::matching
 
 #endif  // MATCH_H

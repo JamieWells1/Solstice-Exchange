@@ -13,7 +13,7 @@
 #include <thread>
 #include <utility>
 
-using namespace solstice;
+using namespace solstice::matching;
 
 namespace
 {
@@ -47,7 +47,7 @@ OrderSide getOrderSide()
 
 }  // namespace
 
-namespace solstice
+namespace solstice::matching
 {
 
 OrderProcessor::OrderProcessor(Config config,
@@ -243,4 +243,4 @@ std::expected<void, std::string> OrderProcessor::start()
 
     return {};
 }
-}  // namespace solstice
+}  // namespace solstice::matching

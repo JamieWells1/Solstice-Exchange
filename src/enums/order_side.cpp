@@ -1,7 +1,7 @@
 #include <order_side.h>
 #include <ostream>
 
-namespace solstice
+namespace solstice::matching
 {
 
 std::ostream& operator<<(std::ostream& os, const OrderSide& orderSide)
@@ -11,4 +11,4 @@ std::ostream& operator<<(std::ostream& os, const OrderSide& orderSide)
 
     return os;
 }
-}  // namespace solstice
+}  // namespace solstice::matching

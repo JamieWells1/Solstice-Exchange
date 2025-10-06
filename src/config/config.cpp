@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-namespace solstice
+namespace solstice::matching
 {
 
 Config::Config() {}
@@ -36,4 +36,4 @@ std::expected<Config, std::string> Config::initConfig()
     return config;
 }
 
-}  // namespace solstice
+}  // namespace solstice::matching

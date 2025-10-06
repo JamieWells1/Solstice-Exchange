@@ -2,7 +2,7 @@
 
 #include "time_point.h"
 
-namespace solstice
+namespace solstice::matching
 {
 
 Transaction::Transaction(OrderPtr buyOrder,
@@ -30,4 +30,4 @@ std::ostream& operator<<(std::ostream& os, const Transaction& transaction)
 
     return os;
 }
-}  // namespace solstice
+}  // namespace solstice::matching

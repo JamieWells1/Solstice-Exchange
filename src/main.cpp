@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-using namespace solstice;
+using namespace solstice::matching;
 
 int main()
 {

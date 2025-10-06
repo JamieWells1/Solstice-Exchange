@@ -10,7 +10,7 @@
 #include <memory>
 #include <string>
 
-namespace solstice
+namespace solstice::matching
 {
 
 class Order
@@ -52,6 +52,6 @@ class Order
 
 std::ostream& operator<<(std::ostream& os, const Order& order);
 
-}  // namespace solstice
+}  // namespace solstice::matching
 
 #endif

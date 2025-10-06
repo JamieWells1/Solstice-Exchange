@@ -6,7 +6,7 @@
 #include <expected>
 #include <string>
 
-namespace solstice
+namespace solstice::matching
 {
 
 struct Config
@@ -38,6 +38,6 @@ struct Config
 
 const Config& getConfig();
 
-}  // namespace solstice
+}  // namespace solstice::matching
 
 #endif  // CONFIG_H

@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace solstice
+namespace solstice::matching
 {
 
 std::string truncate(std::string str, size_t length)
@@ -15,4 +15,4 @@ std::string truncate(std::string str, size_t length)
     return str;
 }
 
-}  // namespace solstice
+}  // namespace solstice::matching

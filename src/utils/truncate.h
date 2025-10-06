@@ -3,11 +3,11 @@
 
 #include <string>
 
-namespace solstice
+namespace solstice::matching
 {
 
 std::string truncate(std::string str, size_t length);
 
-}  // namespace solstice
+}  // namespace solstice::matching
 
 #endif  // TRUNCATE_H

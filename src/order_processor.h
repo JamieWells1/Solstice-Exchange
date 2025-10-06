@@ -10,7 +10,7 @@
 #include <mutex>
 #include <queue>
 
-namespace solstice
+namespace solstice::matching
 {
 
 class OrderProcessor
@@ -51,6 +51,6 @@ class OrderProcessor
 
 std::ostream& operator<<(std::ostream& os, ActiveOrders activeOrders);
 
-}  // namespace solstice
+}  // namespace solstice::matching
 
 #endif  // ORDER_H

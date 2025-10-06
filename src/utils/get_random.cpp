@@ -1,9 +1,9 @@
 #include <get_random.h>
 
-namespace solstice
+namespace solstice::matching
 {
 
-std::random_device solstice::Random::rd;
+std::random_device solstice::matching::Random::rd;
 
 std::string Random::getRandomUid()
 {
@@ -41,4 +41,4 @@ int Random::getRandomBool()
 
     return dist(gen) == 1;
 }
-}  // namespace solstice
+}  // namespace solstice::matching

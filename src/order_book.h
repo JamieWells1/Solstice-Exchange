@@ -13,7 +13,7 @@
 #include <set>
 #include <unordered_map>
 
-namespace solstice
+namespace solstice::matching
 {
 
 using OrderPtr = std::shared_ptr<Order>;
@@ -77,6 +77,6 @@ class OrderBook
     BuyPricesAtPriceLevel& buyPricesAtPriceLevel(OrderPtr order);
     SellPricesAtPriceLevel& sellPricesAtPriceLevel(OrderPtr order);
 };
-}  // namespace solstice
+}  // namespace solstice::matching
 
 #endif  // ORDERBOOK_H

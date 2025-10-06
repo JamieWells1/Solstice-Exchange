@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace solstice
+namespace solstice::matching
 {
 
 #define TICKER_LIST(X) \
@@ -163,6 +163,6 @@ const std::string tkrToString(Ticker tkr);
 
 std::ostream& operator<<(std::ostream& os, Ticker tkr);
 
-}  // namespace solstice
+}  // namespace solstice::matching
 
 #endif  // TICKER_H

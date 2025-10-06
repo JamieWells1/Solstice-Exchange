@@ -4,7 +4,7 @@
 
 #include <chrono>
 
-namespace solstice
+namespace solstice::matching
 {
 
 TEST(OrderTests, ValidOrderSucceeds)
@@ -22,4 +22,4 @@ TEST(OrderTests, NegativePriceFails)
     ASSERT_FALSE(result.has_value());
     EXPECT_TRUE(result.error().find("Invalid price") != std::string::npos);
 }
-}  // namespace solstice
+}  // namespace solstice::matching

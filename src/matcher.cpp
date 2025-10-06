@@ -9,7 +9,7 @@
 #include <memory>
 #include <string>
 
-namespace solstice
+namespace solstice::matching
 {
 
 const bool Matcher::withinPriceRange(double price, OrderPtr order) const
@@ -193,4 +193,4 @@ Matcher::Matcher(std::shared_ptr<OrderBook> orderbook)
 {
 }
 
-}  // namespace solstice
+}  // namespace solstice::matching

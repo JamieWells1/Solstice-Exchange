@@ -4,7 +4,7 @@
 #include <random>
 #include <string>
 
-namespace solstice
+namespace solstice::matching
 {
 
 class Random
@@ -21,6 +21,6 @@ class Random
     static std::random_device rd;
 };
 
-}  // namespace solstice
+}  // namespace solstice::matching
 
 #endif  // GETRANDOM_H
