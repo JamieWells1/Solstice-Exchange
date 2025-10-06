@@ -10,7 +10,7 @@
 #include <memory>
 #include <string>
 
-namespace solstice::matching
+namespace solstice
 {
 
 class Order

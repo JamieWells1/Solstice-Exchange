@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace solstice::matching
+namespace solstice
 {
 
 #define TICKER_LIST(X) \

@@ -87,7 +87,7 @@ std::expected<void, std::string> validateOrderAttributes(
 // Order class
 // ==================
 
-namespace solstice::matching
+namespace solstice
 {
 
 Order::Order(int uid, Ticker tkr, double price, double qnty,
@@ -125,7 +125,7 @@ const OrderSide Order::orderSide() const { return d_orderSide; }
 
 const std::string Order::orderSideString() const
 {
-    return d_orderSide == solstice::matching::OrderSide::Buy ? "Buy" : "Sell";
+    return d_orderSide == solstice::OrderSide::Buy ? "Buy" : "Sell";
 }
 
 const TimePoint Order::timeOrderPlaced() const

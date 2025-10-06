@@ -13,7 +13,7 @@
 #include <thread>
 #include <utility>
 
-using namespace solstice::matching;
+using namespace solstice;
 
 namespace
 {

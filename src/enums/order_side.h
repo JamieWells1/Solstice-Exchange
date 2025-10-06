@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <ostream>
 
-namespace solstice::matching
+namespace solstice
 {
 
 enum class OrderSide : uint8_t

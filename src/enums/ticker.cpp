@@ -3,7 +3,7 @@
 #include <random>
 #include <algorithm>
 
-namespace solstice::matching
+namespace solstice
 {
 
 Ticker validateTkr(const std::string& tkrStr)
