@@ -25,7 +25,7 @@ Execution parameters are configurable via `Config` (see `config.h`).
 
 ## Benchmarks
 
-### Single-threaded Baseline - v0.1
+### Single-threaded Baseline - v0.1 | [Full release](https://github.com/JamieWells1/Solstice-Limit-Order-Book/releases/tag/v0.1)
 
 Initial working version with synchronous order generation and processing.
 
@@ -42,13 +42,9 @@ Initial working version with synchronous order generation and processing.
 - Time: 1,225 ms
 - Throughput: ~81,600 orders/sec
 
-[**Full release**](https://github.com/JamieWells1/Solstice-Limit-Order-Book/releases/tag/v0.1)
-
 ---
 
-### Latest Performance Optimisation Release (v0.2.0)
-
-[**Full release**](https://github.com/JamieWells1/Solstice-Limit-Order-Book/releases/tag/v0.2.0)
+### Latest Performance Optimisation Release (v0.2.0) | [Full release](https://github.com/JamieWells1/Solstice-Limit-Order-Book/releases/tag/v0.2.0)
 
 **Config:**
 
