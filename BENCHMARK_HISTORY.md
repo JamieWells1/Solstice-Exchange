@@ -1,9 +1,11 @@
-## Benchmark (v0.1.0)
+# Benchmark History For Solstice Order Book & Matching Engine
+
+## Initial MVP (v0.1.0)
 
 This MVP implementation is single-threaded, with plans for future iterations to
 support multithreading and concurrent order processing.
 
-[Full release notes](https://github.com/JamieWells1/Solstice-Limit-Order-Book/releases/tag/v0.1)
+[Full release notes](https://github.com/JamieWells1/Solstice-Exchange/releases/tag/v0.1)
 
 **Config:**
 
@@ -14,16 +16,16 @@ support multithreading and concurrent order processing.
 
 **Result:**
 
-- Matched: 49,788
-- Time Taken: 1,225 ms
-- Throughput: ~81,600 orders/sec
+- Matched: _49,788_
+- Time Taken: _1,225 ms_
+- Throughput: _~81,600 orders/sec_
 
 ## Optimise Random Number Generation (v0.1.2)
 
 Switched from creating new mt19937 generators on every call to using
 static generators, used for generating random order values.
 
-[Full release notes](https://github.com/JamieWells1/Solstice-Limit-Order-Book/releases/tag/v0.1.2)
+[Full release notes](https://github.com/JamieWells1/Solstice-Exchange/releases/tag/v0.1.2)
 
 **Config:**
 
@@ -34,15 +36,15 @@ static generators, used for generating random order values.
 
 **Result:**
 
-- Matched: 54888
-- Time Taken: 487 ms
-- Throughput: ~205,300 orders/sec
+- Matched: _54,888_
+- Time Taken: _487 ms_
+- Throughput: _~205,300 orders/sec_
 
 ## Multi-threaded Order Processing (v0.2.0)
 
 Introduced multi-threading to order processing via a thread pool that's initialised before order processing.
 
-[Full release notes](https://github.com/JamieWells1/Solstice-Limit-Order-Book/releases/tag/v0.2.0)
+[Full release notes](https://github.com/JamieWells1/Solstice-Exchange/releases/tag/v0.2.0)
 
 **Config:**
 
@@ -53,6 +55,6 @@ Introduced multi-threading to order processing via a thread pool that's initiali
 
 **Result:**
 
-- Matched: 54652
-- Time Taken: 191 ms
-- Throughput: ~523,600 orders/sec
+- Matched: _54,652_
+- Time Taken: _191 ms_
+- Throughput: _~523,600 orders/sec_
