@@ -1,6 +1,6 @@
 # Solstice Exchange
 
-> **_Order Book, Matching Engine, Pricing Engine, and Algorithmic Trading Strategy Bundled Into One Shared Library: Solstice_**
+> **_Matching Engine, Pricing Engine, and Algorithmic Trading Strategy Bundled Into One Shared Library: Solstice_**
 
 Solstice is a modular C++23 library for building high-performance electronic trading systems. It integrates core exchange infrastructure — including a limit order book, execution matcher, pricing simulator, and algorithmic strategy executor, all under a unified parent namespace.
 
@@ -10,9 +10,9 @@ While only the matching engine is fully implemented at present, the architecture
 - `solstice::pricing` — Market simulation and pricing feed (WIP).
 - `solstice::strategy` — Automated strategy execution (WIP).
 
-## Performance
+---
 
-The `solstice::matching` engine is benchmarked on a single-threaded and multi-threaded basis. Results are reproducible using `./goldpkg/gold run`.
+## Performance
 
 ### Latest (v0.2.0, Multi-threaded)
 
