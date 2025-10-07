@@ -113,14 +113,24 @@ jobs:
           )
 
           content = resp.choices[0].message.content
+
+          if not content:
+              raise RuntimeError("OpenAI response was empty or invalid")
+
           if isinstance(content, list):
-              # Flatten if the model returns content as structured parts
-              text = "".join(part.get("text", "") for part in content)
+              text = "".join(part.get("text", "") for part in content if isinstance(part, dict))
           else:
               text = str(content)
 
           text = text.replace('```json', '').replace('```', '').strip()
-          data = json.loads(text)
+
+          if not text:
+              raise RuntimeError("Empty text after cleanup — model returned no content")
+
+          try:
+              data = json.loads(text)
+          except json.JSONDecodeError as e:
+              raise RuntimeError(f"Failed to parse JSON from model output:\n{text}\nError: {e}")
 
           # Write each key into GitHub Actions env vars
           with open(os.getenv("GITHUB_ENV"), "a") as envfile:
@@ -128,7 +138,6 @@ jobs:
                   value = value.replace("%", "%%")  # protect against % expansion
                   envfile.write(f"{key}<<EOF\n{value}\nEOF\n")
           PYCODE
-
 
       # ==============================================================
       # STEP 2: Substitute the placeholders with AI output
