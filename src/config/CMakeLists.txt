@@ -1,5 +1,6 @@
 add_library(config STATIC
     config.cpp
+    logging.cpp
 )
 
 target_include_directories(config PRIVATE
