@@ -129,8 +129,9 @@ jobs:
           # Write each key into env file for GitHub Actions
           with open(os.getenv("GITHUB_ENV"), "a") as envfile:
               for key, value in data.items():
-                  value = value.replace("%", "%%")  # avoid sed expansion issues
-                  envfile.write(f"{key}<<EOF\n{value}\nEOF\n")
+                  if value:
+                      value = value.replace("%", "%%")  # avoid sed expansion issues
+                      envfile.write(f"{key}<<EOF\n{value}\nEOF\n")
           PYCODE
 
       # ==============================================================
