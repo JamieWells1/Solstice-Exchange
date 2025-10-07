@@ -33,13 +33,9 @@ jobs:
           set -Eeuo pipefail
 
           # --- Tag range resolution ---
-          # Extract current tag from GitHub ref
           CURR_TAG=${GITHUB_REF#refs/tags/}
-
-          # Find previous tag (the one before the current one)
           PREV_TAG=$(git tag --sort=-creatordate | grep -A1 "^$CURR_TAG$" | tail -n1 || true)
 
-          # Determine comparison range
           if [ -z "$PREV_TAG" ]; then
             echo "No previous tag found; using first commit as start."
             FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
@@ -48,11 +44,9 @@ jobs:
             RANGE="$PREV_TAG..$CURR_TAG"
           fi
 
-          # Collect commit messages and code diffs
           git log "$RANGE" --pretty=format:"%h %s" > commits.txt
           git diff "$RANGE" > diff.txt
 
-          # --- AI release note generation ---
           python3 <<'PYCODE'
           import os, json
           from openai import OpenAI
@@ -114,28 +108,33 @@ jobs:
 
           content = resp.choices[0].message.content
 
+          # --- Normalize response content ---
           if not content:
-              raise RuntimeError("OpenAI response was empty or invalid")
+              raise RuntimeError("OpenAI returned no content")
 
           if isinstance(content, list):
-              text = "".join(part.get("text", "") for part in content if isinstance(part, dict))
+              text = "".join(
+                  str(part.get("text", "")) for part in content
+                  if isinstance(part, dict)
+              )
           else:
               text = str(content)
 
+          # --- Clean and parse JSON ---
           text = text.replace('```json', '').replace('```', '').strip()
 
           if not text:
-              raise RuntimeError("Empty text after cleanup — model returned no content")
+              raise RuntimeError("Model output was empty after cleanup")
 
           try:
               data = json.loads(text)
           except json.JSONDecodeError as e:
-              raise RuntimeError(f"Failed to parse JSON from model output:\n{text}\nError: {e}")
+              raise RuntimeError(f"Invalid JSON from model:\n{text}\n\nError: {e}")
 
-          # Write each key into GitHub Actions env vars
+          # --- Write outputs into GitHub Actions environment ---
           with open(os.getenv("GITHUB_ENV"), "a") as envfile:
               for key, value in data.items():
-                  value = value.replace("%", "%%")  # protect against % expansion
+                  value = str(value).replace("%", "%%")  # ensure string + protect %
                   envfile.write(f"{key}<<EOF\n{value}\nEOF\n")
           PYCODE
 
