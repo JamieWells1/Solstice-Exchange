@@ -112,7 +112,13 @@ jobs:
               ],
           )
 
-          text = resp.choices[0].message.content.strip()
+          content = resp.choices[0].message.content
+          if isinstance(content, list):
+              # Flatten if the model returns content as structured parts
+              text = "".join(part.get("text", "") for part in content)
+          else:
+              text = str(content)
+
           text = text.replace('```json', '').replace('```', '').strip()
           data = json.loads(text)
 
