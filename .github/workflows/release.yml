@@ -63,41 +63,32 @@ jobs:
 
           prompt = f"""
           You are an expert software release analyst.
-          You are given two precise data sources:
-          1. Commit messages (high-level intent)
-          2. Full diff (actual code changes)
 
-          You must:
-          - Derive the release notes only from what is *verifiably present* in the diff.
-          - Use commit messages *only* to help summarize or group related diffs.
-          - Ignore anything that does not appear in the diff itself. No speculation.
+          You will be given:
+          1. Commit messages (developer intent hints)
+          2. Full code diff (objective source of truth)
 
-          # Output format
-          Return valid JSON with these exact keys:
+          Your job:
+          Produce **strictly factual** release notes describing only what is *explicitly verifiable* in the diff.
+
+          ### Output JSON Keys
           ["SHORT_TITLE", "SUMMARY", "FEATURE_GROUP", "DETAILS", "ENHANCEMENTS", "BUG_DESCRIPTIONS", "DOC_UPDATES"]
 
-          # Rules
-          - Output pure JSON. No markdown fences, no commentary.
-          - Each key's value can be multiline Markdown.
-          - Be factual, concise, and written for public release.
-          - If something cannot be verified from the diff, do not mention it.
-          - If the change is primarily structural (file moves, reorgs, renames), describe that explicitly.
-          - Group related modifications together.
-          - Avoid generic filler ("various improvements", "minor changes").
-          - Keep SHORT_TITLE ≤ 8 words, and SUMMARY ≤ 3 sentences.
-          - Treat removed or moved files as structural changes, not deletions.
-          - Only include items that are significant, user-visible, or materially affect structure, behavior, or developer workflow.
-          - Do not list trivial changes such as formatting, imports, whitespace, renames without impact, or comment edits.
-          - Avoid over-detailing; merge related minor edits into a single concise bullet.
-          - If a change does not alter functionality, structure, or developer experience, omit it entirely.
-          - Each bullet must communicate a meaningful impact. If it doesn't, it's noise.
+          ### Hard Rules
+          - Never infer intent or guess meaning.
+          - Mention a feature or module **only if it clearly appears in the diff (file paths or code)**.
+          - If you cannot confirm a change from the diff, ignore it.
+          - Use commit messages only for grouping or phrasing, not discovery.
+          - Do not fabricate domain concepts (e.g. “authentication”, “logging”) unless the diff literally touches related files or identifiers.
+          - Be concise; exclude cosmetic, comment-only, or trivial edits.
+          - Prefer "Refactored file structure" or "Reorganized modules" when the diff mostly moves/renames files.
+          - Keep SHORT_TITLE ≤ 8 words; SUMMARY ≤ 3 sentences.
+          - Output pure JSON, no markdown fences or commentary.
 
-
-          # Decision order
-          1. Prioritize actual code differences over commit message wording.
-          2. Identify the dominant change type (e.g., file reorg, refactor, feature addition).
-          3. Reflect that dominant theme in SHORT_TITLE and SUMMARY.
-          4. Include minor changes as subpoints in DETAILS or ENHANCEMENTS.
+          ### Prioritization Order
+          1. Identify the dominant change type from the diff (refactor, new feature, bug fix, doc update).
+          2. Summarize that as the SHORT_TITLE and SUMMARY.
+          3. Group all remaining verified edits under the correct sections.
 
           Context:
           Version: {tag}
@@ -105,8 +96,9 @@ jobs:
           ## Commit Messages
           {commits}
 
-          ## Full Diff
+          ## Diff
           {diff}
+          """
 
           Example (simplified JSON shape):
           {{
