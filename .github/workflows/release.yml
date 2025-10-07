@@ -32,26 +32,29 @@ jobs:
         run: |
           set -Eeuo pipefail
 
-          # Get the most recent tag reachable from HEAD
+          # --- Tag range resolution ---
+          # Extract current tag from GitHub ref
           CURR_TAG=${GITHUB_REF#refs/tags/}
 
-          # Get the previous tag (second most recent) if it exists
+          # Find previous tag (the one before the current one)
           PREV_TAG=$(git tag --sort=-creatordate | grep -A1 "^$CURR_TAG$" | tail -n1 || true)
 
-          # Fallback if no previous tag exists
+          # Determine comparison range
           if [ -z "$PREV_TAG" ]; then
-            echo "No previous tag found, comparing from first commit."
+            echo "No previous tag found; using first commit as start."
             FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
             RANGE="$FIRST_COMMIT..$CURR_TAG"
           else
             RANGE="$PREV_TAG..$CURR_TAG"
           fi
 
+          # Collect commit messages and code diffs
           git log "$RANGE" --pretty=format:"%h %s" > commits.txt
           git diff "$RANGE" > diff.txt
 
+          # --- AI release note generation ---
           python3 <<'PYCODE'
-          import os, json, textwrap
+          import os, json
           from openai import OpenAI
 
           api_key = os.getenv("OPENAI_API_KEY")
@@ -68,27 +71,28 @@ jobs:
           1. Commit messages (developer intent hints)
           2. Full code diff (objective source of truth)
 
-          Your job:
-          Produce **strictly factual** release notes describing only what is *explicitly verifiable* in the diff.
+          Your task:
+          Produce strictly factual, concise release notes describing only what is verifiably present in the diff.
 
           ### Output JSON Keys
           ["SHORT_TITLE", "SUMMARY", "FEATURE_GROUP", "DETAILS", "ENHANCEMENTS", "BUG_DESCRIPTIONS", "DOC_UPDATES"]
 
           ### Hard Rules
-          - Never infer intent or guess meaning.
-          - Mention a feature or module **only if it clearly appears in the diff (file paths or code)**.
-          - If you cannot confirm a change from the diff, ignore it.
-          - Use commit messages only for grouping or phrasing, not discovery.
-          - Do not fabricate domain concepts (e.g. “authentication”, “logging”) unless the diff literally touches related files or identifiers.
-          - Be concise; exclude cosmetic, comment-only, or trivial edits.
-          - Prefer "Refactored file structure" or "Reorganized modules" when the diff mostly moves/renames files.
+          - Never infer or assume functionality not directly shown in the diff.
+          - Mention a feature/module only if it clearly appears in the diff (file paths, identifiers, comments).
+          - Ignore commit messages that describe work not reflected in the diff.
+          - If the diff mostly moves/renames files, treat it as a structural reorganization.
+          - Exclude trivial edits: formatting, imports, comments, or whitespace changes.
+          - Only include significant, user-visible, or structural changes.
+          - Merge related small edits into single concise bullets.
+          - Each bullet must communicate meaningful impact.
           - Keep SHORT_TITLE ≤ 8 words; SUMMARY ≤ 3 sentences.
-          - Output pure JSON, no markdown fences or commentary.
+          - Output valid JSON only (no code fences, no markdown commentary).
 
           ### Prioritization Order
-          1. Identify the dominant change type from the diff (refactor, new feature, bug fix, doc update).
-          2. Summarize that as the SHORT_TITLE and SUMMARY.
-          3. Group all remaining verified edits under the correct sections.
+          1. Identify dominant change type (refactor, feature, bug fix, doc update).
+          2. Summarize that as SHORT_TITLE and SUMMARY.
+          3. Group verified edits under correct sections.
 
           Context:
           Version: {tag}
@@ -98,40 +102,27 @@ jobs:
 
           ## Diff
           {diff}
-
-          Example (simplified JSON shape):
-          {{
-            "SHORT_TITLE": "Initial Alpha",
-            "SUMMARY": "Introduces the first stable foundation for automated releases.",
-            "FEATURE_GROUP": "AI Release System",
-            "DETAILS": "- Integrated OpenAI API for release note generation\\n- Added automated workflow triggers",
-            "ENHANCEMENTS": "- Refactored pipeline structure\\n- Improved reliability of tagging logic",
-            "BUG_DESCRIPTIONS": "- Fixed incorrect env propagation\\n- Resolved crash in release script",
-            "DOC_UPDATES": "- Added developer setup guide\\n- Documented CI process"
-          }}
           """
 
           resp = client.chat.completions.create(
               model="gpt-4o-mini",
               messages=[
-                  {"role": "system", "content": "You produce structured JSON for software release notes."},
+                  {"role": "system", "content": "You produce strictly factual JSON release notes."},
                   {"role": "user", "content": prompt},
               ],
           )
 
           text = resp.choices[0].message.content.strip()
-
-          # Basic JSON cleanup (removes Markdown fences if the model adds them)
           text = text.replace('```json', '').replace('```', '').strip()
-
           data = json.loads(text)
 
-          # Write each key into env file for GitHub Actions
+          # Write each key into GitHub Actions env vars
           with open(os.getenv("GITHUB_ENV"), "a") as envfile:
               for key, value in data.items():
-                  value = value.replace("%", "%%")  # avoid sed expansion issues
+                  value = value.replace("%", "%%")  # protect against % expansion
                   envfile.write(f"{key}<<EOF\n{value}\nEOF\n")
           PYCODE
+
 
       # ==============================================================
       # STEP 2: Substitute the placeholders with AI output
