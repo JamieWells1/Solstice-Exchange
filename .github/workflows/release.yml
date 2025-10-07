@@ -25,6 +25,12 @@ jobs:
       # STEP 1: AI generates section content (multi-line safe)
       # ==============================================================
 
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history so git diff and log can see all commits
+          fetch-tags: true
+
       - name: Generate AI release content
         id: ai_release
         env:
