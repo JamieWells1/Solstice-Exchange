@@ -31,18 +31,24 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           set -Eeuo pipefail
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          # Get the most recent tag reachable from HEAD
           CURR_TAG=${GITHUB_REF#refs/tags/}
 
-          if [ -n "$PREV_TAG" ]; then
-            git log "$PREV_TAG".."$CURR_TAG" --pretty=format:"%h %s" > commits.txt
-            git diff "$PREV_TAG".."$CURR_TAG" > diff.txt
-          else
-            git log --pretty=format:"%h %s" > commits.txt
-            # Get diff from first commit to HEAD
+          # Get the previous tag (second most recent) if it exists
+          PREV_TAG=$(git tag --sort=-creatordate | grep -A1 "^$CURR_TAG$" | tail -n1 || true)
+
+          # Fallback if no previous tag exists
+          if [ -z "$PREV_TAG" ]; then
+            echo "No previous tag found, comparing from first commit."
             FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
-            git diff "$FIRST_COMMIT"..HEAD > diff.txt
+            RANGE="$FIRST_COMMIT..$CURR_TAG"
+          else
+            RANGE="$PREV_TAG..$CURR_TAG"
           fi
+
+          git log "$RANGE" --pretty=format:"%h %s" > commits.txt
+          git diff "$RANGE" > diff.txt
 
           python3 <<'PYCODE'
           import os, json, textwrap
@@ -167,7 +173,6 @@ jobs:
               }' release_notes.md > release_notes_filled.md
 
           mv release_notes_filled.md release_notes.md
-
 
       # ==============================================================
       # STEP 3: Publish Release
