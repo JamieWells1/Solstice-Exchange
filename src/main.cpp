@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-using namespace solstice::matching;
+using namespace solstice;
 
 int main()
 {
@@ -14,7 +14,7 @@ int main()
 
     if (!choice.empty())
     {
-        auto response = OrderProcessor::start();
+        auto response = solstice::matching::OrderProcessor::start();
 
         if (!response)
         {

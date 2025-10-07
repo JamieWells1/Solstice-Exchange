@@ -56,26 +56,50 @@ jobs:
           tag = os.getenv("GITHUB_REF_NAME", "unknown")
 
           prompt = f"""
-          You are an expert technical release writer.
-          Generate rich, Markdown-formatted content for each of the following placeholders.
+          You are an expert software release analyst.
+          You are given two precise data sources:
+          1. Commit messages (high-level intent)
+          2. Full diff (actual code changes)
 
-          **Rules:**
-          - Output valid JSON with the following keys exactly:
-            ["SHORT_TITLE", "SUMMARY", "FEATURE_GROUP", "DETAILS", "ENHANCEMENTS", "BUG_DESCRIPTIONS", "DOC_UPDATES"]
-          - Each value can be multiline Markdown (with newlines and bullet lists).
-          - Combine similar items into unified bullet sections when appropriate.
-          - Be concise, factual, and use proper Markdown syntax.
-          - Do NOT include code fences or backticks in the JSON values.
-          - Focus on clarity, developer insight, and impact.
-          - Your goal: a professional, public GitHub release.
-          - Analyze the actual code changes in the diff to understand what was modified, not just the commit messages.
+          You must:
+          - Derive the release notes only from what is *verifiably present* in the diff.
+          - Use commit messages *only* to help summarize or group related diffs.
+          - Ignore anything that does not appear in the diff itself. No speculation.
+
+          # Output format
+          Return valid JSON with these exact keys:
+          ["SHORT_TITLE", "SUMMARY", "FEATURE_GROUP", "DETAILS", "ENHANCEMENTS", "BUG_DESCRIPTIONS", "DOC_UPDATES"]
+
+          # Rules
+          - Output pure JSON. No markdown fences, no commentary.
+          - Each key's value can be multiline Markdown.
+          - Be factual, concise, and written for public release.
+          - If something cannot be verified from the diff, do not mention it.
+          - If the change is primarily structural (file moves, reorgs, renames), describe that explicitly.
+          - Group related modifications together.
+          - Avoid generic filler ("various improvements", "minor changes").
+          - Keep SHORT_TITLE ≤ 8 words, and SUMMARY ≤ 3 sentences.
+          - Treat removed or moved files as structural changes, not deletions.
+          - Only include items that are significant, user-visible, or materially affect structure, behavior, or developer workflow.
+          - Do not list trivial changes such as formatting, imports, whitespace, renames without impact, or comment edits.
+          - Avoid over-detailing; merge related minor edits into a single concise bullet.
+          - If a change does not alter functionality, structure, or developer experience, omit it entirely.
+          - Each bullet must communicate a meaningful impact. If it doesn't, it's noise.
+
+
+          # Decision order
+          1. Prioritize actual code differences over commit message wording.
+          2. Identify the dominant change type (e.g., file reorg, refactor, feature addition).
+          3. Reflect that dominant theme in SHORT_TITLE and SUMMARY.
+          4. Include minor changes as subpoints in DETAILS or ENHANCEMENTS.
 
           Context:
           Version: {tag}
-          Commit messages:
+
+          ## Commit Messages
           {commits}
 
-          Code changes (full diff):
+          ## Full Diff
           {diff}
 
           Example (simplified JSON shape):
