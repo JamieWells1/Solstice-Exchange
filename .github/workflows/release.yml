@@ -98,7 +98,6 @@ jobs:
 
           ## Diff
           {diff}
-          """
 
           Example (simplified JSON shape):
           {{
