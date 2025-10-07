@@ -7,7 +7,7 @@ Solstice Order Book & Matching Engine is a high-performance, limit order book en
 ## Key Features
 
 - Fully custom matching logic with time-price priority.
-- Modular components: `Order`, `Matcher`, `OrderBook`, `OrderProcessor`.
+- Modular components: `Order`, `Matcher`, `OrderBook`, `Orchestrator`.
 - Multi-threaded order processing with thread-safe ticker-level locking.
 - Benchmark-mode ready via `goldpkg` execution.
 

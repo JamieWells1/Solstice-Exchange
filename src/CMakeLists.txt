@@ -9,6 +9,7 @@ add_subdirectory(enums)
 
 add_executable(solstice
     main.cpp
+    orchestrator.cpp
 )
 
 target_include_directories(solstice PRIVATE

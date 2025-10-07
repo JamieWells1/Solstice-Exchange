@@ -1,5 +1,5 @@
-#ifndef ORDER_PROCESSOR_H
-#define ORDER_PROCESSOR_H
+#ifndef ORCHESTRATOR_H
+#define ORCHESTRATOR_H
 
 #include <config.h>
 #include <matcher.h>
@@ -13,7 +13,7 @@
 namespace solstice::matching
 {
 
-class OrderProcessor
+class Orchestrator
 {
    public:
     static std::expected<void, std::string> start();
@@ -25,8 +25,8 @@ class OrderProcessor
     bool processOrder(OrderPtr order);
 
    private:
-    OrderProcessor(Config config, std::shared_ptr<OrderBook> orderBook,
-                   Matcher matcher);
+    Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook,
+                 Matcher matcher);
 
     std::map<Ticker, std::mutex> d_tickerMutexes;
 
@@ -41,10 +41,10 @@ class OrderProcessor
     OrderPtr popFromQueue();
 
     void workerThread(std::atomic<int>& matched,
-                                      std::atomic<int>& executed);
+                      std::atomic<int>& executed);
 
-        std::expected<OrderPtr, std::string> generateOrder(
-            int ordersGenerated);
+    std::expected<OrderPtr, std::string> generateOrder(
+        int ordersGenerated);
 
     std::expected<std::pair<int, int>, std::string> produceOrders();
 };
@@ -53,4 +53,4 @@ std::ostream& operator<<(std::ostream& os, ActiveOrders activeOrders);
 
 }  // namespace solstice::matching
 
-#endif  // ORDER_H
+#endif  // ORCHESTRATOR_H

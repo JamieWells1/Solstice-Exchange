@@ -1,9 +1,9 @@
 #include <config.h>
 #include <log_level.h>
 #include <logging.h>
+#include <orchestrator.h>
 #include <order.h>
 #include <order_book.h>
-#include <order_processor.h>
 #include <order_side.h>
 #include <ticker.h>
 
@@ -50,14 +50,14 @@ OrderSide getOrderSide()
 namespace solstice::matching
 {
 
-OrderProcessor::OrderProcessor(Config config,
-                               std::shared_ptr<OrderBook> orderBook,
-                               Matcher matcher)
+Orchestrator::Orchestrator(Config config,
+                           std::shared_ptr<OrderBook> orderBook,
+                           Matcher matcher)
     : d_config(config), d_orderBook(orderBook), d_matcher(matcher)
 {
 }
 
-std::expected<OrderPtr, std::string> OrderProcessor::generateOrder(
+std::expected<OrderPtr, std::string> Orchestrator::generateOrder(
     int ordersGenerated)
 {
     int uid = ordersGenerated;
@@ -76,7 +76,7 @@ std::expected<OrderPtr, std::string> OrderProcessor::generateOrder(
     return order;
 }
 
-bool OrderProcessor::processOrder(OrderPtr order)
+bool Orchestrator::processOrder(OrderPtr order)
 {
     std::lock_guard<std::mutex> lock(d_tickerMutexes.at(order->tkr()));
 
@@ -104,7 +104,7 @@ bool OrderProcessor::processOrder(OrderPtr order)
     }
 }
 
-void OrderProcessor::pushToQueue(OrderPtr order)
+void Orchestrator::pushToQueue(OrderPtr order)
 {
     {
         std::lock_guard<std::mutex> lock(d_queueMutex);
@@ -113,7 +113,7 @@ void OrderProcessor::pushToQueue(OrderPtr order)
     d_queueConditionVar.notify_one();
 }
 
-OrderPtr OrderProcessor::popFromQueue()
+OrderPtr Orchestrator::popFromQueue()
 {
     std::unique_lock<std::mutex> lock(d_queueMutex);
 
@@ -131,8 +131,8 @@ OrderPtr OrderProcessor::popFromQueue()
     return order;
 }
 
-void OrderProcessor::workerThread(std::atomic<int>& matched,
-                                  std::atomic<int>& executed)
+void Orchestrator::workerThread(std::atomic<int>& matched,
+                                std::atomic<int>& executed)
 {
     while (true)
     {
@@ -151,7 +151,7 @@ void OrderProcessor::workerThread(std::atomic<int>& matched,
     }
 }
 
-void OrderProcessor::initialiseMutexes()
+void Orchestrator::initialiseMutexes()
 {
     // create a new mutex for each ticker
     for (Ticker tkr : ALL_TICKERS)
@@ -161,7 +161,7 @@ void OrderProcessor::initialiseMutexes()
 }
 
 std::expected<std::pair<int, int>, std::string>
-OrderProcessor::produceOrders()
+Orchestrator::produceOrders()
 {
     d_done.store(false);
 
@@ -173,9 +173,9 @@ OrderProcessor::produceOrders()
 
     for (int i = 0; i < numThreads; i++)
     {
-        threadPool.emplace_back(&OrderProcessor::workerThread, this,
-                             std::ref(ordersMatched),
-                             std::ref(ordersExecuted));
+        threadPool.emplace_back(&Orchestrator::workerThread, this,
+                                std::ref(ordersMatched),
+                                std::ref(ordersExecuted));
     }
 
     for (size_t i = 0; i < d_config.d_ordersToGenerate; i++)
@@ -203,7 +203,7 @@ OrderProcessor::produceOrders()
     return std::pair{ordersExecuted.load(), ordersMatched.load()};
 }
 
-std::expected<void, std::string> OrderProcessor::start()
+std::expected<void, std::string> Orchestrator::start()
 {
     auto config = Config::initConfig();
 
@@ -214,13 +214,13 @@ std::expected<void, std::string> OrderProcessor::start()
 
     auto orderBook = std::make_shared<OrderBook>();
     Matcher matcher{orderBook};
-    OrderProcessor processor{*config, orderBook, matcher};
+    Orchestrator orchestrator{*config, orderBook, matcher};
 
-    processor.initialiseMutexes();
+    orchestrator.initialiseMutexes();
     orderBook->initialiseActiveOrders();
 
     auto start = getTimeNow();
-    auto result = processor.produceOrders();
+    auto result = orchestrator.produceOrders();
     auto end = getTimeNow();
 
     if (!result)

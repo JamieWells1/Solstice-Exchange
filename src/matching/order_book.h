@@ -33,14 +33,15 @@ struct ActiveOrders
 
 class OrderBook
 {
-    friend class OrderProcessor;
+    friend class Orchestrator;
 
    public:
     const std::vector<Transaction>& transactions() const;
 
-    std::map<double, std::deque<OrderPtr>>& sameOrderSidePriceLevelMap(OrderPtr order);
+    std::map<double, std::deque<OrderPtr>>& sameOrderSidePriceLevelMap(
+        OrderPtr order);
     std::map<double, std::deque<OrderPtr>>& oppositeOrderSidePriceLevelMap(
-    OrderPtr order);
+        OrderPtr order);
 
     std::optional<std::reference_wrapper<std::deque<OrderPtr>>>
     getOrdersDequeAtPrice(const OrderPtr order);
@@ -49,7 +50,8 @@ class OrderBook
     std::deque<OrderPtr>& getOrdersDequeAtPrice(OrderPtr order,
                                                 int priceToMatch);
 
-    std::expected<std::reference_wrapper<std::deque<OrderPtr>>, std::string>
+    std::expected<std::reference_wrapper<std::deque<OrderPtr>>,
+                  std::string>
     getPriceLevelOppositeOrders(OrderPtr order, double priceToUse);
 
     const std::expected<double, std::string> getBestPrice(
@@ -68,10 +70,12 @@ class OrderBook
 
     void removeOrderFromBook(OrderPtr orderToRemove);
 
-    std::expected<std::reference_wrapper<BuyPricesAtPriceLevel>, std::string>
+    std::expected<std::reference_wrapper<BuyPricesAtPriceLevel>,
+                  std::string>
     getBuyPricesAtPriceLevel(OrderPtr order);
 
-    std::expected<std::reference_wrapper<SellPricesAtPriceLevel>, std::string>
+    std::expected<std::reference_wrapper<SellPricesAtPriceLevel>,
+                  std::string>
     getSellPricesAtPriceLevel(OrderPtr order);
 
     BuyPricesAtPriceLevel& buyPricesAtPriceLevel(OrderPtr order);

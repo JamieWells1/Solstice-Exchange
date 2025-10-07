@@ -13,16 +13,16 @@ namespace solstice::matching
 
 using OrderPtr = std::shared_ptr<Order>;
 
-class OrderProcessor;
+class Orchestrator;
 
 class Matcher
 {
-    friend class OrderProcessor;
+    friend class Orchestrator;
 
    public:
     std::shared_ptr<OrderBook> d_orderBook;
 
-    Matcher(std::shared_ptr<OrderBook> orderbook);
+    Matcher(std::shared_ptr<OrderBook> orderBook);
 
     std::expected<std::string, std::string> matchOrder(
         OrderPtr order, double orderMatchingPrice = -1) const;
@@ -34,7 +34,8 @@ class Matcher
                               OrderPtr secondOrder) const;
 
     const std::string matchSuccessOutput(OrderPtr incomingOrder,
-                                          OrderPtr matchedOrder, double matchedPrice) const;
+                                         OrderPtr matchedOrder,
+                                         double matchedPrice) const;
 };
 }  // namespace solstice::matching
 

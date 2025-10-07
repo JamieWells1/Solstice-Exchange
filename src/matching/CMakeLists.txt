@@ -1,7 +1,6 @@
 add_library(matching STATIC
     matcher.cpp
     order_book.cpp
-    order_processor.cpp
 )
 
 target_include_directories(matching

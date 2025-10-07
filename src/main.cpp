@@ -1,6 +1,6 @@
 #include <config.h>
+#include <orchestrator.h>
 #include <order_book.h>
-#include <order_processor.h>
 
 #include <iostream>
 
@@ -14,7 +14,7 @@ int main()
 
     if (!choice.empty())
     {
-        auto response = solstice::matching::OrderProcessor::start();
+        auto response = solstice::matching::Orchestrator::start();
 
         if (!response)
         {

@@ -188,8 +188,8 @@ std::expected<std::string, std::string> Matcher::matchOrder(
     }
 }
 
-Matcher::Matcher(std::shared_ptr<OrderBook> orderbook)
-    : d_orderBook(orderbook)
+Matcher::Matcher(std::shared_ptr<OrderBook> orderBook)
+    : d_orderBook(orderBook)
 {
 }
 
