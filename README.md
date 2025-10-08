@@ -24,15 +24,6 @@ See [`BENCHMARK_HISTORY.md`](BENCHMARK_HISTORY.md) for all historical runs, and 
 
 ---
 
-## Modules
-
-- [`src/matching/README.md`](src/matching/README.md) — Matching engine design and benchmarks.
-- [`src/pricing/README.md`](src/pricing/README.md) — Pricing engine spec (placeholder).
-- [`src/strategy/README.md`](src/strategy/README.md) — Strategy engine spec (placeholder).
-- [`BENCHMARK_HISTORY.md`](BENCHMARK_HISTORY.md) — Historical performance data and trends.
-
----
-
 ## Status & Roadmap
 
 | Component  | Status      | Next Steps |
@@ -47,6 +38,15 @@ See [`BENCHMARK_HISTORY.md`](BENCHMARK_HISTORY.md) for all historical runs, and 
 3. **Options Pricing** — Black-Scholes implementation with full Greeks
 4. **Trading Strategy** — Automated strategy executor leveraging derivatives pricing
 5. **Extended Derivatives** — Additional asset classes and pricing models
+
+---
+
+## Modules
+
+- [`src/matching/README.md`](src/matching/README.md) — Matching engine design and benchmarks.
+- [`src/pricing/README.md`](src/pricing/README.md) — Pricing engine spec (placeholder).
+- [`src/strategy/README.md`](src/strategy/README.md) — Strategy engine spec (placeholder).
+- [`BENCHMARK_HISTORY.md`](BENCHMARK_HISTORY.md) — Historical performance data and trends.
 
 ---
 
