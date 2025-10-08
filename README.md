@@ -38,8 +38,8 @@ See [`BENCHMARK_HISTORY.md`](BENCHMARK_HISTORY.md) for all historical runs, and 
 | Component  | Status      | Next Steps |
 |------------|-------------|------------|
 | Matching   | Complete | Minor optimizations, extended test coverage |
-| Pricing    | In Progress | **v0.3.0**: Futures pricing (cost of carry model)<br>**v0.4.0**: Options pricing (Black-Scholes, Greeks calculation)<br>**Future**: Additional derivatives (swaps, exotics) |
-| Strategy   | Planned  | **v0.5.0**: Algorithmic trading strategy implementation<br>Initial focus: delta-neutral / volatility arbitrage |
+| Pricing    | In Progress | Futures pricing (cost of carry model)<br>**v0.4.0**: Options pricing (Black-Scholes, Greeks calculation)<br>**Future**: Additional derivatives (swaps, exotics) |
+| Strategy   | Planned  | Algorithmic trading strategy implementation<br>Initial focus: delta-neutral / volatility arbitrage |
 
 ### Roadmap Overview
 1. **Matching Engine** — Foundation complete, ongoing refinements
