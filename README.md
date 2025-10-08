@@ -38,7 +38,7 @@ See [`BENCHMARK_HISTORY.md`](BENCHMARK_HISTORY.md) for all historical runs, and 
 | Component  | Status      | Next Steps |
 |------------|-------------|------------|
 | Matching   | Complete | Minor optimizations, extended test coverage |
-| Pricing    | In Progress | Futures pricing (cost of carry model)<br>**v0.4.0**: Options pricing (Black-Scholes, Greeks calculation)<br>**Future**: Additional derivatives (swaps, exotics) |
+| Pricing    | In Progress | - Futures pricing (cost of carry model)<br>- Options pricing (Black-Scholes, Greeks calculation)<br>- Additional derivatives (swaps, exotics) |
 | Strategy   | Planned  | Algorithmic trading strategy implementation<br>Initial focus: delta-neutral / volatility arbitrage |
 
 ### Roadmap Overview
