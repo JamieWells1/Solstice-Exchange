@@ -1,0 +1,170 @@
+#ifndef ASSET_CLASS_H
+#define ASSET_CLASS_H
+
+#include <algorithm>
+#include <array>
+#include <cstdint>
+#include <random>
+#include <stdexcept>
+#include <vector>
+
+namespace solstice
+{
+
+enum class AssetClass : uint8_t
+{
+    Equity,
+    Future,
+    Forward,
+    Option,
+    Swap,
+    COUNT
+};
+
+static constexpr std::array<const char*,
+                            static_cast<size_t>(AssetClass::COUNT)>
+    ASSET_CLASS_STR = {"Equity", "Future", "Forward", "Option", "Swap"};
+
+inline const char* to_string(AssetClass cls)
+{
+    return ASSET_CLASS_STR[static_cast<size_t>(cls)];
+}
+
+// ===================================================================
+// Enum: Equity
+// ===================================================================
+
+enum class Equity : uint8_t
+{
+    AAPL,
+    MSFT,
+    GOOGL,
+    AMZN,
+    META,
+    BLK,
+    NVDA,
+    AMD,
+    INTC,
+    QCOM,
+    JPM,
+    BAC,
+    CRM,
+    GS,
+    MS,
+    ORCL,
+    IBM,
+    TSM,
+    UBER,
+    LYFT,
+    COUNT
+};
+
+static constexpr std::array<const char*,
+                            static_cast<size_t>(Equity::COUNT)>
+    EQTY_STR = {"AAPL", "MSFT", "GOOGL", "AMZN", "META", "BLK", "NVDA",
+                "AMD",  "INTC", "QCOM",  "JPM",  "BAC",  "CRM", "GS",
+                "MS",   "ORCL", "IBM",   "TSM",  "UBER", "LYFT"};
+
+inline constexpr std::array<Equity, static_cast<size_t>(Equity::COUNT)>
+    ALL_EQUITIES = {
+        Equity::AAPL, Equity::MSFT, Equity::GOOGL, Equity::AMZN,
+        Equity::META, Equity::BLK,  Equity::NVDA,  Equity::AMD,
+        Equity::INTC, Equity::QCOM, Equity::JPM,   Equity::BAC,
+        Equity::CRM,  Equity::GS,   Equity::MS,    Equity::ORCL,
+        Equity::IBM,  Equity::TSM,  Equity::UBER,  Equity::LYFT};
+
+// ===================================================================
+// Enum: Future
+// ===================================================================
+
+enum class Future : uint8_t
+{
+    AAPL_MAR25,
+    AAPL_JUN25,
+    AAPL_SEP25,
+    AAPL_DEC25,
+
+    MSFT_MAR25,
+    MSFT_JUN25,
+    MSFT_SEP25,
+    MSFT_DEC25,
+
+    TSLA_MAR25,
+    TSLA_JUN25,
+    TSLA_SEP25,
+    TSLA_DEC25,
+
+    COUNT
+};
+
+static constexpr std::array<const char*,
+                            static_cast<size_t>(Future::COUNT)>
+    FTR_STR = {
+        "AAPL_MAR25", "AAPL_JUN25", "AAPL_SEP25", "AAPL_DEC25",
+        "MSFT_MAR25", "MSFT_JUN25", "MSFT_SEP25", "MSFT_DEC25",
+        "TSLA_MAR25", "TSLA_JUN25", "TSLA_SEP25", "TSLA_DEC25",
+};
+
+inline constexpr std::array<Future, static_cast<size_t>(Future::COUNT)>
+    ALL_FUTURES = {
+        Future::AAPL_MAR25, Future::AAPL_JUN25, Future::AAPL_SEP25,
+        Future::AAPL_DEC25, Future::MSFT_MAR25, Future::MSFT_JUN25,
+        Future::MSFT_SEP25, Future::MSFT_DEC25, Future::TSLA_MAR25,
+        Future::TSLA_JUN25, Future::TSLA_SEP25, Future::TSLA_DEC25};
+
+// ===================================================================
+// Template Functions
+// ===================================================================
+
+template <typename T>
+inline const char* to_string(T type)
+{
+    int underlying = static_cast<size_t>(type);
+
+    if (std::is_same_v<T, Future>) return FTR_STR[underlying];
+
+    if (std::is_same_v<T, Equity>) return EQTY_STR[underlying];
+}
+
+template <typename T>
+inline std::vector<T> d_randomUnderlyingsPool;
+
+template <typename T>
+inline bool d_underlyingsPoolInitialised = false;
+
+template <typename T, std::size_t N>
+inline void selectUnderlyingsPool(int poolSize,
+                                  const std::array<T, N>& fullSet)
+{
+    if (d_underlyingsPoolInitialised<T>) return;
+
+    auto& pool = d_randomUnderlyingsPool<T>;
+    pool.assign(fullSet.begin(), fullSet.end());
+
+    if (poolSize > 0 && poolSize < static_cast<int>(pool.size()))
+    {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        std::shuffle(pool.begin(), pool.end(), gen);
+        pool.resize(poolSize);
+    }
+
+    d_underlyingsPoolInitialised<T> = true;
+}
+
+template <typename T>
+inline T getRandomUnderlying()
+{
+    const auto& pool = d_randomUnderlyingsPool<T>;
+    if (pool.empty()) throw std::runtime_error("Underlying pool is empty");
+
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dist(0, pool.size() - 1);
+
+    return pool[dist(gen)];
+}
+
+}  // namespace solstice
+
+#endif  // ASSET_CLASS_H
