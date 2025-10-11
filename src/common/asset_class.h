@@ -25,6 +25,11 @@ static constexpr std::array<const char*,
                             static_cast<size_t>(AssetClass::COUNT)>
     ASSET_CLASS_STR = {"Equity", "Future", "Forward", "Option", "Swap"};
 
+inline constexpr std::array<AssetClass, static_cast<size_t>(AssetClass::COUNT)>
+    ALL_ASSET_CLASSES = {
+        AssetClass::Equity, AssetClass::Future, AssetClass::Forward, AssetClass::Option,
+        AssetClass::Swap};
+
 inline const char* to_string(AssetClass cls)
 {
     return ASSET_CLASS_STR[static_cast<size_t>(cls)];

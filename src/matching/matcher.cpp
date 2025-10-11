@@ -14,7 +14,7 @@ namespace solstice::matching
 
 const bool Matcher::withinPriceRange(double price, OrderPtr order) const
 {
-    if (order->orderSide() == OrderSide::Buy)
+    if (order->orderSide() == OrderSide::Bid)
     {
         return price > order->price() ? false : true;
     }
@@ -33,25 +33,23 @@ const double Matcher::getDealPrice(OrderPtr firstOrder,
         return firstOrder->price();
     }
 
-    OrderPtr buyOrder = firstOrder->orderSide() == OrderSide::Buy
-                            ? firstOrder
-                            : secondOrder;
-    OrderPtr sellOrder = firstOrder == buyOrder ? secondOrder : firstOrder;
+    OrderPtr bid = firstOrder->orderSide() == OrderSide::Bid ? firstOrder
+                                                             : secondOrder;
+    OrderPtr ask = firstOrder == bid ? secondOrder : firstOrder;
 
     // always return price of resting order
-    if (sellOrder->timeOrderPlaced() > buyOrder->timeOrderPlaced())
+    if (ask->timeOrderPlaced() > bid->timeOrderPlaced())
     {
-        return sellOrder->price();
+        return ask->price();
     }
 
-    if (buyOrder->timeOrderPlaced() > sellOrder->timeOrderPlaced())
+    if (bid->timeOrderPlaced() > ask->timeOrderPlaced())
     {
-        return buyOrder->price();
+        return bid->price();
     }
 
     // tiebreaker - uid as this is based on position in book
-    return buyOrder->uid() > sellOrder->uid() ? sellOrder->price()
-                                              : buyOrder->price();
+    return bid->uid() > ask->uid() ? ask->price() : bid->price();
 }
 
 const std::string Matcher::matchSuccessOutput(OrderPtr incomingOrder,

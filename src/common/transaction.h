@@ -22,16 +22,15 @@ struct Transaction
 
    public:
     std::string d_uid;
-    int d_buyOrderUid;
-    int d_sellOrderUid;
+    int d_bidUid;
+    int d_askUid;
     Ticker d_tkr;
     double d_price;
     double d_qnty;
     TimePoint d_timeExecuted;
 
    private:
-    Transaction(OrderPtr buyOrder, OrderPtr sellOrder, double price,
-                double qnty);
+    Transaction(OrderPtr bid, OrderPtr ask, double price, double qnty);
 };
 
 std::ostream& operator<<(std::ostream os, const Transaction& transaction);

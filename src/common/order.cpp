@@ -125,7 +125,7 @@ const OrderSide Order::orderSide() const { return d_orderSide; }
 
 const std::string Order::orderSideString() const
 {
-    return d_orderSide == solstice::OrderSide::Buy ? "Buy" : "Sell";
+    return d_orderSide == solstice::OrderSide::Bid ? "Bid" : "ask";
 }
 
 const TimePoint Order::timeOrderPlaced() const
@@ -174,9 +174,9 @@ std::ostream& operator<<(std::ostream& os, const Order& order)
 {
     os << "Order UID: " << order.uid() << " | Ticker: " << order.tkr()
        << " | Price: " << order.price() << " | Quantity: " << order.qnty()
-       << " | Is buy: " << std::boolalpha
-       << (order.orderSide() == OrderSide::Buy);
+       << " | Is bid: " << std::boolalpha
+       << (order.orderSide() == OrderSide::Bid);
 
     return os;
 }
-}  // namespace solstice::matching
+}  // namespace solstice

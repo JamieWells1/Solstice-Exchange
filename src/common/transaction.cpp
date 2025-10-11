@@ -5,24 +5,23 @@
 namespace solstice::matching
 {
 
-Transaction::Transaction(OrderPtr buyOrder,
-                         OrderPtr sellOrder, double price,
+Transaction::Transaction(OrderPtr bid, OrderPtr ask, double price,
                          double qnty)
     : d_uid(Random::getRandomUid()),
       d_timeExecuted(getTimeNow()),
-      d_buyOrderUid(buyOrder->uid()),
-      d_sellOrderUid(sellOrder->uid()),
+      d_bidUid(bid->uid()),
+      d_askUid(ask->uid()),
       d_price(price),
       d_qnty(qnty),
-      d_tkr(buyOrder->tkr())
+      d_tkr(bid->tkr())
 {
 }
 
 std::ostream& operator<<(std::ostream& os, const Transaction& transaction)
 {
     os << "Transaction UID: " << transaction.d_uid
-       << " | Buyer UID: " << transaction.d_buyOrderUid
-       << " | Seller UID: " << transaction.d_sellOrderUid
+       << " | Bid order UID: " << transaction.d_bidUid
+       << " | Ask order UID: " << transaction.d_askUid
        << " | Ticker: " << transaction.d_tkr
        << " | Price: " << transaction.d_price
        << " | Quantity: " << transaction.d_qnty

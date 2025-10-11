@@ -37,11 +37,11 @@ OrderSide getOrderSide()
 {
     if (Random::getRandomBool())
     {
-        return OrderSide::Buy;
+        return OrderSide::Bid;
     }
     else
     {
-        return OrderSide::Sell;
+        return OrderSide::Ask;
     }
 }
 

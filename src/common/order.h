@@ -1,6 +1,7 @@
 #ifndef ORDER_H
 #define ORDER_H
 
+#include <asset_class.h>
 #include <order_side.h>
 #include <ticker.h>
 #include <time_point.h>
@@ -9,15 +10,19 @@
 #include <expected>
 #include <memory>
 #include <string>
+#include <variant>
 
 namespace solstice
 {
+
+using Underlying = std::variant<Equity, Future>;
 
 class Order
 {
    public:
     static std::expected<std::shared_ptr<Order>, std::string> createOrder(
-        int uid, Ticker tkr, double price, double qnty, OrderSide orderSide);
+        int uid, Ticker tkr, double price, double qnty,
+        OrderSide orderSide);
 
     const int uid() const;
     const Ticker tkr() const;
@@ -52,6 +57,6 @@ class Order
 
 std::ostream& operator<<(std::ostream& os, const Order& order);
 
-}  // namespace solstice::matching
+}  // namespace solstice
 
 #endif

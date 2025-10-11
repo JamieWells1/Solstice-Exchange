@@ -9,11 +9,11 @@ namespace solstice
 
 enum class OrderSide : uint8_t
 {
-    Buy = 1,
-    Sell = 0
+    Bid = 1,
+    ask = 0
 };
 
 std::ostream& operator<<(std::ostream& os, OrderSide orderSide);
-}
+}  // namespace solstice
 
 #endif  // ORDER_SIDE_H

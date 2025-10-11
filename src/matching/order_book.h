@@ -19,16 +19,16 @@ namespace solstice::matching
 using OrderPtr = std::shared_ptr<Order>;
 using PriceLevelMap = std::map<double, std::deque<OrderPtr>>;
 
-using BuyPricesAtPriceLevel = std::set<double, std::greater<double>>;
-using SellPricesAtPriceLevel = std::set<double, std::less<double>>;
+using BidPricesAtPriceLevel = std::set<double, std::greater<double>>;
+using askPricesAtPriceLevel = std::set<double, std::less<double>>;
 
 struct ActiveOrders
 {
-    PriceLevelMap buyOrders;
-    PriceLevelMap sellOrders;
+    PriceLevelMap bids;
+    PriceLevelMap asks;
 
-    BuyPricesAtPriceLevel buyPrices;
-    SellPricesAtPriceLevel sellPrices;
+    BidPricesAtPriceLevel bidPrices;
+    askPricesAtPriceLevel askPrices;
 };
 
 class OrderBook
@@ -70,16 +70,16 @@ class OrderBook
 
     void removeOrderFromBook(OrderPtr orderToRemove);
 
-    std::expected<std::reference_wrapper<BuyPricesAtPriceLevel>,
+    std::expected<std::reference_wrapper<BidPricesAtPriceLevel>,
                   std::string>
-    getBuyPricesAtPriceLevel(OrderPtr order);
+    getBidPricesAtPriceLevel(OrderPtr order);
 
-    std::expected<std::reference_wrapper<SellPricesAtPriceLevel>,
+    std::expected<std::reference_wrapper<askPricesAtPriceLevel>,
                   std::string>
-    getSellPricesAtPriceLevel(OrderPtr order);
+    getaskPricesAtPriceLevel(OrderPtr order);
 
-    BuyPricesAtPriceLevel& buyPricesAtPriceLevel(OrderPtr order);
-    SellPricesAtPriceLevel& sellPricesAtPriceLevel(OrderPtr order);
+    BidPricesAtPriceLevel& bidPricesAtPriceLevel(OrderPtr order);
+    askPricesAtPriceLevel& askPricesAtPriceLevel(OrderPtr order);
 };
 }  // namespace solstice::matching
 

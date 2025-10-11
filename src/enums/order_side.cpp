@@ -1,4 +1,5 @@
 #include <order_side.h>
+
 #include <ostream>
 
 namespace solstice
@@ -6,9 +7,11 @@ namespace solstice
 
 std::ostream& operator<<(std::ostream& os, const OrderSide& orderSide)
 {
-    if (orderSide == OrderSide::Buy) os << "Buy";
-    else os << "Sell";
+    if (orderSide == OrderSide::Bid)
+        os << "Bid";
+    else
+        os << "ask";
 
     return os;
 }
-}  // namespace solstice::matching
+}  // namespace solstice
