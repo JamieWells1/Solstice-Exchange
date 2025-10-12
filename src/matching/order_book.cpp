@@ -149,8 +149,8 @@ const std::expected<double, std::string> OrderBook::getBestPrice(OrderPtr orderT
 
         if (askPrices.size() == 0)
         {
-            return std::unexpected(
-                std::format("No ask orders found for ticker {}\n", to_string(orderToMatch->underlying())));
+            return std::unexpected(std::format("No ask orders found for ticker {}\n",
+                                               to_string(orderToMatch->underlying())));
         }
 
         double lowestaskPrice = *askPrices.begin();
@@ -175,8 +175,8 @@ const std::expected<double, std::string> OrderBook::getBestPrice(OrderPtr orderT
 
         if (bidPrices.size() == 0)
         {
-            return std::unexpected(
-                std::format("No bid orders found for ticker {}\n", to_string(orderToMatch->underlying())));
+            return std::unexpected(std::format("No bid orders found for ticker {}\n",
+                                               to_string(orderToMatch->underlying())));
         }
 
         // find highest bid price at or below target price

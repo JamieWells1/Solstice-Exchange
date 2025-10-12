@@ -7,6 +7,7 @@
 #include <order_book.h>
 #include <order_side.h>
 
+#include <atomic>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -23,9 +24,23 @@ std::expected<Underlying, std::string> getUnderlying(AssetClass assetClass)
     switch (assetClass)
     {
         case AssetClass::Equity:
-            return getRandomUnderlying<Equity>();
+        {
+            auto underlying = getRandomUnderlying<Equity>();
+            if (!underlying)
+            {
+                return std::unexpected(underlying.error());
+            }
+            return *underlying;
+        }
         case AssetClass::Future:
-            return getRandomUnderlying<Future>();
+        {
+            auto underlying = getRandomUnderlying<Future>();
+            if (!underlying)
+            {
+                return std::unexpected(underlying.error());
+            }
+            return *underlying;
+        }
         default:
             return std::unexpected("Invalid asset class\n");
     }
@@ -158,6 +173,8 @@ void Orchestrator::initialiseUnderlyings(AssetClass assetClass)
     switch (assetClass)
     {
         case AssetClass::Equity:
+            setUnderlyingsPool(d_config.d_underlyingPoolCount, ALL_EQUITIES);
+
             d_orderBook->initialiseBookAtUnderlyings<Equity>();
 
             // add mutexes here rather than creating another switch case statement
@@ -168,6 +185,8 @@ void Orchestrator::initialiseUnderlyings(AssetClass assetClass)
 
             break;
         case AssetClass::Future:
+            setUnderlyingsPool(d_config.d_underlyingPoolCount, ALL_FUTURES);
+
             d_orderBook->initialiseBookAtUnderlyings<Future>();
 
             for (Future underlying : getUnderlyingsPool<Future>())

@@ -4,10 +4,10 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <expected>
 #include <random>
 #include <variant>
 #include <vector>
-#include <expected>
 
 namespace
 {
@@ -134,10 +134,13 @@ const char* to_string(T type)
 }
 
 template <typename T>
-inline T getRandomUnderlying()
+const std::expected<T, std::string> getRandomUnderlying()
 {
     const auto& pool = d_underlyingsPool<T>;
-    if (pool.empty()) throw std::runtime_error("Underlying pool is empty");
+    if (pool.empty())
+    {
+        return std::unexpected("Underlying pool is empty");
+    }
 
     static std::random_device rd;
     static std::mt19937 gen(rd());
