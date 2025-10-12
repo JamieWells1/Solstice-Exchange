@@ -14,6 +14,7 @@ enum class OrderSide : uint8_t
 };
 
 std::ostream& operator<<(std::ostream& os, OrderSide orderSide);
+
 }  // namespace solstice
 
 #endif  // ORDER_SIDE_H
