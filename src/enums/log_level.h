@@ -11,4 +11,4 @@ enum class LogLevel : uint8_t
     DEBUG = 3,
 };
 
-#endif // LOGGING_LEVEL_H
+#endif  // LOGGING_LEVEL_H

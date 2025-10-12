@@ -1,6 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <asset_class.h>
 #include <log_level.h>
 
 #include <expected>
@@ -16,11 +17,14 @@ struct Config
 
     LogLevel d_logLevel = LogLevel::DEBUG;
 
+    // asset class to create orders for in the simulation (COUNT invalid)
+    AssetClass d_assetClass = AssetClass::Equity;
+
     // number of orders to generate
     int d_ordersToGenerate = 100000;
 
     // number of unique tickers that orders can come in for
-    int d_tkrPoolCount = 50;
+    int d_underlyingPoolCount = 50;
 
     // min and max quanties of each order
     int d_minQnty = 1;

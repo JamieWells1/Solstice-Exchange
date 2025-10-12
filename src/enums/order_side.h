@@ -10,7 +10,7 @@ namespace solstice
 enum class OrderSide : uint8_t
 {
     Bid = 1,
-    ask = 0
+    Ask = 0
 };
 
 std::ostream& operator<<(std::ostream& os, OrderSide orderSide);

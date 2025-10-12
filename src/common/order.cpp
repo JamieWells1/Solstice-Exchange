@@ -1,13 +1,12 @@
 #include <get_random.h>
 #include <order.h>
+#include <asset_class.h>
+#include <order_side.h>
 
 #include <chrono>
 #include <format>
 #include <memory>
 #include <ostream>
-
-#include "order_side.h"
-#include "ticker.h"
 
 namespace
 {
@@ -16,8 +15,7 @@ std::expected<void, std::string> validatePrice(const double price)
 {
     if (price < 0)
     {
-        return std::unexpected(
-            std::format("Invalid price: {}", price, "\n"));
+        return std::unexpected(std::format("Invalid price: {}", price, "\n"));
     }
 
     return {};
@@ -27,15 +25,13 @@ std::expected<void, std::string> validateQnty(const double qnty)
 {
     if (qnty < 0)
     {
-        return std::unexpected(
-            std::format("Invalid quantity: {}", qnty, "\n"));
+        return std::unexpected(std::format("Invalid quantity: {}", qnty, "\n"));
     }
 
     return {};
 }
 
-std::expected<void, std::string> validateTimeOrderPlaced(
-    const TimePoint& timeOrderPlaced)
+std::expected<void, std::string> validateTimeOrderPlaced(const TimePoint& timeOrderPlaced)
 {
     TimePoint now = std::chrono::system_clock::now();
 
@@ -44,20 +40,18 @@ std::expected<void, std::string> validateTimeOrderPlaced(
         return std::unexpected("Order cannot be placed in the future\n");
     }
 
-    auto delayInSeconds = std::chrono::duration_cast<std::chrono::seconds>(
-                              now - timeOrderPlaced)
-                              .count();
+    auto delayInSeconds =
+        std::chrono::duration_cast<std::chrono::seconds>(now - timeOrderPlaced).count();
     if (delayInSeconds > 10)
     {
-        return std::unexpected(
-            "Order timed out due to extensive processing time\n");
+        return std::unexpected("Order timed out due to extensive processing time\n");
     }
 
     return {};
 }
 
-std::expected<void, std::string> validateOrderAttributes(
-    double price, double qnty, TimePoint& timeOrderPlaced)
+std::expected<void, std::string> validateOrderAttributes(double price, double qnty,
+                                                         TimePoint& timeOrderPlaced)
 {
     auto validPrice = validatePrice(price);
     auto validQnty = validateQnty(qnty);
@@ -90,10 +84,10 @@ std::expected<void, std::string> validateOrderAttributes(
 namespace solstice
 {
 
-Order::Order(int uid, Ticker tkr, double price, double qnty,
-             OrderSide orderSide, TimePoint timeOrderPlaced)
+Order::Order(int uid, Underlying underlying, double price, double qnty, OrderSide orderSide,
+             TimePoint timeOrderPlaced)
     : d_uid(uid),
-      d_tkr(tkr),
+      d_underlying(underlying),
       d_price(price),
       d_qnty(qnty),
       d_orderSide(orderSide),
@@ -105,9 +99,7 @@ Order::Order(int uid, Ticker tkr, double price, double qnty,
 
 const int Order::uid() const { return d_uid; }
 
-const Ticker Order::tkr() const { return d_tkr; }
-
-const std::string Order::tkrString() const { return tkrToString(d_tkr); }
+const Underlying Order::underlying() const { return d_underlying; }
 
 const double Order::price() const { return d_price; }
 
@@ -128,10 +120,7 @@ const std::string Order::orderSideString() const
     return d_orderSide == solstice::OrderSide::Bid ? "Bid" : "ask";
 }
 
-const TimePoint Order::timeOrderPlaced() const
-{
-    return d_timeOrderPlaced;
-}
+const TimePoint Order::timeOrderPlaced() const { return d_timeOrderPlaced; }
 
 const bool Order::orderComplete() const { return d_orderComplete; }
 
@@ -141,8 +130,7 @@ bool Order::orderComplete(bool isFulfilled)
     return d_orderComplete;
 }
 
-const std::expected<TimePoint, std::string> Order::timeOrderFulfilled()
-    const
+const std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
 {
     // Cannot return time of fulfillment if fulfillment hasn't yet occured
     if (!d_orderComplete)
@@ -152,30 +140,30 @@ const std::expected<TimePoint, std::string> Order::timeOrderFulfilled()
     return d_timeOrderFulfilled;
 }
 
-std::expected<std::shared_ptr<Order>, std::string> Order::createOrder(
-    int uid, Ticker tkr, double price, double qnty, OrderSide orderSide)
+std::expected<std::shared_ptr<Order>, std::string> Order::createOrder(int uid,
+                                                                      Underlying underlying,
+                                                                      double price, double qnty,
+                                                                      OrderSide orderSide)
 {
     TimePoint timeOrderPlaced = getTimeNow();
 
-    auto isOrderValid =
-        validateOrderAttributes(price, qnty, timeOrderPlaced);
+    auto isOrderValid = validateOrderAttributes(price, qnty, timeOrderPlaced);
     if (!isOrderValid)
     {
         return std::unexpected(isOrderValid.error());
     }
 
-    auto order = std::shared_ptr<Order>(new (std::nothrow) Order{
-        uid, tkr, price, qnty, orderSide, timeOrderPlaced});
+    auto order = std::shared_ptr<Order>(
+        new (std::nothrow) Order{uid, underlying, price, qnty, orderSide, timeOrderPlaced});
 
     return order;
 }
 
 std::ostream& operator<<(std::ostream& os, const Order& order)
 {
-    os << "Order UID: " << order.uid() << " | Ticker: " << order.tkr()
+    os << "Order UID: " << order.uid() << " | Ticker: " << to_string(order.underlying())
        << " | Price: " << order.price() << " | Quantity: " << order.qnty()
-       << " | Is bid: " << std::boolalpha
-       << (order.orderSide() == OrderSide::Bid);
+       << " | Is bid: " << std::boolalpha << (order.orderSide() == OrderSide::Bid);
 
     return os;
 }

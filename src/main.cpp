@@ -14,7 +14,7 @@ int main()
 
     if (!choice.empty())
     {
-        auto response = solstice::matching::Orchestrator::start();
+        auto response = matching::Orchestrator::start();
 
         if (!response)
         {

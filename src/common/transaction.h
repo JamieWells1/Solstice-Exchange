@@ -3,7 +3,6 @@
 
 #include <get_random.h>
 #include <order.h>
-#include <ticker.h>
 #include <time_point.h>
 
 #include <memory>
@@ -24,7 +23,7 @@ struct Transaction
     std::string d_uid;
     int d_bidUid;
     int d_askUid;
-    Ticker d_tkr;
+    Underlying d_underlying;
     double d_price;
     double d_qnty;
     TimePoint d_timeExecuted;
