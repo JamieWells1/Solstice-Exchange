@@ -3,7 +3,6 @@
 #include <asset_class.h>
 #include <order_side.h>
 
-#include <chrono>
 #include <format>
 #include <memory>
 #include <ostream>
@@ -31,31 +30,11 @@ std::expected<void, std::string> validateQnty(const double qnty)
     return {};
 }
 
-std::expected<void, std::string> validateTimeOrderPlaced(const TimePoint& timeOrderPlaced)
-{
-    TimePoint now = std::chrono::system_clock::now();
-
-    if (timeOrderPlaced > now)
-    {
-        return std::unexpected("Order cannot be placed in the future\n");
-    }
-
-    auto delayInSeconds =
-        std::chrono::duration_cast<std::chrono::seconds>(now - timeOrderPlaced).count();
-    if (delayInSeconds > 10)
-    {
-        return std::unexpected("Order timed out due to extensive processing time\n");
-    }
-
-    return {};
-}
-
 std::expected<void, std::string> validateOrderAttributes(double price, double qnty,
                                                          TimePoint& timeOrderPlaced)
 {
     auto validPrice = validatePrice(price);
     auto validQnty = validateQnty(qnty);
-    auto validTimeOrderPlaced = validateTimeOrderPlaced(timeOrderPlaced);
 
     if (!validPrice)
     {
@@ -65,11 +44,6 @@ std::expected<void, std::string> validateOrderAttributes(double price, double qn
     if (!validQnty)
     {
         return std::unexpected(validQnty.error());
-    }
-
-    if (!validTimeOrderPlaced)
-    {
-        return std::unexpected(validTimeOrderPlaced.error());
     }
 
     return {};

@@ -117,8 +117,6 @@ constexpr std::array<Future, static_cast<size_t>(Future::COUNT)> ALL_FUTURES = {
 
 using Underlying = std::variant<Equity, Future>;
 
-std::expected<Underlying, std::string> assetClassToUnderlying(AssetClass assetClass);
-
 // ===================================================================
 // Template Functions
 // ===================================================================
@@ -149,14 +147,12 @@ const std::expected<T, std::string> getRandomUnderlying()
     return pool[dist(gen)];
 }
 
-// Overload for std::variant
 template <typename... Types>
 const char* to_string(const std::variant<Types...>& variant)
 {
     return std::visit([](const auto& underlying) { return to_string(underlying); }, variant);
 }
 
-// Equality operator for comparing variant with one of its alternatives
 template <typename T, typename... Types>
 inline bool operator==(const std::variant<Types...>& variant, const T& value)
 {

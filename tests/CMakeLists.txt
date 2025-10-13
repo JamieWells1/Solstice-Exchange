@@ -1,20 +1,23 @@
-add_executable(tests
-  test_order.cpp
-  ${PROJECT_SOURCE_DIR}/src/common/order.cpp
+# Recursively find all test files in this directory and subdirectories (e.g., unit/)
+file(GLOB_RECURSE TEST_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_*.cpp
 )
 
-target_compile_options(tests PRIVATE -fprofile-arcs -ftest-coverage)
-target_link_options(tests PRIVATE -fprofile-arcs -ftest-coverage)
+add_executable(tests ${TEST_SOURCES})
+
 target_link_libraries(tests
-  PRIVATE
-  gtest_main
-  matching
-  pricing
-  strategy
-  common
-  utils
-  enums
+    PRIVATE
+    gtest_main
+    matching
+    pricing
+    strategy
+    common
+    utils
+    enums
 )
+
+include(GoogleTest)
+gtest_discover_tests(tests)
 
 target_include_directories(tests PRIVATE
     ${PROJECT_SOURCE_DIR}/src

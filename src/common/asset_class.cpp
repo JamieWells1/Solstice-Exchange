@@ -1,6 +1,5 @@
 #include <asset_class.h>
 
-#include <expected>
 #include <ostream>
 #include <random>
 
