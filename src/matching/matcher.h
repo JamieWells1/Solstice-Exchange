@@ -20,9 +20,9 @@ class Matcher
     friend class Orchestrator;
 
    public:
-    std::shared_ptr<OrderBook> d_orderBook;
-
     Matcher(std::shared_ptr<OrderBook> orderBook);
+
+    std::shared_ptr<OrderBook> d_orderBook;
 
     std::expected<std::string, std::string> matchOrder(OrderPtr order,
                                                        double orderMatchingPrice = -1) const;

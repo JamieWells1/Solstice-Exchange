@@ -14,6 +14,7 @@ target_link_libraries(tests
     common
     utils
     enums
+    config
 )
 
 include(GoogleTest)
@@ -28,4 +29,5 @@ target_include_directories(tests PRIVATE
     ${PROJECT_SOURCE_DIR}/src/common
     ${PROJECT_SOURCE_DIR}/src/enums
     ${PROJECT_SOURCE_DIR}/src/utils
+    ${PROJECT_SOURCE_DIR}/src/config
 )

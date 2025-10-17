@@ -120,7 +120,6 @@ std::expected<std::string, std::string> Matcher::matchOrder(OrderPtr incomingOrd
     {
         return std::unexpected("Orders cannot match themselves\n");
     }
-
     if (bestOrder->qnty() < incomingOrder->qnty())
     {
         double transactionQnty = bestOrder->qnty();

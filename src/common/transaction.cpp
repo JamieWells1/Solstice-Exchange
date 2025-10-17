@@ -1,5 +1,5 @@
-#include <transaction.h>
 #include <time_point.h>
+#include <transaction.h>
 
 namespace solstice::matching
 {

@@ -244,7 +244,7 @@ std::expected<std::pair<int, int>, std::string> Orchestrator::produceOrders()
 
 std::expected<void, std::string> Orchestrator::start()
 {
-    auto config = Config::initConfig();
+    auto config = Config::init();
 
     if (!config)
     {

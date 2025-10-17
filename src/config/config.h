@@ -7,13 +7,13 @@
 #include <expected>
 #include <string>
 
-namespace solstice::matching
+namespace solstice
 {
 
 struct Config
 {
    public:
-    static std::expected<Config, std::string> initConfig();
+    static std::expected<Config, std::string> init();
 
     LogLevel d_logLevel = LogLevel::INFO;
 
@@ -21,7 +21,7 @@ struct Config
     AssetClass d_assetClass = AssetClass::Future;
 
     // number of orders to generate
-    int d_ordersToGenerate = 100000;
+    int d_ordersToGenerate = 10000;
 
     // number of unique tickers that orders can come in for
     int d_underlyingPoolCount = 50;
