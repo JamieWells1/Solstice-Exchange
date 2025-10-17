@@ -1,4 +1,4 @@
-add_library(strategy STATIC strategy.cpp)
+add_library(strategy STATIC strategy.cpp py_interface.cpp)
 
 target_include_directories(strategy
     PUBLIC
@@ -7,3 +7,5 @@ target_include_directories(strategy
         ${CMAKE_SOURCE_DIR}/src/utils
         ${CMAKE_SOURCE_DIR}/src/enums
 )
+
+target_link_libraries(strategy PUBLIC pybind11::embed)
