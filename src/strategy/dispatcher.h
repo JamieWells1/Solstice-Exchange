@@ -9,8 +9,11 @@
 namespace solstice::strategy
 {
 
-class Report
+struct Report
 {
+    Report(int candlesAnalysed, int tradesCompleted, int longTrades, int shortTrades, double pnl,
+           int winningTrades, int losingTrades);
+
     int d_candlesAnalysed;
     int d_tradesCompleted;
     int d_longTrades;
@@ -19,16 +22,13 @@ class Report
     double d_pnl;
     int d_winningTrades;
     int d_losingTrades;
-
-    Report(int candlesAnalysed, int tradesCompleted, int longTrades, int shortTrades, double pnl,
-           int winningTrades, int losingTrades);
 };
 
 class Dispatcher
 {
    public:
     template <typename T>
-    static const std::unique_ptr<T> constructStrategy(Strategy strategy, MarketData marketData);
+    static std::unique_ptr<T> constructStrategy(Strategy strategy, MarketData marketData);
 
     virtual Report execute() = 0;
     virtual ~Dispatcher() = default;
@@ -39,6 +39,19 @@ class Dispatcher
     Strategy d_strategy;
     MarketData d_marketData;
 };
+
+// Template implementation must be in header
+template <typename T>
+std::unique_ptr<T> Dispatcher::constructStrategy(Strategy strategy, MarketData marketData)
+{
+    switch (strategy)
+    {
+        case Strategy::SharpMovements:
+            return std::make_unique<T>(std::move(strategy), std::move(marketData));
+        default:
+            return nullptr;
+    }
+}
 
 }  // namespace solstice::strategy
 

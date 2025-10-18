@@ -3,7 +3,7 @@
   "interval": "1d",
   "time": {
     "time_frame": "period",
-    "period": "1y",
+    "period": "2y",
     "start_end": {
       "start_date": "2020-10-31",
       "end_date": "2020-10-31"

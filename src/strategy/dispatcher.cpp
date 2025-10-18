@@ -1,7 +1,4 @@
 #include <dispatcher.h>
-#include <sharp_movements.h>
-
-#include <memory>
 
 namespace solstice::strategy
 {
@@ -14,18 +11,13 @@ Report::Report(int candlesAnalysed, int tradesCompleted, int longTrades, int sho
       d_shortTrades(shortTrades),
       d_pnl(pnl),
       d_winningTrades(winningTrades),
-      d_losingTrades(losingTrades) {};
-
-template <typename T>
-const std::unique_ptr<T> Dispatcher::constructStrategy(Strategy strategy, MarketData marketData)
+      d_losingTrades(losingTrades)
 {
-    switch (strategy)
-    {
-        case Strategy::SharpMovements:
-            return std::make_unique<SharpMovements>(std::move(strategy), std::move(marketData));
-        default:
-            return nullptr;
-    }
+}
+
+Dispatcher::Dispatcher(Strategy strategy, MarketData marketData)
+    : d_strategy(std::move(strategy)), d_marketData(std::move(marketData))
+{
 }
 
 }  // namespace solstice::strategy

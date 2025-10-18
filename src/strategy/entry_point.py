@@ -26,13 +26,13 @@ def fetch_data(cfg: Config) -> dict[str, list[float]]:
 
     data_missing: list[str] = []
 
-    if not data["open"]:
+    if not data["opens"]:
         data_missing.append("Opens")
-    if not data["high"]:
+    if not data["highs"]:
         data_missing.append("Highs")
-    if not data["low"]:
+    if not data["lows"]:
         data_missing.append("Lows")
-    if not data["close"]:
+    if not data["closes"]:
         data_missing.append("Closes")
     if not data["volume"]:
         data_missing.append("Volumes")
@@ -46,8 +46,30 @@ def fetch_data(cfg: Config) -> dict[str, list[float]]:
 
 
 def main():
-    data_cfg = Config()
-    data = fetch_data(data_cfg)
+    print("\nStarting backtest...")
 
-    interface: PyInterface = PyInterface.establish()
-    interface.orchestrate(data)
+    try:
+        data_cfg = Config()
+        print(f"Fetching data for {data_cfg.ticker}...")
+        data = fetch_data(data_cfg)
+        print(f"Fetched {len(data['closes'])} candles")
+
+        print("Establishing interface...")
+        interface: PyInterface = PyInterface.establish()
+
+        print("Running strategy...")
+        report = interface.orchestrate(data)
+
+        print("Strategy complete!\n")
+
+        print(f"Report: \nTrades completed: {report.tradesCompleted}\n")
+
+    except Exception as e:
+        print(f"Error: {e}")
+        import traceback
+
+        traceback.print_exc()
+
+
+if __name__ == "__main__":
+    main()

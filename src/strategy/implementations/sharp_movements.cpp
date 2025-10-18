@@ -12,7 +12,7 @@ SharpMovements::SharpMovements(Strategy strategy, MarketData marketData)
 
 Report SharpMovements::execute()
 {
-    // strategy implementation
+    return Report(1,2,3,4,5,6,7);
 }
 
 }  // namespace solstice::strategy
