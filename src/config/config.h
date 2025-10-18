@@ -3,6 +3,7 @@
 
 #include <asset_class.h>
 #include <log_level.h>
+#include <strategy.h>
 
 #include <expected>
 #include <string>
@@ -13,6 +14,10 @@ namespace solstice
 struct Config
 {
    public:
+    // ===================================================================
+    // Order Book
+    // ===================================================================
+
     static std::expected<Config, std::string> init();
 
     LogLevel d_logLevel = LogLevel::INFO;
@@ -34,6 +39,12 @@ struct Config
     double d_minPrice = 8.0;
     double d_maxPrice = 10.0;
 
+    // ===================================================================
+    // Backtesting
+    // ===================================================================
+
+    static const strategy::Strategy strategy = strategy::Strategy::SharpMovements;
+
    private:
     Config();
 
@@ -42,6 +53,6 @@ struct Config
 
 const Config& getConfig();
 
-}  // namespace solstice::matching
+}  // namespace solstice
 
 #endif  // CONFIG_H

@@ -1,12 +1,16 @@
 #ifndef STRATEGY_H
 #define STRATEGY_H
 
+#include <cstdint>
+
 namespace solstice::strategy
 {
 
-class Strategy
+enum class Strategy : uint8_t
 {
+    SharpMovements
 };
-}  // namespace solstice::strategy
+
+}
 
 #endif  // STRATEGY_H

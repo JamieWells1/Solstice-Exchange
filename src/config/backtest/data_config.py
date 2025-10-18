@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 
-CONFIG_FILE_PATH = Path(__file__).parent / "config.json"
+CONFIG_FILE_PATH = Path(__file__).parent / "data_config.json"
 
 
 class Interval(Enum):
