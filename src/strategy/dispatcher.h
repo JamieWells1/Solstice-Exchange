@@ -40,7 +40,6 @@ class Dispatcher
     MarketData d_marketData;
 };
 
-// Template implementation must be in header
 template <typename T>
 std::unique_ptr<T> Dispatcher::constructStrategy(Strategy strategy, MarketData marketData)
 {
