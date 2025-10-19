@@ -1,10 +1,10 @@
 #ifndef ORDERBOOK_H
 #define ORDERBOOK_H
 
+#include <asset_class.h>
 #include <order.h>
 #include <order_side.h>
 #include <transaction.h>
-#include <asset_class.h>
 
 #include <deque>
 #include <functional>
@@ -63,14 +63,14 @@ class OrderBook
         }
     }
 
+    void addOrderToBook(OrderPtr order);
+
+    void removeOrderFromBook(OrderPtr orderToRemove);
+
    private:
     std::unordered_map<Underlying, ActiveOrders> d_activeOrders;
 
     std::vector<Transaction> d_transactions;
-
-    void addOrderToBook(OrderPtr order);
-
-    void removeOrderFromBook(OrderPtr orderToRemove);
 
     std::expected<std::reference_wrapper<BidPricesAtPriceLevel>, std::string>
     getBidPricesAtPriceLevel(OrderPtr order);

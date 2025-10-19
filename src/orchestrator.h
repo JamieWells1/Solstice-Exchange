@@ -18,6 +18,8 @@ class Orchestrator
    public:
     static std::expected<void, std::string> start();
 
+    Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook, Matcher matcher);
+
     Config d_config;
     std::shared_ptr<OrderBook> d_orderBook;
     Matcher d_matcher;
@@ -25,8 +27,6 @@ class Orchestrator
     bool processOrder(OrderPtr order);
 
    private:
-    Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook, Matcher matcher);
-
     std::map<Underlying, std::mutex> d_underlyingMutexes;
 
     std::queue<OrderPtr> d_orderProcessQueue;
