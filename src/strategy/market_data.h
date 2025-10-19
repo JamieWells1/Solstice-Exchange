@@ -34,6 +34,6 @@ struct MarketData
     const std::vector<double> d_timestamps;
 };
 
-}  // namespace solstice
+}  // namespace solstice::strategy
 
 #endif  // MARKET_DATA_H

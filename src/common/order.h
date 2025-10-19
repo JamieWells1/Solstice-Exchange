@@ -16,7 +16,8 @@ namespace solstice
 class Order
 {
    public:
-    static std::expected<std::shared_ptr<Order>, std::string> createOrder(int uid, Underlying underlying,
+    static std::expected<std::shared_ptr<Order>, std::string> createOrder(int uid,
+                                                                          Underlying underlying,
                                                                           double price, double qnty,
                                                                           OrderSide orderSide);
 

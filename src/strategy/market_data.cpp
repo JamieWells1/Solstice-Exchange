@@ -33,4 +33,4 @@ MarketData MarketData::mapRawInput(RawMarketData& inputData)
     return MarketData(opens, highs, lows, closes, volume, timestamps);
 }
 
-}  // namespace solstice
+}  // namespace solstice::strategy

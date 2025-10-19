@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <order_book.h>
 #include <order.h>
+#include <order_book.h>
 
 namespace solstice::matching
 {

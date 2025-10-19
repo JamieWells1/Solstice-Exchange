@@ -1,6 +1,6 @@
+#include <asset_class.h>
 #include <get_random.h>
 #include <order.h>
-#include <asset_class.h>
 #include <order_side.h>
 
 #include <format>

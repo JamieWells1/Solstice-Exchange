@@ -4,6 +4,17 @@ Solstice Strategy Engine is a high-performance backtesting and strategy executio
 
 The architecture leverages the Strategy Pattern with a dispatcher-based routing system, allowing multiple strategy implementations to coexist with minimal overhead. Market data is ingested via Python (yfinance), transformed into C++-native structures, and processed through strategy-specific execution logic.
 
+## ⚠️ Current Development Status
+
+**The Strategy component is currently standalone and operates independently for backtesting purposes.**
+
+- ✓ **Backtesting Framework**: Fully functional Python-C++ integration for historical data analysis
+- ✓ **Market Data Pipeline**: Complete yfinance integration with configurable parameters
+- ✗ **Matcher Integration**: No current interface with the order matching engine
+- ✗ **Pricer Integration**: No pricing component integration exists
+
+**This component will be integrated with the Matcher and Pricer in future releases.**
+
 ## Key Features
 
 - **Hybrid C++/Python Architecture**: Core strategy logic in C++23 for performance, data ingestion and configuration in Python for flexibility.
@@ -73,4 +84,3 @@ Example configuration:
 ## Benchmarks
 
 *Benchmark results will be added as strategies are implemented and tested.*
-
