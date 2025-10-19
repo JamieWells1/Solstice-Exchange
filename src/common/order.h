@@ -25,13 +25,13 @@ class Order
     const double price() const;
     const double qnty() const;
     const double outstandingQnty() const;
-    double outstandingQnty(double newQnty);
     const OrderSide orderSide() const;
     const std::string orderSideString() const;
     const TimePoint timeOrderPlaced() const;
-
     const std::expected<TimePoint, std::string> timeOrderFulfilled() const;
     const bool orderComplete() const;
+
+    double outstandingQnty(double newQnty);
     bool orderComplete(bool isFulfilled);
 
    private:
@@ -45,7 +45,6 @@ class Order
     double d_outstandingQnty;
     OrderSide d_orderSide;
     TimePoint d_timeOrderPlaced;
-
     TimePoint d_timeOrderFulfilled;
     bool d_orderComplete;
 };

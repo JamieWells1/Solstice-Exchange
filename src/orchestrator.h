@@ -20,33 +20,30 @@ class Orchestrator
 
     Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook, Matcher matcher);
 
+    bool processOrder(OrderPtr order);
+
     Config d_config;
     std::shared_ptr<OrderBook> d_orderBook;
     Matcher d_matcher;
 
-    bool processOrder(OrderPtr order);
-
    private:
-    std::map<Underlying, std::mutex> d_underlyingMutexes;
-
-    std::queue<OrderPtr> d_orderProcessQueue;
-    std::mutex d_queueMutex;
-    std::condition_variable d_queueConditionVar;
-    std::atomic<bool> d_done{false};
-
     void initialiseUnderlyings(AssetClass assetClass);
+    void pushToQueue(OrderPtr order);
+    void workerThread(std::atomic<int>& matched, std::atomic<int>& executed);
+
+    OrderPtr popFromQueue();
+
+    std::expected<OrderPtr, std::string> generateOrder(int ordersGenerated);
+    std::expected<std::pair<int, int>, std::string> produceOrders();
 
     template <typename T>
     void initialiseMutexes(T underlying);
 
-    void pushToQueue(OrderPtr order);
-    OrderPtr popFromQueue();
-
-    void workerThread(std::atomic<int>& matched, std::atomic<int>& executed);
-
-    std::expected<OrderPtr, std::string> generateOrder(int ordersGenerated);
-
-    std::expected<std::pair<int, int>, std::string> produceOrders();
+    std::map<Underlying, std::mutex> d_underlyingMutexes;
+    std::queue<OrderPtr> d_orderProcessQueue;
+    std::mutex d_queueMutex;
+    std::condition_variable d_queueConditionVar;
+    std::atomic<bool> d_done{false};
 };
 
 std::ostream& operator<<(std::ostream& os, ActiveOrders activeOrders);

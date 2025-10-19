@@ -12,9 +12,9 @@
 class PyInterface
 {
    public:
-    solstice::strategy::Strategy strategy();
-
     static std::expected<PyInterface, std::string> establish();
+
+    solstice::strategy::Strategy strategy();
 
     template <typename T>
     std::expected<solstice::strategy::Report, std::string> orchestrate(RawMarketData& rawData);
