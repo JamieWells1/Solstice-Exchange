@@ -72,18 +72,22 @@ Orchestrator::Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook, 
 {
 }
 
+const Config& Orchestrator::config() const { return d_config; }
+const std::shared_ptr<OrderBook>& Orchestrator::orderBook() const { return d_orderBook; }
+const Matcher& Orchestrator::matcher() const { return d_matcher; }
+
 std::expected<OrderPtr, std::string> Orchestrator::generateOrder(int ordersGenerated)
 {
     int uid = ordersGenerated;
 
-    auto underlying = getUnderlying(d_config.d_assetClass);
+    auto underlying = getUnderlying(d_config.assetClass());
     if (!underlying)
     {
         return std::unexpected(underlying.error());
     }
 
-    double price = getPrice(d_config.d_minPrice, d_config.d_maxPrice);
-    double qnty = getQnty(d_config.d_minQnty, d_config.d_maxQnty);
+    double price = getPrice(d_config.minPrice(), d_config.maxPrice());
+    double qnty = getQnty(d_config.minQnty(), d_config.maxQnty());
     OrderSide orderSide = getOrderSide();
 
     auto order = Order::createOrder(uid, *underlying, price, qnty, orderSide);
@@ -105,7 +109,7 @@ bool Orchestrator::processOrder(OrderPtr order)
     auto orderMatched = d_matcher.matchOrder(order);
     if (!orderMatched)
     {
-        if (d_config.d_logLevel >= LogLevel::DEBUG)
+        if (d_config.logLevel() >= LogLevel::DEBUG)
         {
             std::cout << "Order " << order->uid() << " failed to match: " << orderMatched.error();
         }
@@ -115,7 +119,7 @@ bool Orchestrator::processOrder(OrderPtr order)
     {
         d_orderBook->markOrderAsFulfilled(order);
 
-        if (d_config.d_logLevel >= LogLevel::DEBUG)
+        if (d_config.logLevel() >= LogLevel::DEBUG)
         {
             std::cout << *orderMatched;
         }
@@ -173,11 +177,10 @@ void Orchestrator::initialiseUnderlyings(AssetClass assetClass)
     switch (assetClass)
     {
         case AssetClass::Equity:
-            setUnderlyingsPool(d_config.d_underlyingPoolCount, ALL_EQUITIES);
+            setUnderlyingsPool(d_config.underlyingPoolCount(), ALL_EQUITIES);
 
             d_orderBook->initialiseBookAtUnderlyings<Equity>();
 
-            // add mutexes here rather than creating another switch case statement
             for (Equity underlying : getUnderlyingsPool<Equity>())
             {
                 d_underlyingMutexes[underlying];
@@ -185,7 +188,7 @@ void Orchestrator::initialiseUnderlyings(AssetClass assetClass)
 
             break;
         case AssetClass::Future:
-            setUnderlyingsPool(d_config.d_underlyingPoolCount, ALL_FUTURES);
+            setUnderlyingsPool(d_config.underlyingPoolCount(), ALL_FUTURES);
 
             d_orderBook->initialiseBookAtUnderlyings<Future>();
 
@@ -196,7 +199,6 @@ void Orchestrator::initialiseUnderlyings(AssetClass assetClass)
 
             break;
         case AssetClass::COUNT:
-            // Handle error
             break;
     }
 }
@@ -217,7 +219,7 @@ std::expected<std::pair<int, int>, std::string> Orchestrator::produceOrders()
                                 std::ref(ordersExecuted));
     }
 
-    for (size_t i = 0; i < d_config.d_ordersToGenerate; i++)
+    for (size_t i = 0; i < d_config.ordersToGenerate(); i++)
     {
         auto order = generateOrder(i);
         if (!order)
@@ -255,7 +257,7 @@ std::expected<void, std::string> Orchestrator::start()
     Matcher matcher{orderBook};
     Orchestrator orchestrator{*config, orderBook, matcher};
 
-    orchestrator.initialiseUnderlyings(config->d_assetClass);
+    orchestrator.initialiseUnderlyings(config->assetClass());
 
     auto start = getTimeNow();
     auto result = orchestrator.produceOrders();
@@ -268,7 +270,7 @@ std::expected<void, std::string> Orchestrator::start()
 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-    if (config->d_logLevel >= LogLevel::INFO)
+    if (config->logLevel() >= LogLevel::INFO)
     {
         std::cout << "\nSUMMARY:"
                   << "\nOrders executed: " << result->first

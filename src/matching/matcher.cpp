@@ -11,7 +11,7 @@
 namespace solstice::matching
 {
 
-const bool Matcher::withinPriceRange(double price, OrderPtr order) const
+bool Matcher::withinPriceRange(double price, OrderPtr order) const
 {
     if (order->orderSide() == OrderSide::Bid)
     {
@@ -23,7 +23,7 @@ const bool Matcher::withinPriceRange(double price, OrderPtr order) const
     }
 }
 
-const double Matcher::getDealPrice(OrderPtr firstOrder, OrderPtr secondOrder) const
+double Matcher::getDealPrice(OrderPtr firstOrder, OrderPtr secondOrder) const
 {
     if (firstOrder->price() == secondOrder->price())
     {
@@ -49,8 +49,8 @@ const double Matcher::getDealPrice(OrderPtr firstOrder, OrderPtr secondOrder) co
     return bid->uid() > ask->uid() ? ask->price() : bid->price();
 }
 
-const std::string Matcher::matchSuccessOutput(OrderPtr incomingOrder, OrderPtr matchedOrder,
-                                              double matchedPrice) const
+std::string Matcher::matchSuccessOutput(OrderPtr incomingOrder, OrderPtr matchedOrder,
+                                        double matchedPrice) const
 {
     const double dealPrice = getDealPrice(incomingOrder, matchedOrder);
 
@@ -177,5 +177,7 @@ std::expected<std::string, std::string> Matcher::matchOrder(OrderPtr incomingOrd
 }
 
 Matcher::Matcher(std::shared_ptr<OrderBook> orderBook) : d_orderBook(orderBook) {}
+
+const std::shared_ptr<OrderBook>& Matcher::orderBook() const { return d_orderBook; }
 
 }  // namespace solstice::matching

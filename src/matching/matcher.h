@@ -25,13 +25,15 @@ class Matcher
     std::expected<std::string, std::string> matchOrder(OrderPtr order,
                                                        double orderMatchingPrice = -1) const;
 
-    std::shared_ptr<OrderBook> d_orderBook;
+    const std::shared_ptr<OrderBook>& orderBook() const;
 
    private:
-    const bool withinPriceRange(double price, OrderPtr order) const;
-    const double getDealPrice(OrderPtr firstOrder, OrderPtr secondOrder) const;
-    const std::string matchSuccessOutput(OrderPtr incomingOrder, OrderPtr matchedOrder,
-                                         double matchedPrice) const;
+    bool withinPriceRange(double price, OrderPtr order) const;
+    double getDealPrice(OrderPtr firstOrder, OrderPtr secondOrder) const;
+    std::string matchSuccessOutput(OrderPtr incomingOrder, OrderPtr matchedOrder,
+                                   double matchedPrice) const;
+
+    std::shared_ptr<OrderBook> d_orderBook;
 };
 }  // namespace solstice::matching
 

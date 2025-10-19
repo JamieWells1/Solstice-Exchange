@@ -71,15 +71,15 @@ Order::Order(int uid, Underlying underlying, double price, double qnty, OrderSid
     d_outstandingQnty = qnty;
 }
 
-const int Order::uid() const { return d_uid; }
+int Order::uid() const { return d_uid; }
 
-const Underlying Order::underlying() const { return d_underlying; }
+Underlying Order::underlying() const { return d_underlying; }
 
-const double Order::price() const { return d_price; }
+double Order::price() const { return d_price; }
 
-const double Order::qnty() const { return d_qnty; }
+double Order::qnty() const { return d_qnty; }
 
-const double Order::outstandingQnty() const { return d_outstandingQnty; }
+double Order::outstandingQnty() const { return d_outstandingQnty; }
 
 double Order::outstandingQnty(double newOutstandingQnty)
 {
@@ -87,16 +87,16 @@ double Order::outstandingQnty(double newOutstandingQnty)
     return newOutstandingQnty;
 };
 
-const OrderSide Order::orderSide() const { return d_orderSide; }
+OrderSide Order::orderSide() const { return d_orderSide; }
 
-const std::string Order::orderSideString() const
+std::string Order::orderSideString() const
 {
     return d_orderSide == solstice::OrderSide::Bid ? "Bid" : "ask";
 }
 
-const TimePoint Order::timeOrderPlaced() const { return d_timeOrderPlaced; }
+TimePoint Order::timeOrderPlaced() const { return d_timeOrderPlaced; }
 
-const bool Order::orderComplete() const { return d_orderComplete; }
+bool Order::orderComplete() const { return d_orderComplete; }
 
 bool Order::orderComplete(bool isFulfilled)
 {
@@ -104,7 +104,7 @@ bool Order::orderComplete(bool isFulfilled)
     return d_orderComplete;
 }
 
-const std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
+std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
 {
     // Cannot return time of fulfillment if fulfillment hasn't yet occured
     if (!d_orderComplete)

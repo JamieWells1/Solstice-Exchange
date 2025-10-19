@@ -22,9 +22,9 @@ class Orchestrator
 
     bool processOrder(OrderPtr order);
 
-    Config d_config;
-    std::shared_ptr<OrderBook> d_orderBook;
-    Matcher d_matcher;
+    const Config& config() const;
+    const std::shared_ptr<OrderBook>& orderBook() const;
+    const Matcher& matcher() const;
 
    private:
     void initialiseUnderlyings(AssetClass assetClass);
@@ -39,6 +39,9 @@ class Orchestrator
     template <typename T>
     void initialiseMutexes(T underlying);
 
+    Config d_config;
+    std::shared_ptr<OrderBook> d_orderBook;
+    Matcher d_matcher;
     std::map<Underlying, std::mutex> d_underlyingMutexes;
     std::queue<OrderPtr> d_orderProcessQueue;
     std::mutex d_queueMutex;

@@ -20,6 +20,17 @@ struct Transaction
     friend class OrderBook;
 
    public:
+    const std::string& uid() const;
+    int bidUid() const;
+    int askUid() const;
+    const Underlying& underlying() const;
+    double price() const;
+    double qnty() const;
+    const TimePoint& timeExecuted() const;
+
+   private:
+    Transaction(OrderPtr bid, OrderPtr ask, double price, double qnty);
+
     std::string d_uid;
     int d_bidUid;
     int d_askUid;
@@ -27,9 +38,6 @@ struct Transaction
     double d_price;
     double d_qnty;
     TimePoint d_timeExecuted;
-
-   private:
-    Transaction(OrderPtr bid, OrderPtr ask, double price, double qnty);
 };
 
 std::ostream& operator<<(std::ostream os, const Transaction& transaction);

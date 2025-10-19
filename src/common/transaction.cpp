@@ -15,13 +15,21 @@ Transaction::Transaction(OrderPtr bid, OrderPtr ask, double price, double qnty)
 {
 }
 
+const std::string& Transaction::uid() const { return d_uid; }
+int Transaction::bidUid() const { return d_bidUid; }
+int Transaction::askUid() const { return d_askUid; }
+const Underlying& Transaction::underlying() const { return d_underlying; }
+double Transaction::price() const { return d_price; }
+double Transaction::qnty() const { return d_qnty; }
+const TimePoint& Transaction::timeExecuted() const { return d_timeExecuted; }
+
 std::ostream& operator<<(std::ostream& os, const Transaction& transaction)
 {
-    os << "Transaction UID: " << transaction.d_uid << " | Bid order UID: " << transaction.d_bidUid
-       << " | Ask order UID: " << transaction.d_askUid
-       << " | Ticker: " << to_string(transaction.d_underlying)
-       << " | Price: " << transaction.d_price << " | Quantity: " << transaction.d_qnty
-       << " | Time executed: " << transaction.d_timeExecuted;
+    os << "Transaction UID: " << transaction.uid() << " | Bid order UID: " << transaction.bidUid()
+       << " | Ask order UID: " << transaction.askUid()
+       << " | Ticker: " << to_string(transaction.underlying())
+       << " | Price: " << transaction.price() << " | Quantity: " << transaction.qnty()
+       << " | Time executed: " << transaction.timeExecuted();
 
     return os;
 }

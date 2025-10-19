@@ -20,16 +20,16 @@ class Order
                                                                           double price, double qnty,
                                                                           OrderSide orderSide);
 
-    const int uid() const;
-    const Underlying underlying() const;
-    const double price() const;
-    const double qnty() const;
-    const double outstandingQnty() const;
-    const OrderSide orderSide() const;
-    const std::string orderSideString() const;
-    const TimePoint timeOrderPlaced() const;
-    const std::expected<TimePoint, std::string> timeOrderFulfilled() const;
-    const bool orderComplete() const;
+    int uid() const;
+    Underlying underlying() const;
+    double price() const;
+    double qnty() const;
+    double outstandingQnty() const;
+    OrderSide orderSide() const;
+    std::string orderSideString() const;
+    TimePoint timeOrderPlaced() const;
+    std::expected<TimePoint, std::string> timeOrderFulfilled() const;
+    bool orderComplete() const;
 
     double outstandingQnty(double newQnty);
     bool orderComplete(bool isFulfilled);
