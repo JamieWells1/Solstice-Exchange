@@ -6,7 +6,6 @@
 .idea
 .vscode
 .claude
-.venv
 compile_commands.json
 py_interface.cpython*
 *__init__.py
