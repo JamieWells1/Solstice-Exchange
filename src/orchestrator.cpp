@@ -2,10 +2,10 @@
 #include <config.h>
 #include <log_level.h>
 #include <logging.h>
+#include <market_side.h>
 #include <orchestrator.h>
 #include <order.h>
 #include <order_book.h>
-#include <order_side.h>
 
 #include <atomic>
 #include <iostream>
@@ -50,15 +50,15 @@ double getPrice(int minPrice, int maxPrice) { return Random::getRandomDouble(min
 
 double getQnty(int minQnty, int maxQnty) { return Random::getRandomInt(minQnty, maxQnty); }
 
-OrderSide getOrderSide()
+MarketSide getMarketSide()
 {
     if (Random::getRandomBool())
     {
-        return OrderSide::Bid;
+        return MarketSide::Bid;
     }
     else
     {
-        return OrderSide::Ask;
+        return MarketSide::Ask;
     }
 }
 
@@ -88,9 +88,9 @@ std::expected<OrderPtr, std::string> Orchestrator::generateOrder(int ordersGener
 
     double price = getPrice(d_config.minPrice(), d_config.maxPrice());
     double qnty = getQnty(d_config.minQnty(), d_config.maxQnty());
-    OrderSide orderSide = getOrderSide();
+    MarketSide marketSide = getMarketSide();
 
-    auto order = Order::createOrder(uid, *underlying, price, qnty, orderSide);
+    auto order = Order::createOrder(uid, *underlying, price, qnty, marketSide);
 
     if (!order)
     {

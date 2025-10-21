@@ -1,7 +1,7 @@
+#include <market_side.h>
 #include <matcher.h>
 #include <order.h>
 #include <order_book.h>
-#include <order_side.h>
 
 #include <expected>
 #include <iostream>
@@ -13,7 +13,7 @@ namespace solstice::matching
 
 bool Matcher::withinPriceRange(double price, OrderPtr order) const
 {
-    if (order->orderSide() == OrderSide::Bid)
+    if (order->marketSide() == MarketSide::Bid)
     {
         return price > order->price() ? false : true;
     }
@@ -28,7 +28,7 @@ double Matcher::getDealPrice(OrderPtr firstOrder, OrderPtr secondOrder) const
         return firstOrder->price();
     }
 
-    OrderPtr bid = firstOrder->orderSide() == OrderSide::Bid ? firstOrder : secondOrder;
+    OrderPtr bid = firstOrder->marketSide() == MarketSide::Bid ? firstOrder : secondOrder;
     OrderPtr ask = firstOrder == bid ? secondOrder : firstOrder;
 
     // always return price of resting order
@@ -53,7 +53,7 @@ std::string Matcher::matchSuccessOutput(OrderPtr incomingOrder, OrderPtr matched
 
     std::ostringstream oss;
     oss << incomingOrder->uid() << ", " << matchedOrder->uid() << "]\n"
-        << "Incoming: " << incomingOrder->orderSideString() << " "
+        << "Incoming: " << incomingOrder->marketSideString() << " "
         << to_string(incomingOrder->underlying()) << " @ " << incomingOrder->price()
         << ", total: " << incomingOrder->qnty()
         << ", remaining: " << incomingOrder->outstandingQnty();
@@ -64,7 +64,7 @@ std::string Matcher::matchSuccessOutput(OrderPtr incomingOrder, OrderPtr matched
     }
     oss << "\n";
 
-    oss << "Matched: " << matchedOrder->orderSideString() << " "
+    oss << "Matched: " << matchedOrder->marketSideString() << " "
         << to_string(matchedOrder->underlying()) << " @ " << matchedOrder->price()
         << ", total: " << matchedOrder->qnty()
         << ", remaining: " << matchedOrder->outstandingQnty();
@@ -95,7 +95,7 @@ std::expected<std::string, std::string> Matcher::matchOrder(OrderPtr incomingOrd
     }
 
     std::map<double, std::deque<OrderPtr>>& priceLevelMap =
-        d_orderBook->oppositeOrderSidePriceLevelMap(incomingOrder);
+        d_orderBook->oppositeMarketSidePriceLevelMap(incomingOrder);
 
     auto it = priceLevelMap.find(bestPrice);
     if (it == priceLevelMap.end())
