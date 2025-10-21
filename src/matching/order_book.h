@@ -2,8 +2,8 @@
 #define ORDERBOOK_H
 
 #include <asset_class.h>
+#include <market_side.h>
 #include <order.h>
-#include <order_side.h>
 #include <transaction.h>
 
 #include <deque>

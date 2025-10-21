@@ -1,7 +1,7 @@
 #include <asset_class.h>
 #include <gtest/gtest.h>
+#include <market_side.h>
 #include <order.h>
-#include <order_side.h>
 
 namespace solstice
 {

@@ -1,8 +1,8 @@
 #include <asset_class.h>
+#include <market_side.h>
 #include <matcher.h>
 #include <order.h>
 #include <order_book.h>
-#include <order_side.h>
 #include <transaction.h>
 #include <truncate.h>
 

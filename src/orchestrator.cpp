@@ -2,10 +2,10 @@
 #include <config.h>
 #include <log_level.h>
 #include <logging.h>
+#include <market_side.h>
 #include <orchestrator.h>
 #include <order.h>
 #include <order_book.h>
-#include <order_side.h>
 
 #include <atomic>
 #include <iostream>

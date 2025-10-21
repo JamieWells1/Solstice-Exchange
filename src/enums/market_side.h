@@ -1,5 +1,5 @@
-#ifndef ORDER_SIDE_H
-#define ORDER_SIDE_H
+#ifndef MARKET_SIDE_H
+#define MARKET_SIDE_H
 
 #include <cstdint>
 #include <ostream>
@@ -17,4 +17,4 @@ std::ostream& operator<<(std::ostream& os, MarketSide marketSide);
 
 }  // namespace solstice
 
-#endif  // ORDER_SIDE_H
+#endif  // MARKET_SIDE_H

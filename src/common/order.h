@@ -2,7 +2,7 @@
 #define ORDER_H
 
 #include <asset_class.h>
-#include <order_side.h>
+#include <market_side.h>
 #include <time_point.h>
 
 #include <ctime>
