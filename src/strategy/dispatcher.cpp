@@ -16,7 +16,9 @@ Report::Report(int candlesAnalysed, int tradesCompleted, int longTrades, int sho
 }
 
 Dispatcher::Dispatcher(Strategy strategy, MarketData marketData)
-    : d_strategy(std::move(strategy)), d_marketData(std::move(marketData))
+    : d_account(Account::create().value()),
+      d_strategy(std::move(strategy)),
+      d_marketData(std::move(marketData))
 {
 }
 

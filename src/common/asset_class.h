@@ -9,19 +9,14 @@
 #include <variant>
 #include <vector>
 
-namespace
-{
-
-template <typename T>
-std::vector<T> d_underlyingsPool;
-
-template <typename T>
-bool d_underlyingsPoolInitialised{false};
-
-}  // namespace
-
 namespace solstice
 {
+
+template <typename T>
+inline std::vector<T> d_underlyingsPool;
+
+template <typename T>
+inline bool d_underlyingsPoolInitialised{false};
 
 enum class AssetClass : uint8_t
 {

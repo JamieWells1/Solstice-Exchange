@@ -24,7 +24,7 @@ std::expected<void, std::string> Config::checkConfig(Config& config)
     return {};
 }
 
-std::expected<Config, std::string> Config::init()
+std::expected<Config, std::string> Config::instance()
 {
     Config config;
 
@@ -53,5 +53,7 @@ void Config::minQnty(int qnty) { d_minQnty = qnty; }
 void Config::maxQnty(int qnty) { d_maxQnty = qnty; }
 void Config::minPrice(double price) { d_minPrice = price; }
 void Config::maxPrice(double price) { d_maxPrice = price; }
+
+int Config::initialBalance() { return d_initialBalance; }
 
 }  // namespace solstice

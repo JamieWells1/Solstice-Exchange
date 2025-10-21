@@ -5,7 +5,7 @@ namespace solstice
 {
 
 template <typename T>
-void initGlobalState()
+void resetGlobalStateBeforeTest()
 {
     d_underlyingsPool<T> = {};
     d_underlyingsPoolInitialised<T> = false;
@@ -19,9 +19,9 @@ void resetGlobalState()
 }
 
 template <typename... Ts>
-void initialiseGlobalStateAll()
+void resetGlobalStateAllBeforeTest()
 {
-    (initGlobalState<Ts>(), ...);
+    (resetGlobalStateBeforeTest<Ts>(), ...);
 }
 
 template <typename... Ts>
@@ -33,12 +33,12 @@ void resetGlobalStateAll()
 class UnderlyingTests : public ::testing::Test
 {
    protected:
-    void SetUp() override { initialiseGlobalStateAll<Equity, Future>(); }
+    void SetUp() override { resetGlobalStateAllBeforeTest<Equity, Future>(); }
 
     void TearDown() override { resetGlobalStateAll<Equity, Future>(); }
 };
 
-TEST(UnderlyingTests, UnderlyingToString)
+TEST_F(UnderlyingTests, UnderlyingToString)
 {
     ASSERT_TRUE(to_string(Equity::AAPL) == std::string("AAPL"));
 }

@@ -3,6 +3,7 @@
 
 #include <market_data.h>
 #include <strategy.h>
+#include <account.h>
 
 #include <memory>
 
@@ -36,10 +37,12 @@ class Dispatcher
    protected:
     Dispatcher(Strategy strategy, MarketData marketData);
 
+    Account d_account;
     Strategy d_strategy;
     MarketData d_marketData;
 };
 
+// strategy types
 template <typename T>
 std::unique_ptr<T> Dispatcher::constructStrategy(Strategy strategy, MarketData marketData)
 {

@@ -1,4 +1,4 @@
-add_library(components STATIC moving_average.cpp)
+add_library(components STATIC position.cpp account.cpp)
 
 target_include_directories(components
     PUBLIC

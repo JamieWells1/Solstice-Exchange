@@ -8,6 +8,7 @@ target_include_directories(implementations
         ${CMAKE_SOURCE_DIR}/src/enums
         ${CMAKE_SOURCE_DIR}/src/config
         ${CMAKE_SOURCE_DIR}/src/strategy
+        ${CMAKE_SOURCE_DIR}/src/strategy/components
 )
 
-target_link_libraries(implementations PUBLIC pybind11::embed)
+target_link_libraries(implementations PUBLIC components pybind11::embed)

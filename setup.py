@@ -10,6 +10,8 @@ ext_modules = [
             "src/strategy/market_data.cpp",
             "src/strategy/dispatcher.cpp",
             "src/strategy/implementations/sharp_movements.cpp",
+            "src/strategy/components/account.cpp",
+            "src/strategy/components/position.cpp",
             "src/config/config.cpp",
             "src/config/logging.cpp"
         ],
@@ -18,6 +20,7 @@ ext_modules = [
             "src",
             "src/strategy",
             "src/strategy/implementations",
+            "src/strategy/components",
             "src/common",
             "src/config",
             "src/utils",

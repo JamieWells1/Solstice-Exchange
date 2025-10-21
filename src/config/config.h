@@ -14,9 +14,11 @@ namespace solstice
 struct Config
 {
    public:
-    static std::expected<Config, std::string> init();
+    // ===================================================================
+    // Order Book
+    // ===================================================================
 
-    static const strategy::Strategy strategy = strategy::Strategy::SharpMovements;
+    static std::expected<Config, std::string> instance();
 
     LogLevel logLevel() const;
     AssetClass assetClass() const;
@@ -36,7 +38,18 @@ struct Config
     void minPrice(double price);
     void maxPrice(double price);
 
+    // ===================================================================
+    // Backtesting
+    // ===================================================================
+
+    static const strategy::Strategy strategy = strategy::Strategy::SharpMovements;
+
+    int initialBalance();
+
    private:
+    // ===================================================================
+    // Order Book
+    // ===================================================================
     Config();
 
     static std::expected<void, std::string> checkConfig(Config& config);
@@ -49,9 +62,13 @@ struct Config
     int d_maxQnty = 20;
     double d_minPrice = 8.0;
     double d_maxPrice = 10.0;
-};
 
-const Config& getConfig();
+    // ===================================================================
+    // Backtesting
+    // ===================================================================
+
+    int d_initialBalance = 10000;
+};
 
 }  // namespace solstice
 

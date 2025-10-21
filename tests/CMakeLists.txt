@@ -1,4 +1,3 @@
-# Recursively find all test files in this directory and subdirectories (e.g., unit/)
 file(GLOB_RECURSE TEST_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/test_*.cpp
 )
@@ -8,6 +7,7 @@ add_executable(tests ${TEST_SOURCES})
 target_link_libraries(tests
     PRIVATE
     gtest_main
+    orchestrator
     matching
     pricing
     strategy

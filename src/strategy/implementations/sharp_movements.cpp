@@ -14,7 +14,7 @@ SharpMovements::SharpMovements(Strategy strategy, MarketData marketData)
 
 Report SharpMovements::execute()
 {
-    std::cout << "Did trade!";
+    std::cout << "Initial balance: " << d_account.balance();
     return Report(1, 2, 3, 4, 5, 6, 7);
 }
 

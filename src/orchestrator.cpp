@@ -102,28 +102,52 @@ std::expected<OrderPtr, std::string> Orchestrator::generateOrder(int ordersGener
 
 bool Orchestrator::processOrder(OrderPtr order)
 {
-    std::lock_guard<std::mutex> lock(d_underlyingMutexes.at(order->underlying()));
-
-    d_orderBook->addOrderToBook(order);
-
-    auto orderMatched = d_matcher.matchOrder(order);
-    if (!orderMatched)
+    auto mutexIt = d_underlyingMutexes.find(order->underlying());
+    if (mutexIt != d_underlyingMutexes.end())
     {
-        if (d_config.logLevel() >= LogLevel::DEBUG)
+        std::lock_guard<std::mutex> lock(mutexIt->second);
+        d_orderBook->addOrderToBook(order);
+
+        auto orderMatched = d_matcher.matchOrder(order);
+        if (!orderMatched)
         {
-            std::cout << "Order " << order->uid() << " failed to match: " << orderMatched.error();
+            if (d_config.logLevel() >= LogLevel::DEBUG)
+            {
+                std::cout << "Order " << order->uid() << " failed to match: " << orderMatched.error();
+            }
+            return false;
         }
-        return false;
+        else
+        {
+            if (d_config.logLevel() >= LogLevel::DEBUG)
+            {
+                std::cout << *orderMatched;
+            }
+            return true;
+        }
     }
     else
     {
-        d_orderBook->markOrderAsFulfilled(order);
+        // No mutex for this underlying - process without locking (single-threaded test scenario)
+        d_orderBook->addOrderToBook(order);
 
-        if (d_config.logLevel() >= LogLevel::DEBUG)
+        auto orderMatched = d_matcher.matchOrder(order);
+        if (!orderMatched)
         {
-            std::cout << *orderMatched;
+            if (d_config.logLevel() >= LogLevel::DEBUG)
+            {
+                std::cout << "Order " << order->uid() << " failed to match: " << orderMatched.error();
+            }
+            return false;
         }
-        return true;
+        else
+        {
+            if (d_config.logLevel() >= LogLevel::DEBUG)
+            {
+                std::cout << *orderMatched;
+            }
+            return true;
+        }
     }
 }
 
@@ -246,7 +270,7 @@ std::expected<std::pair<int, int>, std::string> Orchestrator::produceOrders()
 
 std::expected<void, std::string> Orchestrator::start()
 {
-    auto config = Config::init();
+    auto config = Config::instance();
 
     if (!config)
     {

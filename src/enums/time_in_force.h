@@ -7,17 +7,17 @@
 namespace solstice
 {
 
+// TODO: Add TimeInForce as a property to each order and add new matcher logic
+
 enum class TimeInForce : uint8_t
 {
     MarketOrder,
     LimitOrder,
-    IOC,
-    FOK,
-    GTC,
-    GTD
+    IOC,  // immediate or cancel
+    FOK,  // fill or kill
 };
 
-std::ostream& operator<<(std::ostream& os, TimeInForce OrderType);
+std::ostream& operator<<(std::ostream& os, TimeInForce orderType);
 
 }  // namespace solstice
 

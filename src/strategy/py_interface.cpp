@@ -12,7 +12,7 @@ namespace py = pybind11;
 
 std::expected<PyInterface, std::string> PyInterface::establish()
 {
-    auto config = solstice::Config::init();
+    auto config = solstice::Config::instance();
     if (!config)
     {
         return std::unexpected(config.error());

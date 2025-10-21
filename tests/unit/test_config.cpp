@@ -6,7 +6,7 @@ namespace solstice
 
 TEST(ConfigTests, ValidConfigSucceeds)
 {
-    auto result = Config::init();
+    auto result = Config::instance();
     ASSERT_TRUE(result.has_value());
     result->maxPrice(100);
 
@@ -15,7 +15,7 @@ TEST(ConfigTests, ValidConfigSucceeds)
 
 TEST(ConfigTests, DefaultValuesAreCorrect)
 {
-    auto result = Config::init();
+    auto result = Config::instance();
     ASSERT_TRUE(result.has_value());
 
     EXPECT_EQ(result->logLevel(), LogLevel::INFO);
@@ -30,7 +30,7 @@ TEST(ConfigTests, DefaultValuesAreCorrect)
 
 TEST(ConfigTests, CanModifyAllFields)
 {
-    auto result = Config::init();
+    auto result = Config::instance();
     ASSERT_TRUE(result.has_value());
 
     result->logLevel(LogLevel::DEBUG);

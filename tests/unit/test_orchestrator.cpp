@@ -10,16 +10,13 @@ namespace solstice::matching
 class OrchestratorFixture : public ::testing::Test
 {
    protected:
-    Config config;
+    Config config = Config::instance().value();
     std::shared_ptr<OrderBook> orderBook;
     std::unique_ptr<Matcher> matcher;
     std::unique_ptr<Orchestrator> orchestrator;
 
     void SetUp() override
     {
-        auto configResult = Config::init();
-        ASSERT_TRUE(configResult.has_value());
-        config = *configResult;
 
         orderBook = std::make_shared<OrderBook>();
         matcher = std::make_unique<Matcher>(orderBook);
