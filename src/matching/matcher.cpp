@@ -17,10 +17,7 @@ bool Matcher::withinPriceRange(double price, OrderPtr order) const
     {
         return price > order->price() ? false : true;
     }
-    else
-    {
-        return price < order->price() ? false : true;
-    }
+    return price < order->price() ? false : true;
 }
 
 double Matcher::getDealPrice(OrderPtr firstOrder, OrderPtr secondOrder) const
