@@ -19,15 +19,15 @@ class Order
     static std::expected<std::shared_ptr<Order>, std::string> createOrder(int uid,
                                                                           Underlying underlying,
                                                                           double price, double qnty,
-                                                                          OrderSide orderSide);
+                                                                          MarketSide marketSide);
 
     int uid() const;
     Underlying underlying() const;
     double price() const;
     double qnty() const;
     double outstandingQnty() const;
-    OrderSide orderSide() const;
-    std::string orderSideString() const;
+    MarketSide marketSide() const;
+    std::string marketSideString() const;
     TimePoint timeOrderPlaced() const;
     std::expected<TimePoint, std::string> timeOrderFulfilled() const;
     bool orderComplete() const;
@@ -36,7 +36,7 @@ class Order
     bool orderComplete(bool isFulfilled);
 
    private:
-    Order(int uid, Underlying underlying, double price, double qnty, OrderSide orderSide,
+    Order(int uid, Underlying underlying, double price, double qnty, MarketSide marketSide,
           TimePoint timeOrderPlaced);
 
     int d_uid;
@@ -44,7 +44,7 @@ class Order
     double d_price;
     double d_qnty;
     double d_outstandingQnty;
-    OrderSide d_orderSide;
+    MarketSide d_marketSide;
     TimePoint d_timeOrderPlaced;
     TimePoint d_timeOrderFulfilled;
     bool d_orderComplete;

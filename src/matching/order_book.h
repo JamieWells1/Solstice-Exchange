@@ -44,8 +44,8 @@ class OrderBook
     std::deque<OrderPtr>& getOrdersDequeAtPrice(OrderPtr order, int priceToMatch);
     std::deque<OrderPtr>& ordersDequeAtPrice(OrderPtr order);
 
-    std::map<double, std::deque<OrderPtr>>& sameOrderSidePriceLevelMap(OrderPtr order);
-    std::map<double, std::deque<OrderPtr>>& oppositeOrderSidePriceLevelMap(OrderPtr order);
+    std::map<double, std::deque<OrderPtr>>& sameMarketSidePriceLevelMap(OrderPtr order);
+    std::map<double, std::deque<OrderPtr>>& oppositeMarketSidePriceLevelMap(OrderPtr order);
 
     std::expected<std::reference_wrapper<std::deque<OrderPtr>>, std::string>
     getPriceLevelOppositeOrders(OrderPtr order, double priceToUse);

@@ -58,13 +58,13 @@ std::expected<void, std::string> validateOrderAttributes(double price, double qn
 namespace solstice
 {
 
-Order::Order(int uid, Underlying underlying, double price, double qnty, OrderSide orderSide,
+Order::Order(int uid, Underlying underlying, double price, double qnty, MarketSide marketSide,
              TimePoint timeOrderPlaced)
     : d_uid(uid),
       d_underlying(underlying),
       d_price(price),
       d_qnty(qnty),
-      d_orderSide(orderSide),
+      d_marketSide(marketSide),
       d_timeOrderPlaced(timeOrderPlaced)
 {
     d_orderComplete = false;
@@ -87,11 +87,11 @@ double Order::outstandingQnty(double newOutstandingQnty)
     return newOutstandingQnty;
 };
 
-OrderSide Order::orderSide() const { return d_orderSide; }
+MarketSide Order::marketSide() const { return d_marketSide; }
 
-std::string Order::orderSideString() const
+std::string Order::marketSideString() const
 {
-    return d_orderSide == solstice::OrderSide::Bid ? "Bid" : "ask";
+    return d_marketSide == solstice::MarketSide::Bid ? "Bid" : "ask";
 }
 
 TimePoint Order::timeOrderPlaced() const { return d_timeOrderPlaced; }
@@ -117,7 +117,7 @@ std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
 std::expected<std::shared_ptr<Order>, std::string> Order::createOrder(int uid,
                                                                       Underlying underlying,
                                                                       double price, double qnty,
-                                                                      OrderSide orderSide)
+                                                                      MarketSide marketSide)
 {
     TimePoint timeOrderPlaced = getTimeNow();
 
@@ -128,7 +128,7 @@ std::expected<std::shared_ptr<Order>, std::string> Order::createOrder(int uid,
     }
 
     auto order = std::shared_ptr<Order>(
-        new (std::nothrow) Order{uid, underlying, price, qnty, orderSide, timeOrderPlaced});
+        new (std::nothrow) Order{uid, underlying, price, qnty, marketSide, timeOrderPlaced});
 
     return order;
 }
@@ -137,7 +137,7 @@ std::ostream& operator<<(std::ostream& os, const Order& order)
 {
     os << "Order UID: " << order.uid() << " | Ticker: " << to_string(order.underlying())
        << " | Price: " << order.price() << " | Quantity: " << order.qnty()
-       << " | Is bid: " << std::boolalpha << (order.orderSide() == OrderSide::Bid);
+       << " | Is bid: " << std::boolalpha << (order.marketSide() == MarketSide::Bid);
 
     return os;
 }

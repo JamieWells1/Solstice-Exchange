@@ -7,13 +7,13 @@
 namespace solstice
 {
 
-enum class OrderSide : uint8_t
+enum class MarketSide : uint8_t
 {
     Bid = 1,
     Ask = 0
 };
 
-std::ostream& operator<<(std::ostream& os, OrderSide orderSide);
+std::ostream& operator<<(std::ostream& os, MarketSide marketSide);
 
 }  // namespace solstice
 

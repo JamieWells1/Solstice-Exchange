@@ -47,11 +47,11 @@ TEST_F(OrchestratorFixture, ProcessOrderWithMatchSucceeds)
 {
     Orchestrator orch{config, orderBook, *matcher};
 
-    auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, OrderSide::Bid);
+    auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
     orch.processOrder(*bidOrder);
 
-    auto askOrder = Order::createOrder(2, Equity::AAPL, 100.0, 10.0, OrderSide::Ask);
+    auto askOrder = Order::createOrder(2, Equity::AAPL, 100.0, 10.0, MarketSide::Ask);
     ASSERT_TRUE(askOrder.has_value());
 
     bool result = orch.processOrder(*askOrder);
@@ -62,7 +62,7 @@ TEST_F(OrchestratorFixture, ProcessOrderWithoutMatchFails)
 {
     Orchestrator orch{config, orderBook, *matcher};
 
-    auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, OrderSide::Bid);
+    auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
 
     bool result = orch.processOrder(*bidOrder);
@@ -73,7 +73,7 @@ TEST_F(OrchestratorFixture, ProcessOrderAddsToBook)
 {
     Orchestrator orch{config, orderBook, *matcher};
 
-    auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, OrderSide::Bid);
+    auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
 
     orch.processOrder(*bidOrder);
@@ -87,11 +87,11 @@ TEST_F(OrchestratorFixture, ProcessOrderMarksFulfilledOnMatch)
 {
     Orchestrator orch{config, orderBook, *matcher};
 
-    auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, OrderSide::Bid);
+    auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
     orch.processOrder(*bidOrder);
 
-    auto askOrder = Order::createOrder(2, Equity::AAPL, 100.0, 10.0, OrderSide::Ask);
+    auto askOrder = Order::createOrder(2, Equity::AAPL, 100.0, 10.0, MarketSide::Ask);
     ASSERT_TRUE(askOrder.has_value());
 
     orch.processOrder(*askOrder);

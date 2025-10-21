@@ -5,9 +5,9 @@
 namespace solstice
 {
 
-std::ostream& operator<<(std::ostream& os, const OrderSide& orderSide)
+std::ostream& operator<<(std::ostream& os, const MarketSide& marketSide)
 {
-    if (orderSide == OrderSide::Bid)
+    if (marketSide == MarketSide::Bid)
         os << "Bid";
     else
         os << "ask";

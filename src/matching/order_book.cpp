@@ -27,24 +27,24 @@ std::optional<std::reference_wrapper<std::deque<OrderPtr>>> OrderBook::getOrders
 
     ActiveOrders& book = d_activeOrders.at(order->underlying());
 
-    return (order->orderSide() == OrderSide::Bid) ? book.bids.at(order->price())
-                                                  : book.asks.at(order->price());
+    return (order->marketSide() == MarketSide::Bid) ? book.bids.at(order->price())
+                                                    : book.asks.at(order->price());
 }
 
 std::deque<OrderPtr>& OrderBook::getOrdersDequeAtPrice(OrderPtr order, int priceToMatch)
 {
     auto& book = d_activeOrders.at(order->underlying());
 
-    return (order->orderSide() == OrderSide::Bid) ? book.bids.at(priceToMatch)
-                                                  : book.asks.at(priceToMatch);
+    return (order->marketSide() == MarketSide::Bid) ? book.bids.at(priceToMatch)
+                                                    : book.asks.at(priceToMatch);
 }
 
 std::deque<OrderPtr>& OrderBook::ordersDequeAtPrice(OrderPtr order)
 {
     auto& book = d_activeOrders[order->underlying()];
 
-    return (order->orderSide() == OrderSide::Bid) ? book.bids[order->price()]
-                                                  : book.asks[order->price()];
+    return (order->marketSide() == MarketSide::Bid) ? book.bids[order->price()]
+                                                    : book.asks[order->price()];
 }
 
 std::expected<std::reference_wrapper<std::deque<OrderPtr>>, std::string>
@@ -59,7 +59,7 @@ OrderBook::getPriceLevelOppositeOrders(OrderPtr order, double priceToUse)
 
     ActiveOrders& book = d_activeOrders.at(order->underlying());
 
-    if (order->orderSide() == OrderSide::Bid)
+    if (order->marketSide() == MarketSide::Bid)
     {
         auto priceIt = book.asks.find(priceToUse);
         if (priceIt == book.asks.end() || priceIt->second.empty())
@@ -81,18 +81,18 @@ OrderBook::getPriceLevelOppositeOrders(OrderPtr order, double priceToUse)
     }
 }
 
-std::map<double, std::deque<OrderPtr>>& OrderBook::sameOrderSidePriceLevelMap(OrderPtr order)
+std::map<double, std::deque<OrderPtr>>& OrderBook::sameMarketSidePriceLevelMap(OrderPtr order)
 {
     auto& book = d_activeOrders.at(order->underlying());
 
-    return (order->orderSide() == OrderSide::Bid) ? book.bids : book.asks;
+    return (order->marketSide() == MarketSide::Bid) ? book.bids : book.asks;
 }
 
-std::map<double, std::deque<OrderPtr>>& OrderBook::oppositeOrderSidePriceLevelMap(OrderPtr order)
+std::map<double, std::deque<OrderPtr>>& OrderBook::oppositeMarketSidePriceLevelMap(OrderPtr order)
 {
     auto& book = d_activeOrders.at(order->underlying());
 
-    return (order->orderSide() == OrderSide::Bid) ? book.asks : book.bids;
+    return (order->marketSide() == MarketSide::Bid) ? book.asks : book.bids;
 }
 
 std::expected<std::reference_wrapper<BidPricesAtPriceLevel>, std::string>
@@ -137,7 +137,7 @@ std::set<double, std::less<double>>& OrderBook::askPricesAtPriceLevel(OrderPtr o
 
 const std::expected<double, std::string> OrderBook::getBestPrice(OrderPtr orderToMatch)
 {
-    if (orderToMatch->orderSide() == OrderSide::Bid)
+    if (orderToMatch->marketSide() == MarketSide::Bid)
     {
         auto askPricesSet = getaskPricesAtPriceLevel(orderToMatch);
         if (!askPricesSet)
@@ -195,7 +195,7 @@ const std::expected<double, std::string> OrderBook::getBestPrice(OrderPtr orderT
 void OrderBook::addOrderToBook(OrderPtr order)
 {
     // add price to price lookup map
-    if (order->orderSide() == OrderSide::Bid)
+    if (order->marketSide() == MarketSide::Bid)
     {
         bidPricesAtPriceLevel(order).insert(order->price());
     }
@@ -232,7 +232,7 @@ void OrderBook::markOrderAsFulfilled(OrderPtr completedOrder)
     auto dequeOptional = getOrdersDequeAtPrice(completedOrder);
     if (dequeOptional && dequeOptional->get().empty())
     {
-        if (completedOrder->orderSide() == OrderSide::Bid)
+        if (completedOrder->marketSide() == MarketSide::Bid)
         {
             bidPricesAtPriceLevel(completedOrder).erase(completedOrder->price());
         }
