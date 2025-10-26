@@ -12,14 +12,27 @@ namespace solstice::pricing
 struct EquityPriceData
 {
    public:
-    int d_lastPrice;
-    int d_highestBid;
-    int d_lowestAsk;
-
-   private:
     int lastPrice();
     int highestBid();
     int lowestAsk();
+
+   private:
+    int d_lastPrice;
+    int d_highestBid;
+    int d_lowestAsk;
+};
+
+struct FuturePriceData
+{
+   public:
+    int lastPrice();
+    int highestBid();
+    int lowestAsk();
+
+   private:
+    int d_lastPrice;
+    int d_highestBid;
+    int d_lowestAsk;
 };
 
 class Pricer
@@ -29,8 +42,27 @@ class Pricer
 
     double generateSeedPrice();
 
+    template <typename T>
+    void initialisePricerEquities()
+    {
+        for (const auto& underlying : underlyingsPool<Equity>())
+        {
+            d_equityDataMap[underlying];
+        }
+    }
+
+    template <typename T>
+    void initialisePricerFutures()
+    {
+        for (const auto& underlying : underlyingsPool<Future>())
+        {
+            d_futureDataMap[underlying];
+        }
+    }
+
    private:
-    std::unordered_map<Equity, EquityPriceData> EquityDataMap;
+    std::unordered_map<Equity, EquityPriceData> d_equityDataMap;
+    std::unordered_map<Future, FuturePriceData> d_futureDataMap;
 
     double d_seedPrice;
 };

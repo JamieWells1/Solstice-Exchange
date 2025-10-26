@@ -14,6 +14,8 @@
 #include <thread>
 #include <utility>
 
+#include "pricer.h"
+
 using namespace solstice;
 
 namespace
@@ -67,8 +69,10 @@ MarketSide getMarketSide()
 namespace solstice::matching
 {
 
-Orchestrator::Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook, std::shared_ptr<Matcher> matcher)
-    : d_config(config), d_orderBook(orderBook), d_matcher(matcher)
+Orchestrator::Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook,
+                           std::shared_ptr<Matcher> matcher,
+                           std::shared_ptr<pricing::Pricer> pricer)
+    : d_config(config), d_orderBook(orderBook), d_matcher(matcher), d_pricer(pricer)
 {
 }
 
@@ -113,7 +117,8 @@ bool Orchestrator::processOrder(OrderPtr order)
         {
             if (d_config.logLevel() >= LogLevel::DEBUG)
             {
-                std::cout << "Order " << order->uid() << " failed to match: " << orderMatched.error();
+                std::cout << "Order " << order->uid()
+                          << " failed to match: " << orderMatched.error();
             }
             return false;
         }
@@ -136,7 +141,8 @@ bool Orchestrator::processOrder(OrderPtr order)
         {
             if (d_config.logLevel() >= LogLevel::DEBUG)
             {
-                std::cout << "Order " << order->uid() << " failed to match: " << orderMatched.error();
+                std::cout << "Order " << order->uid()
+                          << " failed to match: " << orderMatched.error();
             }
             return false;
         }
@@ -204,8 +210,9 @@ void Orchestrator::initialiseUnderlyings(AssetClass assetClass)
             setUnderlyingsPool(d_config.underlyingPoolCount(), ALL_EQUITIES);
 
             d_orderBook->initialiseBookAtUnderlyings<Equity>();
+            d_pricer->initialisePricerEquities<Equity>();
 
-            for (Equity underlying : getUnderlyingsPool<Equity>())
+            for (Equity underlying : underlyingsPool<Equity>())
             {
                 d_underlyingMutexes[underlying];
             }
@@ -215,8 +222,9 @@ void Orchestrator::initialiseUnderlyings(AssetClass assetClass)
             setUnderlyingsPool(d_config.underlyingPoolCount(), ALL_FUTURES);
 
             d_orderBook->initialiseBookAtUnderlyings<Future>();
+            d_pricer->initialisePricerFutures<Future>();
 
-            for (Future underlying : getUnderlyingsPool<Future>())
+            for (Future underlying : underlyingsPool<Future>())
             {
                 d_underlyingMutexes[underlying];
             }
@@ -279,7 +287,9 @@ std::expected<void, std::string> Orchestrator::start()
 
     auto orderBook = std::make_shared<OrderBook>();
     auto matcher = std::make_shared<Matcher>(orderBook);
-    Orchestrator orchestrator{*config, orderBook, matcher};
+    auto pricer = std::make_shared<pricing::Pricer>();
+
+    Orchestrator orchestrator{*config, orderBook, matcher, pricer};
 
     orchestrator.initialiseUnderlyings(config->assetClass());
 

@@ -46,7 +46,7 @@ TEST_F(UnderlyingTests, UnderlyingToString)
 TEST_F(UnderlyingTests, UnderlyingPoolPopulates)
 {
     setUnderlyingsPool(10, ALL_EQUITIES);
-    ASSERT_TRUE(!getUnderlyingsPool<Equity>().empty());
+    ASSERT_TRUE(!underlyingsPool<Equity>().empty());
 }
 
 TEST_F(UnderlyingTests, ValidRandomUnderlying)
@@ -70,40 +70,40 @@ TEST_F(UnderlyingTests, GetRandomUnderlyingFailsWhenPoolEmpty)
 TEST_F(UnderlyingTests, SetUnderlyingsPoolWithFullSet)
 {
     setUnderlyingsPool(-1, ALL_EQUITIES);
-    auto pool = getUnderlyingsPool<Equity>();
+    auto pool = underlyingsPool<Equity>();
     EXPECT_EQ(pool.size(), ALL_EQUITIES.size());
 }
 
 TEST_F(UnderlyingTests, SetUnderlyingsPoolWithLimitedSize)
 {
     setUnderlyingsPool(5, ALL_EQUITIES);
-    auto pool = getUnderlyingsPool<Equity>();
+    auto pool = underlyingsPool<Equity>();
     EXPECT_EQ(pool.size(), 5);
 }
 
 TEST_F(UnderlyingTests, SetUnderlyingsPoolOnlyInitializesOnce)
 {
     setUnderlyingsPool(5, ALL_EQUITIES);
-    auto pool1 = getUnderlyingsPool<Equity>();
+    auto pool1 = underlyingsPool<Equity>();
 
     setUnderlyingsPool(10, ALL_EQUITIES);
-    auto pool2 = getUnderlyingsPool<Equity>();
+    auto pool2 = underlyingsPool<Equity>();
 
     EXPECT_EQ(pool1.size(), pool2.size());
     EXPECT_EQ(pool2.size(), 5);
 }
 
-TEST_F(UnderlyingTests, GetUnderlyingsPoolInitialisedReturnsTrueAfterInit)
+TEST_F(UnderlyingTests, underlyingsPoolInitialisedReturnsTrueAfterInit)
 {
-    ASSERT_FALSE(getUnderlyingsPoolInitialised<Equity>());
+    ASSERT_FALSE(underlyingsPoolInitialised<Equity>());
     setUnderlyingsPool(10, ALL_EQUITIES);
-    ASSERT_TRUE(getUnderlyingsPoolInitialised<Equity>());
+    ASSERT_TRUE(underlyingsPoolInitialised<Equity>());
 }
 
 TEST_F(UnderlyingTests, FutureUnderlyingPoolWorks)
 {
     setUnderlyingsPool(5, ALL_FUTURES);
-    auto pool = getUnderlyingsPool<Future>();
+    auto pool = underlyingsPool<Future>();
     EXPECT_EQ(pool.size(), 5);
 
     auto result = getRandomUnderlying<Future>();

@@ -57,7 +57,7 @@ class OrderBook
     template <typename T>
     void initialiseBookAtUnderlyings()
     {
-        for (const auto& underlying : getUnderlyingsPool<T>())
+        for (const auto& underlying : underlyingsPool<T>())
         {
             d_activeOrders[underlying];
         }

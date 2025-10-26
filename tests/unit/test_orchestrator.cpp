@@ -3,6 +3,7 @@
 #include <matcher.h>
 #include <orchestrator.h>
 #include <order_book.h>
+#include <pricer.h>
 
 namespace solstice::matching
 {
@@ -13,18 +14,21 @@ class OrchestratorFixture : public ::testing::Test
     Config config = Config::instance().value();
     std::shared_ptr<OrderBook> orderBook;
     std::shared_ptr<Matcher> matcher;
+    std::shared_ptr<pricing::Pricer> pricer;
     std::unique_ptr<Orchestrator> orchestrator;
 
     void SetUp() override
     {
-
         orderBook = std::make_shared<OrderBook>();
         matcher = std::make_shared<Matcher>(orderBook);
+        pricer = std::make_shared<pricing::Pricer>();
 
         std::vector<Equity> pool = {Equity::AAPL};
         d_underlyingsPool<Equity> = pool;
         d_underlyingsPoolInitialised<Equity> = true;
+
         orderBook->initialiseBookAtUnderlyings<Equity>();
+        pricer->initialisePricerEquities<Equity>();
     }
 
     void TearDown() override
@@ -42,7 +46,7 @@ TEST(OrchestratorTests, StartSucceeds)
 
 TEST_F(OrchestratorFixture, ProcessOrderWithMatchSucceeds)
 {
-    Orchestrator orch{config, orderBook, matcher};
+    Orchestrator orch{config, orderBook, matcher, pricer};
 
     auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
@@ -57,7 +61,7 @@ TEST_F(OrchestratorFixture, ProcessOrderWithMatchSucceeds)
 
 TEST_F(OrchestratorFixture, ProcessOrderWithoutMatchFails)
 {
-    Orchestrator orch{config, orderBook, matcher};
+    Orchestrator orch{config, orderBook, matcher, pricer};
 
     auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
@@ -68,7 +72,7 @@ TEST_F(OrchestratorFixture, ProcessOrderWithoutMatchFails)
 
 TEST_F(OrchestratorFixture, ProcessOrderAddsToBook)
 {
-    Orchestrator orch{config, orderBook, matcher};
+    Orchestrator orch{config, orderBook, matcher, pricer};
 
     auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
@@ -82,7 +86,7 @@ TEST_F(OrchestratorFixture, ProcessOrderAddsToBook)
 
 TEST_F(OrchestratorFixture, ProcessOrderMarksFulfilledOnMatch)
 {
-    Orchestrator orch{config, orderBook, matcher};
+    Orchestrator orch{config, orderBook, matcher, pricer};
 
     auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());

@@ -169,7 +169,7 @@ inline bool operator==(const T& value, const std::variant<Types...>& variant)
 // ===================================================================
 
 template <typename T>
-inline const bool getUnderlyingsPoolInitialised()
+inline const bool underlyingsPoolInitialised()
 {
     return d_underlyingsPoolInitialised<T>;
 }
@@ -182,7 +182,7 @@ inline bool setUnderlyingsPoolInitialised(bool isInitialised)
 }
 
 template <typename T>
-inline const std::vector<T>& getUnderlyingsPool()
+inline const std::vector<T>& underlyingsPool()
 {
     return d_underlyingsPool<T>;
 }
@@ -190,7 +190,7 @@ inline const std::vector<T>& getUnderlyingsPool()
 template <typename T, std::size_t N>
 inline void setUnderlyingsPool(int poolSize, const std::array<T, N>& fullSet)
 {
-    if (getUnderlyingsPoolInitialised<T>()) return;
+    if (underlyingsPoolInitialised<T>()) return;
 
     auto& pool = d_underlyingsPool<T>;
     pool.assign(fullSet.begin(), fullSet.end());
