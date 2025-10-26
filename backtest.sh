@@ -8,7 +8,7 @@ fi
 # Only rebuild if --rebuild flag is passed
 if [ "$1" == "--rebuild" ]; then
     echo "Rebuilding C++ extension..."
-    pip install -e . -q
+    pip install -e . -q --no-deps
 fi
 
 python src/strategy/entry_point.py

@@ -15,11 +15,11 @@ MarketData::MarketData(std::vector<double> opens, std::vector<double> highs,
 {
 }
 
-const std::vector<double> MarketData::opens() const { return d_opens; }
-const std::vector<double> MarketData::highs() const { return d_highs; }
-const std::vector<double> MarketData::lows() const { return d_lows; }
-const std::vector<double> MarketData::closes() const { return d_closes; }
-const std::vector<double> MarketData::volume() const { return d_volume; }
+const std::vector<double>& MarketData::opens() const { return d_opens; }
+const std::vector<double>& MarketData::highs() const { return d_highs; }
+const std::vector<double>& MarketData::lows() const { return d_lows; }
+const std::vector<double>& MarketData::closes() const { return d_closes; }
+const std::vector<double>& MarketData::volume() const { return d_volume; }
 
 MarketData MarketData::mapRawInput(RawMarketData& inputData)
 {

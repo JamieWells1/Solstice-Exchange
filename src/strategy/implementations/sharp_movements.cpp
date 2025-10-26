@@ -14,8 +14,13 @@ SharpMovements::SharpMovements(Strategy strategy, MarketData marketData)
 
 Report SharpMovements::execute()
 {
-    std::cout << "Initial balance: " << d_account.balance();
-    return Report(1, 2, 3, 4, 5, 6, 7);
+    std::vector<double> highs = d_marketData.highs();
+    std::vector<double> opens = d_marketData.opens();
+    std::vector<double> lows = d_marketData.lows();
+    std::vector<double> closes = d_marketData.closes();
+    std::vector<double> timestamps = d_marketData.timestamps();
+
+    
 }
 
 }  // namespace solstice::strategy

@@ -15,13 +15,14 @@ target_include_directories(orchestrator
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/matching
+        ${CMAKE_CURRENT_SOURCE_DIR}/pricing
         ${CMAKE_CURRENT_SOURCE_DIR}/common
         ${CMAKE_CURRENT_SOURCE_DIR}/utils
         ${CMAKE_CURRENT_SOURCE_DIR}/config
         ${CMAKE_CURRENT_SOURCE_DIR}/enums
 )
 
-target_link_libraries(orchestrator PUBLIC matching common utils config enums)
+target_link_libraries(orchestrator PUBLIC matching pricing common utils config enums)
 
 add_executable(solstice
     main.cpp

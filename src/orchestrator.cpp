@@ -67,14 +67,14 @@ MarketSide getMarketSide()
 namespace solstice::matching
 {
 
-Orchestrator::Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook, Matcher matcher)
+Orchestrator::Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook, std::shared_ptr<Matcher> matcher)
     : d_config(config), d_orderBook(orderBook), d_matcher(matcher)
 {
 }
 
 const Config& Orchestrator::config() const { return d_config; }
 const std::shared_ptr<OrderBook>& Orchestrator::orderBook() const { return d_orderBook; }
-const Matcher& Orchestrator::matcher() const { return d_matcher; }
+const std::shared_ptr<Matcher>& Orchestrator::matcher() const { return d_matcher; }
 
 std::expected<OrderPtr, std::string> Orchestrator::generateOrder(int ordersGenerated)
 {
@@ -108,7 +108,7 @@ bool Orchestrator::processOrder(OrderPtr order)
         std::lock_guard<std::mutex> lock(mutexIt->second);
         d_orderBook->addOrderToBook(order);
 
-        auto orderMatched = d_matcher.matchOrder(order);
+        auto orderMatched = d_matcher->matchOrder(order);
         if (!orderMatched)
         {
             if (d_config.logLevel() >= LogLevel::DEBUG)
@@ -131,7 +131,7 @@ bool Orchestrator::processOrder(OrderPtr order)
         // No mutex for this underlying - process without locking (single-threaded test scenario)
         d_orderBook->addOrderToBook(order);
 
-        auto orderMatched = d_matcher.matchOrder(order);
+        auto orderMatched = d_matcher->matchOrder(order);
         if (!orderMatched)
         {
             if (d_config.logLevel() >= LogLevel::DEBUG)
@@ -278,7 +278,7 @@ std::expected<void, std::string> Orchestrator::start()
     }
 
     auto orderBook = std::make_shared<OrderBook>();
-    Matcher matcher{orderBook};
+    auto matcher = std::make_shared<Matcher>(orderBook);
     Orchestrator orchestrator{*config, orderBook, matcher};
 
     orchestrator.initialiseUnderlyings(config->assetClass());

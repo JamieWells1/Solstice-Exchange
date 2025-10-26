@@ -5,6 +5,7 @@
 #include <matcher.h>
 #include <order.h>
 #include <order_book.h>
+#include <pricer.h>
 
 #include <memory>
 #include <mutex>
@@ -18,13 +19,14 @@ class Orchestrator
    public:
     static std::expected<void, std::string> start();
 
-    Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook, Matcher matcher);
+    Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook, std::shared_ptr<Matcher> matcher);
 
     bool processOrder(OrderPtr order);
 
     const Config& config() const;
     const std::shared_ptr<OrderBook>& orderBook() const;
-    const Matcher& matcher() const;
+    const std::shared_ptr<Matcher>& matcher() const;
+    const std::shared_ptr<Pricer>
 
    private:
     void initialiseUnderlyings(AssetClass assetClass);
@@ -41,7 +43,7 @@ class Orchestrator
 
     Config d_config;
     std::shared_ptr<OrderBook> d_orderBook;
-    Matcher d_matcher;
+    std::shared_ptr<Matcher> d_matcher;
     std::map<Underlying, std::mutex> d_underlyingMutexes;
     std::queue<OrderPtr> d_orderProcessQueue;
     std::mutex d_queueMutex;

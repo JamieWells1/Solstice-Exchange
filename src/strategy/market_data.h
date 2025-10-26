@@ -14,12 +14,12 @@ struct MarketData
    public:
     static MarketData mapRawInput(RawMarketData& inputData);
 
-    const std::vector<double> opens() const;
-    const std::vector<double> highs() const;
-    const std::vector<double> lows() const;
-    const std::vector<double> closes() const;
-    const std::vector<double> volume() const;
-    const std::vector<double> timestamps() const;
+    const std::vector<double>& opens() const;
+    const std::vector<double>& highs() const;
+    const std::vector<double>& lows() const;
+    const std::vector<double>& closes() const;
+    const std::vector<double>& volume() const;
+    const std::vector<double>& timestamps() const;
 
    private:
     MarketData(std::vector<double> opens, std::vector<double> highs, std::vector<double> lows,

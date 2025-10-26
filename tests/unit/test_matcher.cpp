@@ -9,12 +9,12 @@ class MatcherFixture : public ::testing::Test
 {
    protected:
     std::shared_ptr<OrderBook> orderBook;
-    std::unique_ptr<Matcher> matcher;
+    std::shared_ptr<Matcher> matcher;
 
     void SetUp() override
     {
         orderBook = std::make_shared<OrderBook>();
-        matcher = std::make_unique<Matcher>(orderBook);
+        matcher = std::make_shared<Matcher>(orderBook);
 
         std::vector<Equity> pool = {Equity::AAPL};
         d_underlyingsPool<Equity> = pool;

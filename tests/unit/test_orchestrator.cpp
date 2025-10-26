@@ -12,14 +12,14 @@ class OrchestratorFixture : public ::testing::Test
    protected:
     Config config = Config::instance().value();
     std::shared_ptr<OrderBook> orderBook;
-    std::unique_ptr<Matcher> matcher;
+    std::shared_ptr<Matcher> matcher;
     std::unique_ptr<Orchestrator> orchestrator;
 
     void SetUp() override
     {
 
         orderBook = std::make_shared<OrderBook>();
-        matcher = std::make_unique<Matcher>(orderBook);
+        matcher = std::make_shared<Matcher>(orderBook);
 
         std::vector<Equity> pool = {Equity::AAPL};
         d_underlyingsPool<Equity> = pool;
@@ -42,7 +42,7 @@ TEST(OrchestratorTests, StartSucceeds)
 
 TEST_F(OrchestratorFixture, ProcessOrderWithMatchSucceeds)
 {
-    Orchestrator orch{config, orderBook, *matcher};
+    Orchestrator orch{config, orderBook, matcher};
 
     auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
@@ -57,7 +57,7 @@ TEST_F(OrchestratorFixture, ProcessOrderWithMatchSucceeds)
 
 TEST_F(OrchestratorFixture, ProcessOrderWithoutMatchFails)
 {
-    Orchestrator orch{config, orderBook, *matcher};
+    Orchestrator orch{config, orderBook, matcher};
 
     auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
@@ -68,7 +68,7 @@ TEST_F(OrchestratorFixture, ProcessOrderWithoutMatchFails)
 
 TEST_F(OrchestratorFixture, ProcessOrderAddsToBook)
 {
-    Orchestrator orch{config, orderBook, *matcher};
+    Orchestrator orch{config, orderBook, matcher};
 
     auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
@@ -82,7 +82,7 @@ TEST_F(OrchestratorFixture, ProcessOrderAddsToBook)
 
 TEST_F(OrchestratorFixture, ProcessOrderMarksFulfilledOnMatch)
 {
-    Orchestrator orch{config, orderBook, *matcher};
+    Orchestrator orch{config, orderBook, matcher};
 
     auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
