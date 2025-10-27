@@ -16,56 +16,6 @@
 
 #include "pricer.h"
 
-using namespace solstice;
-
-namespace
-{
-
-std::expected<Underlying, std::string> getUnderlying(AssetClass assetClass)
-{
-    switch (assetClass)
-    {
-        case AssetClass::Equity:
-        {
-            auto underlying = getRandomUnderlying<Equity>();
-            if (!underlying)
-            {
-                return std::unexpected(underlying.error());
-            }
-            return *underlying;
-        }
-        case AssetClass::Future:
-        {
-            auto underlying = getRandomUnderlying<Future>();
-            if (!underlying)
-            {
-                return std::unexpected(underlying.error());
-            }
-            return *underlying;
-        }
-        default:
-            return std::unexpected("Invalid asset class\n");
-    }
-}
-
-double getPrice(int minPrice, int maxPrice) { return Random::getRandomDouble(minPrice, maxPrice); }
-
-double getQnty(int minQnty, int maxQnty) { return Random::getRandomInt(minQnty, maxQnty); }
-
-MarketSide getMarketSide()
-{
-    if (Random::getRandomBool())
-    {
-        return MarketSide::Bid;
-    }
-    else
-    {
-        return MarketSide::Ask;
-    }
-}
-
-}  // namespace
-
 namespace solstice::matching
 {
 
@@ -90,11 +40,7 @@ std::expected<OrderPtr, std::string> Orchestrator::generateOrder(int ordersGener
         return std::unexpected(underlying.error());
     }
 
-    double price = getPrice(d_config.minPrice(), d_config.maxPrice());
-    double qnty = getQnty(d_config.minQnty(), d_config.maxQnty());
-    MarketSide marketSide = getMarketSide();
-
-    auto order = Order::createOrder(uid, *underlying, price, qnty, marketSide);
+    auto order = Order::createWithPricer(d_pricer, *underlying, uid);
 
     if (!order)
     {

@@ -2,7 +2,6 @@
 #define PRICER_H
 
 #include <asset_class.h>
-#include <order_book.h>
 
 #include <unordered_map>
 
@@ -40,8 +39,6 @@ class Pricer
    public:
     Pricer();
 
-    double generateSeedPrice();
-
     template <typename T>
     void initialisePricerEquities()
     {
@@ -61,6 +58,8 @@ class Pricer
     }
 
    private:
+    double generateSeedPrice();
+
     std::unordered_map<Equity, EquityPriceData> d_equityDataMap;
     std::unordered_map<Future, FuturePriceData> d_futureDataMap;
 

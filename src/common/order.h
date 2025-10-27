@@ -3,6 +3,7 @@
 
 #include <asset_class.h>
 #include <market_side.h>
+#include <pricer.h>
 #include <time_point.h>
 
 #include <ctime>
@@ -16,10 +17,12 @@ namespace solstice
 class Order
 {
    public:
-    static std::expected<std::shared_ptr<Order>, std::string> createOrder(int uid,
-                                                                          Underlying underlying,
-                                                                          double price, double qnty,
-                                                                          MarketSide marketSide);
+    static std::expected<std::shared_ptr<Order>, std::string> create(int uid, Underlying underlying,
+                                                                     double price, double qnty,
+                                                                     MarketSide marketSide);
+
+    static std::expected<std::shared_ptr<Order>, std::string> createWithPricer(
+        std::shared_ptr<pricing::Pricer> pricer, Underlying underlying, int uid);
 
     int uid() const;
     Underlying underlying() const;
@@ -31,7 +34,6 @@ class Order
     TimePoint timeOrderPlaced() const;
     std::expected<TimePoint, std::string> timeOrderFulfilled() const;
     bool orderComplete() const;
-
     double outstandingQnty(double newQnty);
     bool orderComplete(bool isFulfilled);
 

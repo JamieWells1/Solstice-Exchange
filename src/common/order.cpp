@@ -7,8 +7,29 @@
 #include <memory>
 #include <ostream>
 
+using namespace solstice;
+
 namespace
 {
+
+double getRandomPrice(int minPrice, int maxPrice)
+{
+    return Random::getRandomDouble(minPrice, maxPrice);
+}
+
+double getRandomQnty(int minQnty, int maxQnty) { return Random::getRandomInt(minQnty, maxQnty); }
+
+MarketSide getRandomMarketSide()
+{
+    if (Random::getRandomBool())
+    {
+        return MarketSide::Bid;
+    }
+    else
+    {
+        return MarketSide::Ask;
+    }
+}
 
 std::expected<void, std::string> validatePrice(const double price)
 {
@@ -114,10 +135,9 @@ std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
     return d_timeOrderFulfilled;
 }
 
-std::expected<std::shared_ptr<Order>, std::string> Order::createOrder(int uid,
-                                                                      Underlying underlying,
-                                                                      double price, double qnty,
-                                                                      MarketSide marketSide)
+std::expected<std::shared_ptr<Order>, std::string> Order::create(int uid, Underlying underlying,
+                                                                 double price, double qnty,
+                                                                 MarketSide marketSide)
 {
     TimePoint timeOrderPlaced = getTimeNow();
 
@@ -131,6 +151,18 @@ std::expected<std::shared_ptr<Order>, std::string> Order::createOrder(int uid,
         new (std::nothrow) Order{uid, underlying, price, qnty, marketSide, timeOrderPlaced});
 
     return order;
+}
+
+std::expected<std::shared_ptr<Order>, std::string> Order::createWithPricer(
+    std::shared_ptr<pricing::Pricer> pricer, Underlying underlying, int uid)
+{
+    // TODO: make new struct for storying order info (and use it here) and then pass into
+    // Order::create();
+    double price = 123;
+    double qnty = 123;
+    MarketSide marketSide = getRandomMarketSide();
+
+    return Order::create(uid, underlying, price, qnty, marketSide);
 }
 
 std::ostream& operator<<(std::ostream& os, const Order& order)

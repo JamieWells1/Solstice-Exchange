@@ -31,11 +31,11 @@ class MatcherFixture : public ::testing::Test
 
 TEST_F(MatcherFixture, MatchOrderWithExactPrice)
 {
-    auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
+    auto bidOrder = Order::create(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
     orderBook->addOrderToBook(*bidOrder);
 
-    auto askOrder = Order::createOrder(2, Equity::AAPL, 100.0, 10.0, MarketSide::Ask);
+    auto askOrder = Order::create(2, Equity::AAPL, 100.0, 10.0, MarketSide::Ask);
     ASSERT_TRUE(askOrder.has_value());
 
     auto result = matcher->matchOrder(*askOrder);
@@ -44,11 +44,11 @@ TEST_F(MatcherFixture, MatchOrderWithExactPrice)
 
 TEST_F(MatcherFixture, MatchOrderWithBidHigherThanAsk)
 {
-    auto bidOrder = Order::createOrder(1, Equity::AAPL, 105.0, 10.0, MarketSide::Bid);
+    auto bidOrder = Order::create(1, Equity::AAPL, 105.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
     orderBook->addOrderToBook(*bidOrder);
 
-    auto askOrder = Order::createOrder(2, Equity::AAPL, 100.0, 10.0, MarketSide::Ask);
+    auto askOrder = Order::create(2, Equity::AAPL, 100.0, 10.0, MarketSide::Ask);
     ASSERT_TRUE(askOrder.has_value());
 
     auto result = matcher->matchOrder(*askOrder);
@@ -57,7 +57,7 @@ TEST_F(MatcherFixture, MatchOrderWithBidHigherThanAsk)
 
 TEST_F(MatcherFixture, MatchOrderFailsWhenNoOppositeOrders)
 {
-    auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
+    auto bidOrder = Order::create(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
 
     auto result = matcher->matchOrder(*bidOrder);
@@ -66,11 +66,11 @@ TEST_F(MatcherFixture, MatchOrderFailsWhenNoOppositeOrders)
 
 TEST_F(MatcherFixture, MatchOrderFailsWhenPriceOutOfRange)
 {
-    auto bidOrder = Order::createOrder(1, Equity::AAPL, 95.0, 10.0, MarketSide::Bid);
+    auto bidOrder = Order::create(1, Equity::AAPL, 95.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
     orderBook->addOrderToBook(*bidOrder);
 
-    auto askOrder = Order::createOrder(2, Equity::AAPL, 100.0, 10.0, MarketSide::Ask);
+    auto askOrder = Order::create(2, Equity::AAPL, 100.0, 10.0, MarketSide::Ask);
     ASSERT_TRUE(askOrder.has_value());
 
     auto result = matcher->matchOrder(*askOrder);
@@ -79,11 +79,11 @@ TEST_F(MatcherFixture, MatchOrderFailsWhenPriceOutOfRange)
 
 TEST_F(MatcherFixture, MatchOrderWithPartialFill)
 {
-    auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 5.0, MarketSide::Bid);
+    auto bidOrder = Order::create(1, Equity::AAPL, 100.0, 5.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
     orderBook->addOrderToBook(*bidOrder);
 
-    auto askOrder = Order::createOrder(2, Equity::AAPL, 100.0, 10.0, MarketSide::Ask);
+    auto askOrder = Order::create(2, Equity::AAPL, 100.0, 10.0, MarketSide::Ask);
     ASSERT_TRUE(askOrder.has_value());
 
     auto result = matcher->matchOrder(*askOrder);
@@ -92,19 +92,19 @@ TEST_F(MatcherFixture, MatchOrderWithPartialFill)
 
 TEST_F(MatcherFixture, MatchOrderWithMultiplePartialFills)
 {
-    auto bidOrder1 = Order::createOrder(1, Equity::AAPL, 100.0, 3.0, MarketSide::Bid);
+    auto bidOrder1 = Order::create(1, Equity::AAPL, 100.0, 3.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder1.has_value());
     orderBook->addOrderToBook(*bidOrder1);
 
-    auto bidOrder2 = Order::createOrder(2, Equity::AAPL, 100.0, 3.0, MarketSide::Bid);
+    auto bidOrder2 = Order::create(2, Equity::AAPL, 100.0, 3.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder2.has_value());
     orderBook->addOrderToBook(*bidOrder2);
 
-    auto bidOrder3 = Order::createOrder(3, Equity::AAPL, 100.0, 4.0, MarketSide::Bid);
+    auto bidOrder3 = Order::create(3, Equity::AAPL, 100.0, 4.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder3.has_value());
     orderBook->addOrderToBook(*bidOrder3);
 
-    auto askOrder = Order::createOrder(4, Equity::AAPL, 100.0, 10.0, MarketSide::Ask);
+    auto askOrder = Order::create(4, Equity::AAPL, 100.0, 10.0, MarketSide::Ask);
     ASSERT_TRUE(askOrder.has_value());
 
     auto result = matcher->matchOrder(*askOrder);
@@ -114,11 +114,11 @@ TEST_F(MatcherFixture, MatchOrderWithMultiplePartialFills)
 
 TEST_F(MatcherFixture, MatchOrderWithIncomingOrderLargerThanResting)
 {
-    auto bidOrder = Order::createOrder(1, Equity::AAPL, 100.0, 15.0, MarketSide::Bid);
+    auto bidOrder = Order::create(1, Equity::AAPL, 100.0, 15.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
     orderBook->addOrderToBook(*bidOrder);
 
-    auto askOrder = Order::createOrder(2, Equity::AAPL, 100.0, 10.0, MarketSide::Ask);
+    auto askOrder = Order::create(2, Equity::AAPL, 100.0, 10.0, MarketSide::Ask);
     ASSERT_TRUE(askOrder.has_value());
 
     auto result = matcher->matchOrder(*askOrder);

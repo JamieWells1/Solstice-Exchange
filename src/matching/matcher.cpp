@@ -123,7 +123,8 @@ std::expected<std::string, std::string> Matcher::matchOrder(OrderPtr incomingOrd
         incomingOrder->outstandingQnty(incomingOrder->outstandingQnty() - transactionQnty);
         bestOrder->outstandingQnty(0);
 
-        const std::string partialMatchResult = matchSuccessOutput(incomingOrder, bestOrder, bestPrice);
+        const std::string partialMatchResult =
+            matchSuccessOutput(incomingOrder, bestOrder, bestPrice);
 
         d_orderBook->markOrderAsFulfilled(bestOrder);
 

@@ -24,7 +24,33 @@ AssetClass randomAssetClass()
     return static_cast<AssetClass>(dist(gen));
 }
 
-// ===== Templates ====
-// Template definitions moved to asset_class.h
+std::expected<Underlying, std::string> getUnderlying(AssetClass assetClass)
+{
+    switch (assetClass)
+    {
+        case AssetClass::Equity:
+        {
+            auto underlying = randomUnderlying<Equity>();
+            if (!underlying)
+            {
+                return std::unexpected(underlying.error());
+            }
+            return *underlying;
+        }
+        case AssetClass::Future:
+        {
+            auto underlying = randomUnderlying<Future>();
+            if (!underlying)
+            {
+                return std::unexpected(underlying.error());
+            }
+            return *underlying;
+        }
+        default:
+            return std::unexpected("Invalid asset class\n");
+    }
+}
+
+// template definitions moved to asset_class.h
 
 }  // namespace solstice

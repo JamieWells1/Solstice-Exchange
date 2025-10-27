@@ -112,6 +112,10 @@ constexpr std::array<Future, static_cast<size_t>(Future::COUNT)> ALL_FUTURES = {
 
 using Underlying = std::variant<Equity, Future>;
 
+AssetClass randomAssetClass();
+
+std::expected<Underlying, std::string> getUnderlying(AssetClass assetClass);
+
 // ===================================================================
 // Template Functions
 // ===================================================================
@@ -127,7 +131,7 @@ const char* to_string(T type)
 }
 
 template <typename T>
-const std::expected<T, std::string> getRandomUnderlying()
+const std::expected<T, std::string> randomUnderlying()
 {
     const auto& pool = d_underlyingsPool<T>;
     if (pool.empty())

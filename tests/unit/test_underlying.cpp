@@ -53,16 +53,16 @@ TEST_F(UnderlyingTests, ValidRandomUnderlying)
 {
     setUnderlyingsPool(10, ALL_EQUITIES);
 
-    Equity result = *getRandomUnderlying<Equity>();
+    Equity result = *randomUnderlying<Equity>();
 
     ASSERT_TRUE(std::find(ALL_EQUITIES.begin(), ALL_EQUITIES.end(), result) != ALL_EQUITIES.end());
 
     ASSERT_TRUE((std::is_same_v<std::remove_cv_t<decltype(result)>, Equity>));
 }
 
-TEST_F(UnderlyingTests, GetRandomUnderlyingFailsWhenPoolEmpty)
+TEST_F(UnderlyingTests, randomUnderlyingFailsWhenPoolEmpty)
 {
-    auto result = getRandomUnderlying<Equity>();
+    auto result = randomUnderlying<Equity>();
     ASSERT_FALSE(result.has_value());
     EXPECT_TRUE(result.error().find("Underlying pool is empty") != std::string::npos);
 }
@@ -106,7 +106,7 @@ TEST_F(UnderlyingTests, FutureUnderlyingPoolWorks)
     auto pool = underlyingsPool<Future>();
     EXPECT_EQ(pool.size(), 5);
 
-    auto result = getRandomUnderlying<Future>();
+    auto result = randomUnderlying<Future>();
     ASSERT_TRUE(result.has_value());
 }
 
