@@ -3,13 +3,17 @@
 
 #include <asset_class.h>
 #include <market_side.h>
-#include <pricer.h>
 #include <time_point.h>
 
 #include <ctime>
 #include <expected>
 #include <memory>
 #include <string>
+
+namespace solstice::pricing
+{
+class Pricer;
+}
 
 namespace solstice
 {

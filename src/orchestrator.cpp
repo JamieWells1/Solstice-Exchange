@@ -6,6 +6,7 @@
 #include <orchestrator.h>
 #include <order.h>
 #include <order_book.h>
+#include <pricer.h>
 
 #include <atomic>
 #include <iostream>
@@ -13,8 +14,6 @@
 #include <mutex>
 #include <thread>
 #include <utility>
-
-#include "pricer.h"
 
 namespace solstice::matching
 {
@@ -233,7 +232,7 @@ std::expected<void, std::string> Orchestrator::start()
 
     auto orderBook = std::make_shared<OrderBook>();
     auto matcher = std::make_shared<Matcher>(orderBook);
-    auto pricer = std::make_shared<pricing::Pricer>();
+    auto pricer = std::make_shared<pricing::Pricer>(orderBook);
 
     Orchestrator orchestrator{*config, orderBook, matcher, pricer};
 

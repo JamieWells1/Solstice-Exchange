@@ -2,7 +2,9 @@
 #define PRICER_H
 
 #include <asset_class.h>
+#include <order_book.h>
 
+#include <memory>
 #include <unordered_map>
 
 namespace solstice::pricing
@@ -14,11 +16,13 @@ struct EquityPriceData
     int lastPrice();
     int highestBid();
     int lowestAsk();
+    int demandFactor();
 
    private:
     int d_lastPrice;
     int d_highestBid;
     int d_lowestAsk;
+    int d_demandFactor;
 };
 
 struct FuturePriceData
@@ -27,17 +31,19 @@ struct FuturePriceData
     int lastPrice();
     int highestBid();
     int lowestAsk();
+    int demandFactor();
 
    private:
     int d_lastPrice;
     int d_highestBid;
     int d_lowestAsk;
+    int d_demandFactor;
 };
 
 class Pricer
 {
    public:
-    Pricer();
+    Pricer(std::shared_ptr<matching::OrderBook> orderBook);
 
     template <typename T>
     void initialisePricerEquities()
@@ -64,6 +70,8 @@ class Pricer
     std::unordered_map<Future, FuturePriceData> d_futureDataMap;
 
     double d_seedPrice;
+
+    std::shared_ptr<matching::OrderBook> d_orderBook;
 };
 }  // namespace solstice::pricing
 

@@ -11,7 +11,10 @@ int EquityPriceData::highestBid() { return d_highestBid; }
 
 int EquityPriceData::lowestAsk() { return d_lowestAsk; }
 
-Pricer::Pricer() { d_seedPrice = generateSeedPrice(); }
+Pricer::Pricer(std::shared_ptr<matching::OrderBook> orderBook) : d_orderBook(orderBook)
+{
+    d_seedPrice = generateSeedPrice();
+}
 
 double Pricer::generateSeedPrice()
 {

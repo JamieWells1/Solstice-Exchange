@@ -156,11 +156,10 @@ std::expected<std::shared_ptr<Order>, std::string> Order::create(int uid, Underl
 std::expected<std::shared_ptr<Order>, std::string> Order::createWithPricer(
     std::shared_ptr<pricing::Pricer> pricer, Underlying underlying, int uid)
 {
-    // TODO: make new struct for storying order info (and use it here) and then pass into
-    // Order::create();
-    double price = 123;
-    double qnty = 123;
     MarketSide marketSide = getRandomMarketSide();
+
+    int price = pricer.priceAtMarketSide(marketSide);
+    double qnty = 123;
 
     return Order::create(uid, underlying, price, qnty, marketSide);
 }
