@@ -1,8 +1,7 @@
+#include <asset_class.h>
 #include <config.h>
 #include <get_random.h>
 #include <pricer.h>
-
-#include "asset_class.h"
 
 namespace solstice::pricing
 {
@@ -67,12 +66,21 @@ Pricer::Pricer(std::shared_ptr<matching::OrderBook> orderBook) : d_orderBook(ord
     d_seedPrice = generateSeedPrice();
 }
 
+// ===================================================================
+// POST-PROCESSING
+// ===================================================================
+
 void Pricer::update(matching::OrderPtr order, bool orderMatched)
 {
     // TODO: Implement (called after order is processed by Orchestrator::processOrder)
 }
 
-PricerDepOrderData Pricer::compute(Underlying underlying)
+// ===================================================================
+// PRE-PROCESSING
+// ===================================================================
+
+template <typename T>
+PricerDepOrderData Pricer::compute(T underlying)
 {
     auto marketSide = calculateMarketSide(underlying);
     auto price = calculatePrice(underlying);
@@ -87,17 +95,42 @@ double Pricer::generateSeedPrice()
     return Random::getRandomDouble(cfg.minPrice(), cfg.maxPrice());
 }
 
-MarketSide& Pricer::calculateMarketSide(Underlying underlying)
+EquityPriceData& Pricer::getPriceData(Equity eq)
 {
-    // TODO: calculate marketside
+    return d_equityDataMap[eq];
 }
 
-double Pricer::calculatePrice(Underlying underlying)
+FuturePriceData& Pricer::getPriceData(Future fut)
+{
+    return d_futureDataMap[fut];
+}
+
+MarketSide& Pricer::calculateMarketSide(Equity eq)
+{
+    EquityPriceData priceData = getPriceData(eq);
+}
+
+MarketSide& Pricer::calculateMarketSide(Future fut)
+{
+    FuturePriceData priceData = getPriceData(fut);
+}
+
+double Pricer::calculatePrice(Equity eq)
 {
     // TODO: calculate price
 }
 
-double Pricer::calculateQnty(Underlying underlying)
+double Pricer::calculatePrice(Future fut)
+{
+    // TODO: calculate price
+}
+
+double Pricer::calculateQnty(Equity eq)
+{
+    // TODO: calculate qnty
+}
+
+double Pricer::calculateQnty(Future fut)
 {
     // TODO: calculate qnty
 }

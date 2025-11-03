@@ -100,14 +100,23 @@ class Pricer
 
     void update(matching::OrderPtr order, bool orderMatched);
 
-    PricerDepOrderData compute(Underlying underlying);
+    template <typename T>
+    PricerDepOrderData compute(T underlying);
 
    private:
     double generateSeedPrice();
 
-    MarketSide& calculateMarketSide(Underlying underlying);
-    double calculatePrice(Underlying underlying);
-    double calculateQnty(Underlying underlying);
+    EquityPriceData& getPriceData(Equity eq);
+    FuturePriceData& getPriceData(Future fut);
+
+    MarketSide& calculateMarketSide(Equity underlying);
+    MarketSide& calculateMarketSide(Future underlying);
+
+    double calculatePrice(Equity underlying);
+    double calculatePrice(Future underlying);
+
+    double calculateQnty(Equity underlying);
+    double calculateQnty(Future underlying);
 
     std::unordered_map<Equity, EquityPriceData> d_equityDataMap;
     std::unordered_map<Future, FuturePriceData> d_futureDataMap;
