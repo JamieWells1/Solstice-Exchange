@@ -40,6 +40,7 @@ std::expected<OrderPtr, std::string> Orchestrator::generateOrder(int ordersGener
     }
 
     auto order = Order::createWithPricer(d_pricer, *underlying, uid);
+    // TODO: add createWithRandomValues() helper function above
 
     if (!order)
     {

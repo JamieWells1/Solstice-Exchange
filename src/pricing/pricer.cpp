@@ -74,9 +74,6 @@ void Pricer::update(matching::OrderPtr order, bool orderMatched)
 
 PricerDepOrderData Pricer::compute(Underlying underlying)
 {
-    // TODO: Implement (orchestrator for generating price, marketSide and qnty. Called by
-    // Order::createWithPricer)
-
     auto marketSide = calculateMarketSide(underlying);
     auto price = calculatePrice(underlying);
     auto qnty = calculateQnty(underlying);
@@ -92,17 +89,17 @@ double Pricer::generateSeedPrice()
 
 MarketSide& Pricer::calculateMarketSide(Underlying underlying)
 {
-    // calculate marketside
+    // TODO: calculate marketside
 }
 
 double Pricer::calculatePrice(Underlying underlying)
 {
-    // calculate price
+    // TODO: calculate price
 }
 
 double Pricer::calculateQnty(Underlying underlying)
 {
-    // calculate qnty
+    // TODO: calculate qnty
 }
 
 }  // namespace solstice::pricing
