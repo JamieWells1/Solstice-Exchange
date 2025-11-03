@@ -10,69 +10,6 @@
 
 using namespace solstice;
 
-namespace
-{
-
-double getRandomPrice(int minPrice, int maxPrice)
-{
-    return Random::getRandomDouble(minPrice, maxPrice);
-}
-
-double getRandomQnty(int minQnty, int maxQnty) { return Random::getRandomInt(minQnty, maxQnty); }
-
-MarketSide getRandomMarketSide()
-{
-    if (Random::getRandomBool())
-    {
-        return MarketSide::Bid;
-    }
-    else
-    {
-        return MarketSide::Ask;
-    }
-}
-
-std::expected<void, std::string> validatePrice(const double price)
-{
-    if (price < 0)
-    {
-        return std::unexpected(std::format("Invalid price: {}", price, "\n"));
-    }
-
-    return {};
-}
-
-std::expected<void, std::string> validateQnty(const double qnty)
-{
-    if (qnty < 0)
-    {
-        return std::unexpected(std::format("Invalid quantity: {}", qnty, "\n"));
-    }
-
-    return {};
-}
-
-std::expected<void, std::string> validateOrderAttributes(double price, double qnty,
-                                                         TimePoint& timeOrderPlaced)
-{
-    auto validPrice = validatePrice(price);
-    auto validQnty = validateQnty(qnty);
-
-    if (!validPrice)
-    {
-        return std::unexpected(validPrice.error());
-    }
-
-    if (!validQnty)
-    {
-        return std::unexpected(validQnty.error());
-    }
-
-    return {};
-}
-
-}  // namespace
-
 // ==================
 // Order class
 // ==================
@@ -134,6 +71,64 @@ std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
         return std::unexpected("Order has not been fulfilled yet\n");
     }
     return d_timeOrderFulfilled;
+}
+
+double Order::getRandomPrice(int minPrice, int maxPrice)
+{
+    return Random::getRandomDouble(minPrice, maxPrice);
+}
+
+double Order::getRandomQnty(int minQnty, int maxQnty) { return Random::getRandomInt(minQnty, maxQnty); }
+
+MarketSide Order::getRandomMarketSide()
+{
+    if (Random::getRandomBool())
+    {
+        return MarketSide::Bid;
+    }
+    else
+    {
+        return MarketSide::Ask;
+    }
+}
+
+std::expected<void, std::string> Order::validatePrice(const double price)
+{
+    if (price < 0)
+    {
+        return std::unexpected(std::format("Invalid price: {}", price, "\n"));
+    }
+
+    return {};
+}
+
+std::expected<void, std::string> Order::validateQnty(const double qnty)
+{
+    if (qnty < 0)
+    {
+        return std::unexpected(std::format("Invalid quantity: {}", qnty, "\n"));
+    }
+
+    return {};
+}
+
+std::expected<void, std::string> Order::validateOrderAttributes(double price, double qnty,
+                                                         TimePoint& timeOrderPlaced)
+{
+    auto validPrice = Order::validatePrice(price);
+    auto validQnty = Order::validateQnty(qnty);
+
+    if (!validPrice)
+    {
+        return std::unexpected(validPrice.error());
+    }
+
+    if (!validQnty)
+    {
+        return std::unexpected(validQnty.error());
+    }
+
+    return {};
 }
 
 std::expected<std::shared_ptr<Order>, std::string> Order::create(int uid, Underlying underlying,

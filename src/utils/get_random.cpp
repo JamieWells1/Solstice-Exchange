@@ -41,4 +41,5 @@ int Random::getRandomBool()
 
     return dist(gen) == 1;
 }
+
 }  // namespace solstice

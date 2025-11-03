@@ -25,17 +25,22 @@ struct EquityPriceData
     double highestBid();
     double lowestAsk();
     double demandFactor();
+    double movingAverage();
 
     void lastPrice(int newLastPrice);
     void highestBid(int newHighestBid);
     void lowestAsk(int newLowestAsk);
     void demandFactor(int newDemandFactor);
+    void movingAverage(double newMovingAverage);
 
    private:
+    static constexpr int movingAverageRange = 10;
+
     double d_lastPrice;
     double d_highestBid;
     double d_lowestAsk;
     double d_demandFactor;
+    double d_movingAverage;
 };
 
 struct FuturePriceData
@@ -45,17 +50,22 @@ struct FuturePriceData
     double highestBid();
     double lowestAsk();
     double demandFactor();
+    double movingAverage();
 
     void lastPrice(int newLastPrice);
     void highestBid(int newHighestBid);
     void lowestAsk(int newLowestAsk);
     void demandFactor(int newDemandFactor);
+    void movingAverage(double newMovingAverage);
 
    private:
+    static constexpr int movingAverageRange = 10;
+
     double d_lastPrice;
     double d_highestBid;
     double d_lowestAsk;
     double d_demandFactor;
+    double d_movingAverage;
 };
 
 struct PricerDepOrderData
@@ -109,8 +119,10 @@ class Pricer
     EquityPriceData& getPriceData(Equity eq);
     FuturePriceData& getPriceData(Future fut);
 
-    MarketSide& calculateMarketSide(Equity underlying);
-    MarketSide& calculateMarketSide(Future underlying);
+    MarketSide calculateMarketSide(Equity underlying);
+    MarketSide calculateMarketSide(Future underlying);
+
+    MarketSide calculateMarketSideImpl(double probability);
 
     double calculatePrice(Equity underlying);
     double calculatePrice(Future underlying);

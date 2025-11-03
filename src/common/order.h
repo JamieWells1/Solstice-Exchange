@@ -41,9 +41,18 @@ class Order
     double outstandingQnty(double newQnty);
     bool orderComplete(bool isFulfilled);
 
+    static double getRandomPrice(int minPrice, int maxPrice);
+    static double getRandomQnty(int minQnty, int maxQnty);
+    static MarketSide getRandomMarketSide();
+
    private:
     Order(int uid, Underlying underlying, double price, double qnty, MarketSide marketSide,
           TimePoint timeOrderPlaced);
+
+    static std::expected<void, std::string> validatePrice(const double price);
+    static std::expected<void, std::string> validateQnty(const double qnty);
+    static std::expected<void, std::string> validateOrderAttributes(double price, double qnty,
+                                                         TimePoint& timeOrderPlaced);
 
     int d_uid;
     Underlying d_underlying;
