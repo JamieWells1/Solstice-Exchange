@@ -4,10 +4,9 @@
 #include <config.h>
 #include <market_data.h>
 #include <strategy.h>
+#include <dispatcher.h>
 
 #include <expected>
-
-#include "dispatcher.h"
 
 class PyInterface
 {

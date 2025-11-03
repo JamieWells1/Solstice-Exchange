@@ -58,6 +58,7 @@ bool Orchestrator::processOrder(OrderPtr order)
         d_orderBook->addOrderToBook(order);
 
         auto orderMatched = d_matcher->matchOrder(order);
+
         if (!orderMatched)
         {
             if (d_config.logLevel() >= LogLevel::DEBUG)
@@ -65,6 +66,8 @@ bool Orchestrator::processOrder(OrderPtr order)
                 std::cout << "Order " << order->uid()
                           << " failed to match: " << orderMatched.error();
             }
+
+            d_pricer->update(order, false);
             return false;
         }
         else
@@ -73,12 +76,14 @@ bool Orchestrator::processOrder(OrderPtr order)
             {
                 std::cout << *orderMatched;
             }
+
+            d_pricer->update(order, true);
             return true;
         }
     }
     else
     {
-        // No mutex for this underlying - process without locking (single-threaded test scenario)
+        // no mutex for this underlying - process without locking
         d_orderBook->addOrderToBook(order);
 
         auto orderMatched = d_matcher->matchOrder(order);
@@ -89,6 +94,8 @@ bool Orchestrator::processOrder(OrderPtr order)
                 std::cout << "Order " << order->uid()
                           << " failed to match: " << orderMatched.error();
             }
+
+            d_pricer->update(order, false);
             return false;
         }
         else
@@ -97,6 +104,8 @@ bool Orchestrator::processOrder(OrderPtr order)
             {
                 std::cout << *orderMatched;
             }
+
+            d_pricer->update(order, true);
             return true;
         }
     }

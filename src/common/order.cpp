@@ -2,6 +2,7 @@
 #include <get_random.h>
 #include <market_side.h>
 #include <order.h>
+#include <pricer.h>
 
 #include <format>
 #include <memory>
@@ -156,12 +157,10 @@ std::expected<std::shared_ptr<Order>, std::string> Order::create(int uid, Underl
 std::expected<std::shared_ptr<Order>, std::string> Order::createWithPricer(
     std::shared_ptr<pricing::Pricer> pricer, Underlying underlying, int uid)
 {
-    MarketSide marketSide = getRandomMarketSide();
-
-    int price = pricer.priceAtMarketSide(marketSide);
+    pricing::PricerDepOrderData data = pricer->compute(underlying);
     double qnty = 123;
 
-    return Order::create(uid, underlying, price, qnty, marketSide);
+    return Order::create(uid, underlying, data.price(), data.qnty(), data.marketSide());
 }
 
 std::ostream& operator<<(std::ostream& os, const Order& order)

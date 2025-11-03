@@ -2,6 +2,8 @@
 #define PRICER_H
 
 #include <asset_class.h>
+#include <get_random.h>
+#include <market_side.h>
 #include <order_book.h>
 
 #include <memory>
@@ -10,34 +12,65 @@
 namespace solstice::pricing
 {
 
+template <typename T>
+void setInitialDemandFactor(T& underlying)
+{
+    underlying.demandFactor(Random::getRandomDouble(-1, 1));
+}
+
 struct EquityPriceData
 {
    public:
-    int lastPrice();
-    int highestBid();
-    int lowestAsk();
-    int demandFactor();
+    double lastPrice();
+    double highestBid();
+    double lowestAsk();
+    double demandFactor();
+
+    void lastPrice(int newLastPrice);
+    void highestBid(int newHighestBid);
+    void lowestAsk(int newLowestAsk);
+    void demandFactor(int newDemandFactor);
 
    private:
-    int d_lastPrice;
-    int d_highestBid;
-    int d_lowestAsk;
-    int d_demandFactor;
+    double d_lastPrice;
+    double d_highestBid;
+    double d_lowestAsk;
+    double d_demandFactor;
 };
 
 struct FuturePriceData
 {
    public:
-    int lastPrice();
-    int highestBid();
-    int lowestAsk();
-    int demandFactor();
+    double lastPrice();
+    double highestBid();
+    double lowestAsk();
+    double demandFactor();
+
+    void lastPrice(int newLastPrice);
+    void highestBid(int newHighestBid);
+    void lowestAsk(int newLowestAsk);
+    void demandFactor(int newDemandFactor);
 
    private:
-    int d_lastPrice;
-    int d_highestBid;
-    int d_lowestAsk;
-    int d_demandFactor;
+    double d_lastPrice;
+    double d_highestBid;
+    double d_lowestAsk;
+    double d_demandFactor;
+};
+
+struct PricerDepOrderData
+{
+   public:
+    PricerDepOrderData(MarketSide d_marketSide, double d_price, double d_qnty);
+
+    MarketSide marketSide();
+    double price();
+    double qnty();
+
+   private:
+    MarketSide d_marketSide;
+    double d_price;
+    double d_qnty;
 };
 
 class Pricer
@@ -51,6 +84,7 @@ class Pricer
         for (const auto& underlying : underlyingsPool<Equity>())
         {
             d_equityDataMap[underlying];
+            setInitialDemandFactor(d_equityDataMap[underlying]);
         }
     }
 
@@ -60,11 +94,20 @@ class Pricer
         for (const auto& underlying : underlyingsPool<Future>())
         {
             d_futureDataMap[underlying];
+            setInitialDemandFactor(d_futureDataMap[underlying]);
         }
     }
 
+    void update(matching::OrderPtr order, bool orderMatched);
+
+    PricerDepOrderData compute(Underlying underlying);
+
    private:
     double generateSeedPrice();
+
+    MarketSide& calculateMarketSide(Underlying underlying);
+    double calculatePrice(Underlying underlying);
+    double calculateQnty(Underlying underlying);
 
     std::unordered_map<Equity, EquityPriceData> d_equityDataMap;
     std::unordered_map<Future, FuturePriceData> d_futureDataMap;

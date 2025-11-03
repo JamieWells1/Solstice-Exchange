@@ -1,8 +1,6 @@
 #include <account.h>
 #include <config.h>
 
-#include "position.h"
-
 namespace solstice::strategy
 {
 

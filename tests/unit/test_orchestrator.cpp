@@ -21,7 +21,7 @@ class OrchestratorFixture : public ::testing::Test
     {
         orderBook = std::make_shared<OrderBook>();
         matcher = std::make_shared<Matcher>(orderBook);
-        pricer = std::make_shared<pricing::Pricer>();
+        pricer = std::make_shared<pricing::Pricer>(orderBook);
 
         std::vector<Equity> pool = {Equity::AAPL};
         d_underlyingsPool<Equity> = pool;
