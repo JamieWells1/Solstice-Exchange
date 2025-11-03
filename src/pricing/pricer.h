@@ -8,24 +8,48 @@
 
 #include <memory>
 #include <unordered_map>
+#include <variant>
 
 namespace solstice::pricing
 {
 
-template <typename T>
-void setInitialDemandFactor(T& underlying)
+template <typename PriceData>
+void setInitialDemandFactor(PriceData& underlying)  // type
 {
     underlying.demandFactor(Random::getRandomDouble(-1, 1));
+}
+
+template <typename PriceData>
+void setInitialPrice(PriceData& underlying)
+{
+    underlying.lastPrice(Random::getRandomDouble(10, 200));
+}
+
+template <typename PriceData>
+void setInitialMovingAverage(PriceData& underlying)
+{
+    underlying.movingAverage(underlying.lastPrice());
 }
 
 struct EquityPriceData
 {
    public:
+    EquityPriceData(Equity underlying) : d_equity(underlying)
+    {
+        setInitialDemandFactor(*this);
+        setInitialPrice(*this);
+        setInitialMovingAverage(*this);
+    }
+
+    Equity underlying();
+
     double lastPrice();
     double highestBid();
     double lowestAsk();
     double demandFactor();
     double movingAverage();
+
+    void underlying(Equity eq);
 
     void lastPrice(int newLastPrice);
     void highestBid(int newHighestBid);
@@ -35,6 +59,8 @@ struct EquityPriceData
 
    private:
     static constexpr int movingAverageRange = 10;
+
+    Equity d_equity;
 
     double d_lastPrice;
     double d_highestBid;
@@ -46,11 +72,22 @@ struct EquityPriceData
 struct FuturePriceData
 {
    public:
+    FuturePriceData(Future underlying) : d_future(underlying)
+    {
+        setInitialDemandFactor(*this);
+        setInitialPrice(*this);
+        setInitialMovingAverage(*this);
+    }
+
+    Future underlying();
+
     double lastPrice();
     double highestBid();
     double lowestAsk();
     double demandFactor();
     double movingAverage();
+
+    void underlying(Future fut);
 
     void lastPrice(int newLastPrice);
     void highestBid(int newHighestBid);
@@ -60,6 +97,8 @@ struct FuturePriceData
 
    private:
     static constexpr int movingAverageRange = 10;
+
+    Future d_future;
 
     double d_lastPrice;
     double d_highestBid;
@@ -111,7 +150,19 @@ class Pricer
     void update(matching::OrderPtr order, bool orderMatched);
 
     template <typename T>
-    PricerDepOrderData compute(T underlying);
+    PricerDepOrderData compute(T underlying)
+    {
+        return std::visit(
+            [this](auto&& underlying)
+            {
+                auto marketSide = calculateMarketSide(underlying);
+                auto price = calculatePrice(underlying, marketSide);
+                auto qnty = calculateQnty(underlying, marketSide, price);
+
+                return PricerDepOrderData(marketSide, price, qnty);
+            },
+            underlying);
+    }
 
    private:
     double generateSeedPrice();
@@ -119,16 +170,18 @@ class Pricer
     EquityPriceData& getPriceData(Equity eq);
     FuturePriceData& getPriceData(Future fut);
 
-    MarketSide calculateMarketSide(Equity underlying);
-    MarketSide calculateMarketSide(Future underlying);
+    MarketSide calculateMarketSide(Equity eq);
+    MarketSide calculateMarketSide(Future fut);
 
     MarketSide calculateMarketSideImpl(double probability);
 
-    double calculatePrice(Equity underlying);
-    double calculatePrice(Future underlying);
+    // propogate results from market side calc
+    double calculatePrice(Equity eq, MarketSide mktSide);
+    double calculatePrice(Future fut, MarketSide mktSide);
 
-    double calculateQnty(Equity underlying);
-    double calculateQnty(Future underlying);
+    // propogate results from market side calc and price calc
+    double calculateQnty(Equity eq, MarketSide mktSide, double price);
+    double calculateQnty(Future fut, MarketSide mktSide, double price);
 
     std::unordered_map<Equity, EquityPriceData> d_equityDataMap;
     std::unordered_map<Future, FuturePriceData> d_futureDataMap;

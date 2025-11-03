@@ -9,6 +9,8 @@ namespace solstice::pricing
 
 // EquityPriceData getters
 
+Equity EquityPriceData::underlying() { return d_equity; }
+
 double EquityPriceData::lastPrice() { return d_lastPrice; }
 
 double EquityPriceData::highestBid() { return d_highestBid; }
@@ -20,6 +22,8 @@ double EquityPriceData::demandFactor() { return d_demandFactor; }
 double EquityPriceData::movingAverage() { return d_movingAverage; }
 
 // EquityPriceData setters
+
+void EquityPriceData::underlying(Equity newUnderlying) { d_equity = newUnderlying; }
 
 void EquityPriceData::lastPrice(int newLastPrice) { d_lastPrice = newLastPrice; }
 
@@ -33,6 +37,8 @@ void EquityPriceData::movingAverage(double newMovingAverage) { d_movingAverage =
 
 // FuturePriceData getters
 
+Future FuturePriceData::underlying() { return d_future; }
+
 double FuturePriceData::lastPrice() { return d_lastPrice; }
 
 double FuturePriceData::highestBid() { return d_highestBid; }
@@ -44,6 +50,8 @@ double FuturePriceData::demandFactor() { return d_demandFactor; }
 double FuturePriceData::movingAverage() { return d_movingAverage; }
 
 // FuturePriceData setters
+
+void FuturePriceData::underlying(Future newUnderlying) { d_future = newUnderlying; }
 
 void FuturePriceData::lastPrice(int newLastPrice) { d_lastPrice = newLastPrice; }
 
@@ -76,27 +84,8 @@ Pricer::Pricer(std::shared_ptr<matching::OrderBook> orderBook) : d_orderBook(ord
 }
 
 // ===================================================================
-// POST-PROCESSING
-// ===================================================================
-
-void Pricer::update(matching::OrderPtr order, bool orderMatched)
-{
-    // TODO: Implement (called after order is processed by Orchestrator::processOrder)
-}
-
-// ===================================================================
 // PRE-PROCESSING
 // ===================================================================
-
-template <typename T>
-PricerDepOrderData Pricer::compute(T underlying)
-{
-    auto marketSide = calculateMarketSide(underlying);
-    auto price = calculatePrice(underlying);
-    auto qnty = calculateQnty(underlying);
-
-    return PricerDepOrderData(marketSide, price, qnty);
-}
 
 double Pricer::generateSeedPrice()
 {
@@ -148,28 +137,37 @@ MarketSide Pricer::calculateMarketSideImpl(double probability)
     return Order::getRandomMarketSide();
 }
 
-double Pricer::calculatePrice(Equity eq)
+double Pricer::calculatePrice(Equity eq, MarketSide mktSide)
 {
     // TODO: calculate price
     EquityPriceData data = getPriceData(eq);
 }
 
-double Pricer::calculatePrice(Future fut)
+double Pricer::calculatePrice(Future fut, MarketSide mktSide)
 {
     // TODO: calculate price
     FuturePriceData data = getPriceData(fut);
 }
 
-double Pricer::calculateQnty(Equity eq)
+double Pricer::calculateQnty(Equity eq, MarketSide mktSide, double price)
 {
     // TODO: calculate qnty
     EquityPriceData data = getPriceData(eq);
 }
 
-double Pricer::calculateQnty(Future fut)
+double Pricer::calculateQnty(Future fut, MarketSide mktSide, double price)
 {
     // TODO: calculate qnty
     FuturePriceData data = getPriceData(fut);
+}
+
+// ===================================================================
+// POST-PROCESSING
+// ===================================================================
+
+void Pricer::update(matching::OrderPtr order, bool orderMatched)
+{
+    // TODO: Implement (called after order is processed by Orchestrator::processOrder)
 }
 
 }  // namespace solstice::pricing
