@@ -30,11 +30,21 @@ Order::Order(int uid, Underlying underlying, double price, double qnty, MarketSi
     d_outstandingQnty = qnty;
 }
 
+// getters
+
 int Order::uid() const { return d_uid; }
 
 Underlying Order::underlying() const { return d_underlying; }
 
-double Order::price() const { return d_price; }
+double Order::price() const
+{
+    // d_price becomes irrelevant once an order is matched
+    if (orderComplete())
+    {
+        return d_matchedPrice;
+    }
+    return d_price;
+}
 
 double Order::qnty() const { return d_qnty; }
 
@@ -57,11 +67,13 @@ TimePoint Order::timeOrderPlaced() const { return d_timeOrderPlaced; }
 
 bool Order::orderComplete() const { return d_orderComplete; }
 
-bool Order::orderComplete(bool isFulfilled)
-{
-    d_orderComplete = isFulfilled;
-    return d_orderComplete;
-}
+double Order::matchedPrice() const { return d_matchedPrice; }
+
+// setters
+
+void Order::orderComplete(bool isFulfilled) { d_orderComplete = isFulfilled; }
+
+void Order::matchedPrice(double matchedPrice) { d_matchedPrice = matchedPrice; }
 
 std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
 {
@@ -78,7 +90,10 @@ double Order::getRandomPrice(int minPrice, int maxPrice)
     return Random::getRandomDouble(minPrice, maxPrice);
 }
 
-double Order::getRandomQnty(int minQnty, int maxQnty) { return Random::getRandomInt(minQnty, maxQnty); }
+double Order::getRandomQnty(int minQnty, int maxQnty)
+{
+    return Random::getRandomInt(minQnty, maxQnty);
+}
 
 MarketSide Order::getRandomMarketSide()
 {
@@ -113,7 +128,7 @@ std::expected<void, std::string> Order::validateQnty(const double qnty)
 }
 
 std::expected<void, std::string> Order::validateOrderAttributes(double price, double qnty,
-                                                         TimePoint& timeOrderPlaced)
+                                                                TimePoint& timeOrderPlaced)
 {
     auto validPrice = Order::validatePrice(price);
     auto validQnty = Order::validateQnty(qnty);
@@ -153,7 +168,6 @@ std::expected<std::shared_ptr<Order>, std::string> Order::createWithPricer(
     std::shared_ptr<pricing::Pricer> pricer, Underlying underlying, int uid)
 {
     pricing::PricerDepOrderData data = pricer->compute(underlying);
-    double qnty = 123;
 
     return Order::create(uid, underlying, data.price(), data.qnty(), data.marketSide());
 }

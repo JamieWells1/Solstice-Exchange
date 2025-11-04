@@ -37,9 +37,12 @@ class Order
     std::string marketSideString() const;
     TimePoint timeOrderPlaced() const;
     std::expected<TimePoint, std::string> timeOrderFulfilled() const;
-    bool orderComplete() const;
     double outstandingQnty(double newQnty);
-    bool orderComplete(bool isFulfilled);
+    bool orderComplete() const;
+    double matchedPrice() const;
+
+    void orderComplete(bool isFulfilled);
+    void matchedPrice(double matchedPrice);
 
     static double getRandomPrice(int minPrice, int maxPrice);
     static double getRandomQnty(int minQnty, int maxQnty);
@@ -52,7 +55,7 @@ class Order
     static std::expected<void, std::string> validatePrice(const double price);
     static std::expected<void, std::string> validateQnty(const double qnty);
     static std::expected<void, std::string> validateOrderAttributes(double price, double qnty,
-                                                         TimePoint& timeOrderPlaced);
+                                                                    TimePoint& timeOrderPlaced);
 
     int d_uid;
     Underlying d_underlying;
@@ -63,6 +66,7 @@ class Order
     TimePoint d_timeOrderPlaced;
     TimePoint d_timeOrderFulfilled;
     bool d_orderComplete;
+    double d_matchedPrice;
 };
 
 std::ostream& operator<<(std::ostream& os, const Order& order);

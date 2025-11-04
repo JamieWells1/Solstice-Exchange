@@ -52,7 +52,7 @@ class OrderBook
 
     void addOrderToBook(OrderPtr order);
     void removeOrderFromBook(OrderPtr orderToRemove);
-    void markOrderAsFulfilled(OrderPtr completedOrder);
+    void markOrderAsFulfilled(OrderPtr completedOrder, double matchedPrice);
 
     template <typename T>
     void initialiseBookAtUnderlyings()

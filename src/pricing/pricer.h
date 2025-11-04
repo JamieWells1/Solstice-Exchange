@@ -48,6 +48,8 @@ struct EquityPriceData
     double lowestAsk();
     double demandFactor();
     double movingAverage();
+    int executions();
+    int maRange();
 
     void underlying(Equity eq);
 
@@ -56,9 +58,10 @@ struct EquityPriceData
     void lowestAsk(int newLowestAsk);
     void demandFactor(int newDemandFactor);
     void movingAverage(double newMovingAverage);
+    void incrementExecutions();
 
    private:
-    static constexpr int movingAverageRange = 10;
+    static constexpr int d_maRange = 10;
 
     Equity d_equity;
 
@@ -67,6 +70,7 @@ struct EquityPriceData
     double d_lowestAsk;
     double d_demandFactor;
     double d_movingAverage;
+    int d_executions = 0;
 };
 
 struct FuturePriceData
@@ -86,6 +90,8 @@ struct FuturePriceData
     double lowestAsk();
     double demandFactor();
     double movingAverage();
+    int executions();
+    int maRange();
 
     void underlying(Future fut);
 
@@ -94,9 +100,10 @@ struct FuturePriceData
     void lowestAsk(int newLowestAsk);
     void demandFactor(int newDemandFactor);
     void movingAverage(double newMovingAverage);
+    void incrementExecutions();
 
    private:
-    static constexpr int movingAverageRange = 10;
+    static constexpr int d_maRange = 10;
 
     Future d_future;
 
@@ -105,6 +112,7 @@ struct FuturePriceData
     double d_lowestAsk;
     double d_demandFactor;
     double d_movingAverage;
+    int d_executions = 0;
 };
 
 struct PricerDepOrderData
@@ -127,30 +135,13 @@ class Pricer
    public:
     Pricer(std::shared_ptr<matching::OrderBook> orderBook);
 
-    template <typename T>
-    void initialisePricerEquities()
-    {
-        for (const auto& underlying : underlyingsPool<Equity>())
-        {
-            d_equityDataMap[underlying];
-            setInitialDemandFactor(d_equityDataMap[underlying]);
-        }
-    }
+    void initialisePricerEquities();
+    void initialisePricerFutures();
+
+    void update(matching::OrderPtr order);
 
     template <typename T>
-    void initialisePricerFutures()
-    {
-        for (const auto& underlying : underlyingsPool<Future>())
-        {
-            d_futureDataMap[underlying];
-            setInitialDemandFactor(d_futureDataMap[underlying]);
-        }
-    }
-
-    void update(matching::OrderPtr order, bool orderMatched);
-
-    template <typename T>
-    PricerDepOrderData compute(T underlying)
+    PricerDepOrderData compute(T& underlying)
     {
         return std::visit(
             [this](auto&& underlying)
@@ -168,7 +159,22 @@ class Pricer
     double generateSeedPrice();
 
     EquityPriceData& getPriceData(Equity eq);
+
     FuturePriceData& getPriceData(Future fut);
+
+    template <typename Func>
+    auto withPriceData(Underlying underlying, Func&& func)
+    {
+        return std::visit([this, &func](auto asset) { return func(getPriceData(asset)); },
+                          underlying);
+    }
+
+    template <typename Func>
+    auto withPriceData(matching::OrderPtr order, Func&& func)
+    {
+        return std::visit([this, &func](auto asset) { return func(getPriceData(asset)); },
+                          order->underlying());  // Call underlying() to get the variant
+    }
 
     MarketSide calculateMarketSide(Equity eq);
     MarketSide calculateMarketSide(Future fut);

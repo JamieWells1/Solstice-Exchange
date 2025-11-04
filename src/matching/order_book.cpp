@@ -221,10 +221,12 @@ void OrderBook::removeOrderFromBook(OrderPtr orderToRemove)
     }
 }
 
-void OrderBook::markOrderAsFulfilled(OrderPtr completedOrder)
+void OrderBook::markOrderAsFulfilled(OrderPtr completedOrder, double matchedPrice)
 {
-    // remove references
     completedOrder->orderComplete(true);
+    // match price may not be equal to initial order price
+    completedOrder->matchedPrice(matchedPrice);
+
     removeOrderFromBook(completedOrder);
 
     // only remove from prices set if it's the last order left at

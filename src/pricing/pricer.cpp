@@ -21,6 +21,10 @@ double EquityPriceData::demandFactor() { return d_demandFactor; }
 
 double EquityPriceData::movingAverage() { return d_movingAverage; }
 
+int EquityPriceData::executions() { return d_executions; }
+
+int EquityPriceData::maRange() { return d_maRange; }
+
 // EquityPriceData setters
 
 void EquityPriceData::underlying(Equity newUnderlying) { d_equity = newUnderlying; }
@@ -34,6 +38,8 @@ void EquityPriceData::lowestAsk(int newLowestAsk) { d_lowestAsk = newLowestAsk; 
 void EquityPriceData::demandFactor(int newDemandFactor) { d_demandFactor = newDemandFactor; }
 
 void EquityPriceData::movingAverage(double newMovingAverage) { d_movingAverage = newMovingAverage; }
+
+void EquityPriceData::incrementExecutions() { d_executions++; }
 
 // FuturePriceData getters
 
@@ -49,6 +55,10 @@ double FuturePriceData::demandFactor() { return d_demandFactor; }
 
 double FuturePriceData::movingAverage() { return d_movingAverage; }
 
+int FuturePriceData::executions() { return d_executions; }
+
+int FuturePriceData::maRange() { return d_maRange; }
+
 // FuturePriceData setters
 
 void FuturePriceData::underlying(Future newUnderlying) { d_future = newUnderlying; }
@@ -62,6 +72,8 @@ void FuturePriceData::lowestAsk(int newLowestAsk) { d_lowestAsk = newLowestAsk; 
 void FuturePriceData::demandFactor(int newDemandFactor) { d_demandFactor = newDemandFactor; }
 
 void FuturePriceData::movingAverage(double newMovingAverage) { d_movingAverage = newMovingAverage; }
+
+void FuturePriceData::incrementExecutions() { d_executions++; }
 
 // PricerDepOrderData
 
@@ -81,6 +93,24 @@ double PricerDepOrderData::qnty() { return d_qnty; }
 Pricer::Pricer(std::shared_ptr<matching::OrderBook> orderBook) : d_orderBook(orderBook)
 {
     d_seedPrice = generateSeedPrice();
+}
+
+void Pricer::initialisePricerEquities()
+{
+    for (const auto& underlying : underlyingsPool<Equity>())
+    {
+        d_equityDataMap[underlying];
+        setInitialDemandFactor(d_equityDataMap[underlying]);
+    }
+}
+
+void Pricer::initialisePricerFutures()
+{
+    for (const auto& underlying : underlyingsPool<Future>())
+    {
+        d_futureDataMap[underlying];
+        setInitialDemandFactor(d_futureDataMap[underlying]);
+    }
 }
 
 // ===================================================================
@@ -165,9 +195,53 @@ double Pricer::calculateQnty(Future fut, MarketSide mktSide, double price)
 // POST-PROCESSING
 // ===================================================================
 
-void Pricer::update(matching::OrderPtr order, bool orderMatched)
+void Pricer::update(matching::OrderPtr order)
 {
     // TODO: Implement (called after order is processed by Orchestrator::processOrder)
+    withPriceData(
+        order->underlying(),
+        [&order](auto& priceData)
+        {
+            bool isBid = order->marketSide() == MarketSide::Bid;
+            bool isAsk = order->marketSide() == MarketSide::Ask;
+
+            if (isBid)
+            {
+                if (!priceData.highestBid() || priceData.highestBid() < order->matchedPrice())
+                {
+                    priceData.highestBid(order->matchedPrice());
+                }
+            }
+
+            if (isAsk)
+            {
+                if (!priceData.lowestAsk() || priceData.lowestAsk() > order->matchedPrice())
+                {
+                    priceData.lowestAsk(order->matchedPrice());
+                }
+            }
+
+            // movingAverage = lastPrice if it's first order at this underlying
+            double newPrice = order->matchedPrice();
+
+            if (priceData.executions() == 0)
+            {
+                priceData.movingAverage(newPrice);
+            }
+            priceData.lastPrice(newPrice);
+
+            // calculate new moving average in O(1) time
+            int e = priceData.executions();
+            int n = std::min(e, priceData.maRange());
+
+            // at this point, neither movingAverage nor executions have been updated
+            double totalMinusCurrent = priceData.movingAverage() * n;
+            double totalInclCurrent = totalMinusCurrent + newPrice;
+            double newMovingAverage = totalInclCurrent / (n + 1);
+            priceData.movingAverage(newMovingAverage);
+
+            priceData.incrementExecutions();
+        });
 }
 
 }  // namespace solstice::pricing

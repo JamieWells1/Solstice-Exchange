@@ -126,7 +126,7 @@ std::expected<std::string, std::string> Matcher::matchOrder(OrderPtr incomingOrd
         const std::string partialMatchResult =
             matchSuccessOutput(incomingOrder, bestOrder, bestPrice);
 
-        d_orderBook->markOrderAsFulfilled(bestOrder);
+        d_orderBook->markOrderAsFulfilled(bestOrder, bestPrice);
 
         if (!ordersAtBestPrice.empty())
         {
@@ -168,8 +168,8 @@ std::expected<std::string, std::string> Matcher::matchOrder(OrderPtr incomingOrd
         const std::string& finalMatchResult =
             matchSuccessOutput(incomingOrder, bestOrder, bestPrice);
 
-        d_orderBook->markOrderAsFulfilled(bestOrder);
-        d_orderBook->markOrderAsFulfilled(incomingOrder);
+        d_orderBook->markOrderAsFulfilled(bestOrder, bestPrice);
+        d_orderBook->markOrderAsFulfilled(incomingOrder, bestPrice);
 
         return finalMatchResult;
     }
@@ -183,7 +183,7 @@ std::expected<std::string, std::string> Matcher::matchOrder(OrderPtr incomingOrd
         const std::string& finalMatchResult =
             matchSuccessOutput(incomingOrder, bestOrder, bestPrice);
 
-        d_orderBook->markOrderAsFulfilled(incomingOrder);
+        d_orderBook->markOrderAsFulfilled(incomingOrder, bestPrice);
 
         return finalMatchResult;
     }

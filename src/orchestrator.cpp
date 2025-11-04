@@ -68,7 +68,6 @@ bool Orchestrator::processOrder(OrderPtr order)
                           << " failed to match: " << orderMatched.error();
             }
 
-            d_pricer->update(order, false);
             return false;
         }
         else
@@ -78,13 +77,13 @@ bool Orchestrator::processOrder(OrderPtr order)
                 std::cout << *orderMatched;
             }
 
-            d_pricer->update(order, true);
+            d_pricer->update(order);
             return true;
         }
     }
     else
     {
-        // no mutex for this underlying - process without locking
+        // no mutex for this underlying - proceed without locking
         d_orderBook->addOrderToBook(order);
 
         auto orderMatched = d_matcher->matchOrder(order);
@@ -96,7 +95,6 @@ bool Orchestrator::processOrder(OrderPtr order)
                           << " failed to match: " << orderMatched.error();
             }
 
-            d_pricer->update(order, false);
             return false;
         }
         else
@@ -106,7 +104,7 @@ bool Orchestrator::processOrder(OrderPtr order)
                 std::cout << *orderMatched;
             }
 
-            d_pricer->update(order, true);
+            d_pricer->update(order);
             return true;
         }
     }
@@ -165,7 +163,7 @@ void Orchestrator::initialiseUnderlyings(AssetClass assetClass)
             setUnderlyingsPool(d_config.underlyingPoolCount(), ALL_EQUITIES);
 
             d_orderBook->initialiseBookAtUnderlyings<Equity>();
-            d_pricer->initialisePricerEquities<Equity>();
+            d_pricer->initialisePricerEquities();
 
             for (Equity underlying : underlyingsPool<Equity>())
             {
@@ -177,7 +175,7 @@ void Orchestrator::initialiseUnderlyings(AssetClass assetClass)
             setUnderlyingsPool(d_config.underlyingPoolCount(), ALL_FUTURES);
 
             d_orderBook->initialiseBookAtUnderlyings<Future>();
-            d_pricer->initialisePricerFutures<Future>();
+            d_pricer->initialisePricerFutures();
 
             for (Future underlying : underlyingsPool<Future>())
             {
