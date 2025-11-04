@@ -28,7 +28,7 @@ class OrchestratorFixture : public ::testing::Test
         d_underlyingsPoolInitialised<Equity> = true;
 
         orderBook->initialiseBookAtUnderlyings<Equity>();
-        pricer->initialisePricerEquities<Equity>();
+        pricer->initialisePricerEquities();
     }
 
     void TearDown() override

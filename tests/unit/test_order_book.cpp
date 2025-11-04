@@ -136,7 +136,7 @@ TEST_F(OrderBookFixture, MarkOrderAsFulfilledRemovesOrder)
     ASSERT_TRUE(order.has_value());
 
     orderBook->addOrderToBook(*order);
-    orderBook->markOrderAsFulfilled(*order);
+    orderBook->markOrderAsFulfilled(*order, 100);
 
     EXPECT_TRUE((*order)->orderComplete());
 }
@@ -150,7 +150,7 @@ TEST_F(OrderBookFixture, MarkOrderAsFulfilledRemovesPriceWhenLastOrder)
 
     auto bestPrice = orderBook->getBestPrice(*order);
 
-    orderBook->markOrderAsFulfilled(*order);
+    orderBook->markOrderAsFulfilled(*order, *bestPrice);
 
     auto deque = orderBook->getOrdersDequeAtPrice(*order);
     ASSERT_TRUE(deque.has_value());

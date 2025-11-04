@@ -99,8 +99,7 @@ void Pricer::initialisePricerEquities()
 {
     for (const auto& underlying : underlyingsPool<Equity>())
     {
-        d_equityDataMap[underlying];
-        setInitialDemandFactor(d_equityDataMap[underlying]);
+        d_equityDataMap.emplace(underlying, EquityPriceData(underlying));
     }
 }
 
@@ -108,8 +107,7 @@ void Pricer::initialisePricerFutures()
 {
     for (const auto& underlying : underlyingsPool<Future>())
     {
-        d_futureDataMap[underlying];
-        setInitialDemandFactor(d_futureDataMap[underlying]);
+        d_futureDataMap.emplace(underlying, FuturePriceData(underlying));
     }
 }
 
@@ -123,9 +121,9 @@ double Pricer::generateSeedPrice()
     return Random::getRandomDouble(cfg.minPrice(), cfg.maxPrice());
 }
 
-EquityPriceData& Pricer::getPriceData(Equity eq) { return d_equityDataMap[eq]; }
+EquityPriceData& Pricer::getPriceData(Equity eq) { return d_equityDataMap.at(eq); }
 
-FuturePriceData& Pricer::getPriceData(Future fut) { return d_futureDataMap[fut]; }
+FuturePriceData& Pricer::getPriceData(Future fut) { return d_futureDataMap.at(fut); }
 
 MarketSide Pricer::calculateMarketSide(Equity eq)
 {
@@ -197,7 +195,6 @@ double Pricer::calculateQnty(Future fut, MarketSide mktSide, double price)
 
 void Pricer::update(matching::OrderPtr order)
 {
-    // TODO: Implement (called after order is processed by Orchestrator::processOrder)
     withPriceData(
         order->underlying(),
         [&order](auto& priceData)

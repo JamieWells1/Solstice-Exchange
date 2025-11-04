@@ -4,6 +4,7 @@
 #include <asset_class.h>
 #include <market_side.h>
 #include <time_point.h>
+#include <config.h>
 
 #include <ctime>
 #include <expected>
@@ -26,7 +27,9 @@ class Order
                                                                      MarketSide marketSide);
 
     static std::expected<std::shared_ptr<Order>, std::string> createWithPricer(
-        std::shared_ptr<pricing::Pricer> pricer, Underlying underlying, int uid);
+        std::shared_ptr<pricing::Pricer> pricer, int uid, Underlying underlying);
+
+    static std::expected<std::shared_ptr<Order>, std::string> createWithRandomValues(Config d_config, int uid, Underlying underlying);
 
     int uid() const;
     Underlying underlying() const;

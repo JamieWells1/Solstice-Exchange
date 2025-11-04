@@ -30,6 +30,42 @@ Order::Order(int uid, Underlying underlying, double price, double qnty, MarketSi
     d_outstandingQnty = qnty;
 }
 
+std::expected<std::shared_ptr<Order>, std::string> Order::create(int uid, Underlying underlying,
+                                                                 double price, double qnty,
+                                                                 MarketSide marketSide)
+{
+    TimePoint timeOrderPlaced = getTimeNow();
+
+    auto isOrderValid = validateOrderAttributes(price, qnty, timeOrderPlaced);
+    if (!isOrderValid)
+    {
+        return std::unexpected(isOrderValid.error());
+    }
+
+    auto order = std::shared_ptr<Order>(
+        new (std::nothrow) Order{uid, underlying, price, qnty, marketSide, timeOrderPlaced});
+
+    return order;
+}
+
+std::expected<std::shared_ptr<Order>, std::string> Order::createWithPricer(
+    std::shared_ptr<pricing::Pricer> pricer, int uid, Underlying underlying)
+{
+    pricing::PricerDepOrderData data = pricer->compute(underlying);
+
+    return Order::create(uid, underlying, data.price(), data.qnty(), data.marketSide());
+}
+
+std::expected<std::shared_ptr<Order>, std::string> Order::createWithRandomValues(
+    Config cfg, int uid, Underlying underlying)
+{
+    int price = Order::getRandomPrice(cfg.minPrice(), cfg.maxPrice());
+    int qnty = Order::getRandomQnty(cfg.minQnty(), cfg.maxQnty());
+    MarketSide mktSide = Order::getRandomMarketSide();
+    
+    return Order::create(uid, underlying, price, qnty, mktSide);
+}
+
 // getters
 
 int Order::uid() const { return d_uid; }
@@ -144,32 +180,6 @@ std::expected<void, std::string> Order::validateOrderAttributes(double price, do
     }
 
     return {};
-}
-
-std::expected<std::shared_ptr<Order>, std::string> Order::create(int uid, Underlying underlying,
-                                                                 double price, double qnty,
-                                                                 MarketSide marketSide)
-{
-    TimePoint timeOrderPlaced = getTimeNow();
-
-    auto isOrderValid = validateOrderAttributes(price, qnty, timeOrderPlaced);
-    if (!isOrderValid)
-    {
-        return std::unexpected(isOrderValid.error());
-    }
-
-    auto order = std::shared_ptr<Order>(
-        new (std::nothrow) Order{uid, underlying, price, qnty, marketSide, timeOrderPlaced});
-
-    return order;
-}
-
-std::expected<std::shared_ptr<Order>, std::string> Order::createWithPricer(
-    std::shared_ptr<pricing::Pricer> pricer, Underlying underlying, int uid)
-{
-    pricing::PricerDepOrderData data = pricer->compute(underlying);
-
-    return Order::create(uid, underlying, data.price(), data.qnty(), data.marketSide());
 }
 
 std::ostream& operator<<(std::ostream& os, const Order& order)

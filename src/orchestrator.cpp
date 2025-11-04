@@ -15,6 +15,8 @@
 #include <thread>
 #include <utility>
 
+#include "transaction.h"
+
 namespace solstice::matching
 {
 
@@ -39,14 +41,20 @@ std::expected<OrderPtr, std::string> Orchestrator::generateOrder(int ordersGener
         return std::unexpected(underlying.error());
     }
 
-    auto order = Order::createWithPricer(d_pricer, *underlying, uid);
-    // TODO: add createWithRandomValues() helper function above
+    std::expected<OrderPtr, std::string> order;
+    if (d_config.usePricer())
+    {
+        order = Order::createWithPricer(d_pricer, uid, *underlying);
+    }
+    else
+    {
+        order = Order::createWithRandomValues(d_config, uid, *underlying);
+    }
 
     if (!order)
     {
         return std::unexpected(order.error());
     }
-
     return order;
 }
 
