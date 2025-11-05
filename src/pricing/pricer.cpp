@@ -169,6 +169,12 @@ double Pricer::calculatePrice(Equity eq, MarketSide mktSide)
 {
     // TODO: calculate price
     EquityPriceData data = getPriceData(eq);
+
+    if (data.executions() == 0)
+    {
+        // return early and set the first order to be initial price set by pricer
+        return data.lastPrice();
+    }
 }
 
 double Pricer::calculatePrice(Future fut, MarketSide mktSide)
