@@ -1,5 +1,5 @@
-#ifndef MARKET_SIDE_H
-#define MARKET_SIDE_H
+#ifndef POSITION_TYPE_H
+#define POSITION_TYPE_H
 
 #include <cstdint>
 #include <ostream>
@@ -17,4 +17,4 @@ std::ostream& operator<<(std::ostream& os, PositionType positionType);
 
 }  // namespace solstice
 
-#endif  // MARKET_SIDE_H
+#endif  // POSITION_TYPE_H

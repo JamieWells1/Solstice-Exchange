@@ -15,8 +15,6 @@
 #include <thread>
 #include <utility>
 
-#include "transaction.h"
-
 namespace solstice::matching
 {
 
@@ -31,24 +29,31 @@ const Config& Orchestrator::config() const { return d_config; }
 const std::shared_ptr<OrderBook>& Orchestrator::orderBook() const { return d_orderBook; }
 const std::shared_ptr<Matcher>& Orchestrator::matcher() const { return d_matcher; }
 
+std::map<Underlying, std::mutex>& Orchestrator::underlyingMutexes()
+{
+    return d_underlyingMutexes;
+}
+
+std::queue<OrderPtr>& Orchestrator::orderProcessQueue() { return d_orderProcessQueue; }
+
 std::expected<OrderPtr, std::string> Orchestrator::generateOrder(int ordersGenerated)
 {
     int uid = ordersGenerated;
 
-    auto underlying = getUnderlying(d_config.assetClass());
+    auto underlying = getUnderlying(config().assetClass());
     if (!underlying)
     {
         return std::unexpected(underlying.error());
     }
 
     std::expected<OrderPtr, std::string> order;
-    if (d_config.usePricer())
+    if (config().usePricer())
     {
-        order = Order::createWithPricer(d_pricer, uid, *underlying);
+        order = Order::createWithPricer(pricer(), uid, *underlying);
     }
     else
     {
-        order = Order::createWithRandomValues(d_config, uid, *underlying);
+        order = Order::createWithRandomValues(config(), uid, *underlying);
     }
 
     if (!order)
@@ -60,17 +65,17 @@ std::expected<OrderPtr, std::string> Orchestrator::generateOrder(int ordersGener
 
 bool Orchestrator::processOrder(OrderPtr order)
 {
-    auto mutexIt = d_underlyingMutexes.find(order->underlying());
-    if (mutexIt != d_underlyingMutexes.end())
+    auto mutexIt = underlyingMutexes().find(order->underlying());
+    if (mutexIt != underlyingMutexes().end())
     {
         std::lock_guard<std::mutex> lock(mutexIt->second);
         d_orderBook->addOrderToBook(order);
 
-        auto orderMatched = d_matcher->matchOrder(order);
+        auto orderMatched = matcher()->matchOrder(order);
 
         if (!orderMatched)
         {
-            if (d_config.logLevel() >= LogLevel::DEBUG)
+            if (config().logLevel() >= LogLevel::DEBUG)
             {
                 std::cout << "Order " << order->uid()
                           << " failed to match: " << orderMatched.error();
@@ -80,7 +85,7 @@ bool Orchestrator::processOrder(OrderPtr order)
         }
         else
         {
-            if (d_config.logLevel() >= LogLevel::DEBUG)
+            if (config().logLevel() >= LogLevel::DEBUG)
             {
                 std::cout << *orderMatched;
             }
@@ -112,7 +117,7 @@ bool Orchestrator::processOrder(OrderPtr order)
                 std::cout << *orderMatched;
             }
 
-            d_pricer->update(order);
+            pricer()->update(order);
             return true;
         }
     }
@@ -122,7 +127,7 @@ void Orchestrator::pushToQueue(OrderPtr order)
 {
     {
         std::lock_guard<std::mutex> lock(d_queueMutex);
-        d_orderProcessQueue.push(order);
+        orderProcessQueue().push(order);
     }
     d_queueConditionVar.notify_one();
 }
@@ -132,15 +137,15 @@ OrderPtr Orchestrator::popFromQueue()
     std::unique_lock<std::mutex> lock(d_queueMutex);
 
     d_queueConditionVar.wait(lock,
-                             [this] { return !d_orderProcessQueue.empty() || d_done.load(); });
+                             [this] { return !orderProcessQueue().empty() || d_done.load(); });
 
-    if (d_orderProcessQueue.empty())
+    if (orderProcessQueue().empty())
     {
         return nullptr;
     }
 
-    OrderPtr order = d_orderProcessQueue.front();
-    d_orderProcessQueue.pop();
+    OrderPtr order = orderProcessQueue().front();
+    orderProcessQueue().pop();
     return order;
 }
 
@@ -168,26 +173,26 @@ void Orchestrator::initialiseUnderlyings(AssetClass assetClass)
     switch (assetClass)
     {
         case AssetClass::Equity:
-            setUnderlyingsPool(d_config.underlyingPoolCount(), ALL_EQUITIES);
+            setUnderlyingsPool(config().underlyingPoolCount(), ALL_EQUITIES);
 
-            d_orderBook->initialiseBookAtUnderlyings<Equity>();
-            d_pricer->initialisePricerEquities();
+            orderBook()->initialiseBookAtUnderlyings<Equity>();
+            pricer()->initialisePricerEquities();
 
             for (Equity underlying : underlyingsPool<Equity>())
             {
-                d_underlyingMutexes[underlying];
+                underlyingMutexes()[underlying];
             }
 
             break;
         case AssetClass::Future:
-            setUnderlyingsPool(d_config.underlyingPoolCount(), ALL_FUTURES);
+            setUnderlyingsPool(config().underlyingPoolCount(), ALL_FUTURES);
 
-            d_orderBook->initialiseBookAtUnderlyings<Future>();
-            d_pricer->initialisePricerFutures();
+            orderBook()->initialiseBookAtUnderlyings<Future>();
+            pricer()->initialisePricerFutures();
 
             for (Future underlying : underlyingsPool<Future>())
             {
-                d_underlyingMutexes[underlying];
+                underlyingMutexes()[underlying];
             }
 
             break;
@@ -212,7 +217,7 @@ std::expected<std::pair<int, int>, std::string> Orchestrator::produceOrders()
                                 std::ref(ordersExecuted));
     }
 
-    for (size_t i = 0; i < d_config.ordersToGenerate(); i++)
+    for (size_t i = 0; i < config().ordersToGenerate(); i++)
     {
         auto order = generateOrder(i);
         if (!order)

@@ -5,6 +5,7 @@
 #include <get_random.h>
 #include <market_side.h>
 #include <order_book.h>
+#include <order_type.h>
 
 #include <memory>
 #include <unordered_map>
@@ -42,6 +43,7 @@ struct EquityPriceData
     }
 
     Equity underlying();
+    int maRange();
 
     double lastPrice();
     double highestBid();
@@ -49,7 +51,8 @@ struct EquityPriceData
     double demandFactor();
     double movingAverage();
     int executions();
-    int maRange();
+    double pricesSum();
+    double pricesSumSquared();
 
     void underlying(Equity eq);
 
@@ -59,6 +62,8 @@ struct EquityPriceData
     void demandFactor(int newDemandFactor);
     void movingAverage(double newMovingAverage);
     void incrementExecutions();
+    void pricesSum(double newPricesSum);
+    void pricesSumSquared(double newPricesSumSquared);
 
    private:
     static constexpr int d_maRange = 10;
@@ -70,7 +75,11 @@ struct EquityPriceData
     double d_lowestAsk;
     double d_demandFactor;
     double d_movingAverage;
+
+    // used for pricing calculations
     int d_executions = 0;
+    double d_pricesSum;
+    double d_pricesSumSquared;
 };
 
 struct FuturePriceData
@@ -84,6 +93,7 @@ struct FuturePriceData
     }
 
     Future underlying();
+    int maRange();
 
     double lastPrice();
     double highestBid();
@@ -91,7 +101,8 @@ struct FuturePriceData
     double demandFactor();
     double movingAverage();
     int executions();
-    int maRange();
+    double pricesSum();
+    double pricesSumSquared();
 
     void underlying(Future fut);
 
@@ -101,6 +112,8 @@ struct FuturePriceData
     void demandFactor(int newDemandFactor);
     void movingAverage(double newMovingAverage);
     void incrementExecutions();
+    void pricesSum(double newPricesSum);
+    void pricesSumSquared(double newPricesSumSquared);
 
    private:
     static constexpr int d_maRange = 10;
@@ -112,7 +125,11 @@ struct FuturePriceData
     double d_lowestAsk;
     double d_demandFactor;
     double d_movingAverage;
+
+    // used for pricing calculations
     int d_executions = 0;
+    double d_pricesSum;
+    double d_pricesSumSquared;
 };
 
 struct PricerDepOrderData
@@ -180,6 +197,8 @@ class Pricer
     MarketSide calculateMarketSide(Future fut);
 
     MarketSide calculateMarketSideImpl(double probability);
+
+    OrderType getOrderType();
 
     // propogate results from market side calc
     double calculatePrice(Equity eq, MarketSide mktSide);

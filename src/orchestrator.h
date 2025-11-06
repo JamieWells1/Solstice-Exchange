@@ -25,10 +25,13 @@ class Orchestrator
     bool processOrder(OrderPtr order);
 
     const Config& config() const;
+
     const std::shared_ptr<OrderBook>& orderBook() const;
     const std::shared_ptr<Matcher>& matcher() const;
-
     const std::shared_ptr<pricing::Pricer>& pricer() const;
+
+    std::map<Underlying, std::mutex>& underlyingMutexes();
+    std::queue<OrderPtr>& orderProcessQueue();
 
    private:
     void initialiseUnderlyings(AssetClass assetClass);

@@ -2,10 +2,16 @@
 #include <config.h>
 #include <get_random.h>
 #include <market_side.h>
+#include <order_type.h>
 #include <pricer.h>
+
+#include <unordered_map>
 
 namespace solstice::pricing
 {
+
+const std::unordered_map<OrderType, double> probabilities = {
+    {OrderType::CrossSpread, 0.3}, {OrderType::InsideSpread, 0.2}, {OrderType::AtSpread, 0.5}};
 
 // EquityPriceData getters
 
@@ -25,6 +31,10 @@ int EquityPriceData::executions() { return d_executions; }
 
 int EquityPriceData::maRange() { return d_maRange; }
 
+double EquityPriceData::pricesSum() { return d_pricesSum; }
+
+double EquityPriceData::pricesSumSquared() { return d_pricesSumSquared; }
+
 // EquityPriceData setters
 
 void EquityPriceData::underlying(Equity newUnderlying) { d_equity = newUnderlying; }
@@ -40,6 +50,13 @@ void EquityPriceData::demandFactor(int newDemandFactor) { d_demandFactor = newDe
 void EquityPriceData::movingAverage(double newMovingAverage) { d_movingAverage = newMovingAverage; }
 
 void EquityPriceData::incrementExecutions() { d_executions++; }
+
+void EquityPriceData::pricesSum(double newPricesSum) { d_pricesSum = newPricesSum; }
+
+void EquityPriceData::pricesSumSquared(double newPricesSumSquared)
+{
+    d_pricesSumSquared = newPricesSumSquared;
+}
 
 // FuturePriceData getters
 
@@ -59,6 +76,10 @@ int FuturePriceData::executions() { return d_executions; }
 
 int FuturePriceData::maRange() { return d_maRange; }
 
+double FuturePriceData::pricesSum() { return d_pricesSum; }
+
+double FuturePriceData::pricesSumSquared() { return d_pricesSumSquared; }
+
 // FuturePriceData setters
 
 void FuturePriceData::underlying(Future newUnderlying) { d_future = newUnderlying; }
@@ -74,6 +95,13 @@ void FuturePriceData::demandFactor(int newDemandFactor) { d_demandFactor = newDe
 void FuturePriceData::movingAverage(double newMovingAverage) { d_movingAverage = newMovingAverage; }
 
 void FuturePriceData::incrementExecutions() { d_executions++; }
+
+void FuturePriceData::pricesSum(double newPricesSum) { d_pricesSum = newPricesSum; }
+
+void FuturePriceData::pricesSumSquared(double newPricesSumSquared)
+{
+    d_pricesSumSquared = newPricesSumSquared;
+}
 
 // PricerDepOrderData
 
@@ -165,9 +193,38 @@ MarketSide Pricer::calculateMarketSideImpl(double probability)
     return Order::getRandomMarketSide();
 }
 
+OrderType Pricer::getOrderType()
+{
+    OrderType type;
+    double random = Random::getRandomDouble(0, 1);
+
+    bool inCrossSpreadBand = random < probabilities.at(OrderType::CrossSpread);
+
+    bool inInsideSpreadBand = random >= probabilities.at(OrderType::CrossSpread) &&
+                              random < (probabilities.at(OrderType::CrossSpread) +
+                                        probabilities.at(OrderType::InsideSpread));
+
+    bool inAtSpreadBand = random >= (probabilities.at(OrderType::CrossSpread) +
+                                     probabilities.at(OrderType::InsideSpread));
+
+    if (inCrossSpreadBand)
+    {
+        type = OrderType::CrossSpread;
+    }
+    else if (inInsideSpreadBand)
+    {
+        type = OrderType::InsideSpread;
+    }
+    else if (inAtSpreadBand)
+    {
+        type = OrderType::AtSpread;
+    }
+
+    return type;
+}
+
 double Pricer::calculatePrice(Equity eq, MarketSide mktSide)
 {
-    // TODO: calculate price
     EquityPriceData data = getPriceData(eq);
 
     if (data.executions() == 0)
@@ -175,6 +232,18 @@ double Pricer::calculatePrice(Equity eq, MarketSide mktSide)
         // return early and set the first order to be initial price set by pricer
         return data.lastPrice();
     }
+
+    // order follows bullish momentum
+    if (mktSide == MarketSide::Bid)
+    {
+    }
+
+    // factors to consider:
+    // 1. demandFactor
+    // 2. SD of price from MA
+    // 3. MarketSide
+    // 4. lastPrice
+    // 5. bidAsk spread
 }
 
 double Pricer::calculatePrice(Future fut, MarketSide mktSide)
@@ -224,26 +293,37 @@ void Pricer::update(matching::OrderPtr order)
                 }
             }
 
-            // movingAverage = lastPrice if it's first order at this underlying
             double newPrice = order->matchedPrice();
 
-            if (priceData.executions() == 0)
+            if (priceData.executions() > 0)
             {
+                priceData.lastPrice(newPrice);
+                priceData.pricesSum(priceData.pricesSum() + newPrice);
+                double newPricesSumSquared =
+                    (newPrice * newPrice) + (priceData.pricesSum() * priceData.pricesSum());
+                priceData.pricesSumSquared(newPricesSumSquared);
+
+                // calculate new moving average in O(1) time
+                int e = priceData.executions();
+                int n = std::min(e, priceData.maRange());
+
+                // at this point, neither movingAverage nor executions have been updated
+                double totalMinusCurrent = priceData.movingAverage() * n;
+                double totalInclCurrent = totalMinusCurrent + newPrice;
+                double newMovingAverage = totalInclCurrent / (n + 1);
+                priceData.movingAverage(newMovingAverage);
+            }
+            else
+            {
+                // movingAverage = lastPrice if it's first order at this underlying
                 priceData.movingAverage(newPrice);
             }
-            priceData.lastPrice(newPrice);
-
-            // calculate new moving average in O(1) time
-            int e = priceData.executions();
-            int n = std::min(e, priceData.maRange());
-
-            // at this point, neither movingAverage nor executions have been updated
-            double totalMinusCurrent = priceData.movingAverage() * n;
-            double totalInclCurrent = totalMinusCurrent + newPrice;
-            double newMovingAverage = totalInclCurrent / (n + 1);
-            priceData.movingAverage(newMovingAverage);
 
             priceData.incrementExecutions();
+
+            // TODO:
+            // calculate new demand factor
+            double df = priceData.demandFactor();
         });
 }
 
