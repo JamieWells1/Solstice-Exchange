@@ -5,6 +5,17 @@
 
 using TimePoint = std::chrono::system_clock::time_point;
 
-TimePoint getTimeNow();
+struct CurrentDate
+{
+    int year;
+    int month;
+    int day;
+};
+
+TimePoint timeNow();
+
+CurrentDate currentDate();
+
+int monthToInt(const std::string& month);
 
 #endif  // TIMEPOINT_H

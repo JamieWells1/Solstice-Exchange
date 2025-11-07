@@ -29,10 +29,7 @@ const Config& Orchestrator::config() const { return d_config; }
 const std::shared_ptr<OrderBook>& Orchestrator::orderBook() const { return d_orderBook; }
 const std::shared_ptr<Matcher>& Orchestrator::matcher() const { return d_matcher; }
 
-std::map<Underlying, std::mutex>& Orchestrator::underlyingMutexes()
-{
-    return d_underlyingMutexes;
-}
+std::map<Underlying, std::mutex>& Orchestrator::underlyingMutexes() { return d_underlyingMutexes; }
 
 std::queue<OrderPtr>& Orchestrator::orderProcessQueue() { return d_orderProcessQueue; }
 
@@ -259,9 +256,9 @@ std::expected<void, std::string> Orchestrator::start()
 
     orchestrator.initialiseUnderlyings(config->assetClass());
 
-    auto start = getTimeNow();
+    auto start = timeNow();
     auto result = orchestrator.produceOrders();
-    auto end = getTimeNow();
+    auto end = timeNow();
 
     if (!result)
     {

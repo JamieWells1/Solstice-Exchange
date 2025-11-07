@@ -78,33 +78,33 @@ constexpr std::array<Equity, static_cast<size_t>(Equity::COUNT)> ALL_EQUITIES = 
 
 enum class Future : uint8_t
 {
-    AAPL_MAR25,
-    AAPL_JUN25,
-    AAPL_SEP25,
-    AAPL_DEC25,
+    AAPL_MAR26,
+    AAPL_JUN26,
+    AAPL_SEP26,
+    AAPL_DEC26,
 
-    MSFT_MAR25,
-    MSFT_JUN25,
-    MSFT_SEP25,
-    MSFT_DEC25,
+    MSFT_MAR26,
+    MSFT_JUN26,
+    MSFT_SEP26,
+    MSFT_DEC26,
 
-    TSLA_MAR25,
-    TSLA_JUN25,
-    TSLA_SEP25,
-    TSLA_DEC25,
+    TSLA_MAR26,
+    TSLA_JUN26,
+    TSLA_SEP26,
+    TSLA_DEC26,
 
     COUNT
 };
 
 static constexpr std::array<const char*, static_cast<size_t>(Future::COUNT)> FTR_STR = {
-    "AAPL_MAR25", "AAPL_JUN25", "AAPL_SEP25", "AAPL_DEC25", "MSFT_MAR25", "MSFT_JUN25",
-    "MSFT_SEP25", "MSFT_DEC25", "TSLA_MAR25", "TSLA_JUN25", "TSLA_SEP25", "TSLA_DEC25",
+    "AAPL_MAR26", "AAPL_JUN26", "AAPL_SEP26", "AAPL_DEC26", "MSFT_MAR26", "MSFT_JUN26",
+    "MSFT_SEP26", "MSFT_DEC26", "TSLA_MAR26", "TSLA_JUN26", "TSLA_SEP26", "TSLA_DEC26",
 };
 
 constexpr std::array<Future, static_cast<size_t>(Future::COUNT)> ALL_FUTURES = {
-    Future::AAPL_MAR25, Future::AAPL_JUN25, Future::AAPL_SEP25, Future::AAPL_DEC25,
-    Future::MSFT_MAR25, Future::MSFT_JUN25, Future::MSFT_SEP25, Future::MSFT_DEC25,
-    Future::TSLA_MAR25, Future::TSLA_JUN25, Future::TSLA_SEP25, Future::TSLA_DEC25};
+    Future::AAPL_MAR26, Future::AAPL_JUN26, Future::AAPL_SEP26, Future::AAPL_DEC26,
+    Future::MSFT_MAR26, Future::MSFT_JUN26, Future::MSFT_SEP26, Future::MSFT_DEC26,
+    Future::TSLA_MAR26, Future::TSLA_JUN26, Future::TSLA_SEP26, Future::TSLA_DEC26};
 
 // ===================================================================
 // Type Declaration

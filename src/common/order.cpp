@@ -34,7 +34,7 @@ std::expected<std::shared_ptr<Order>, std::string> Order::create(int uid, Underl
                                                                  double price, double qnty,
                                                                  MarketSide marketSide)
 {
-    TimePoint timeOrderPlaced = getTimeNow();
+    TimePoint timeOrderPlaced = timeNow();
 
     auto isOrderValid = validateOrderAttributes(price, qnty, timeOrderPlaced);
     if (!isOrderValid)
@@ -62,7 +62,7 @@ std::expected<std::shared_ptr<Order>, std::string> Order::createWithRandomValues
     int price = Order::getRandomPrice(cfg.minPrice(), cfg.maxPrice());
     int qnty = Order::getRandomQnty(cfg.minQnty(), cfg.maxQnty());
     MarketSide mktSide = Order::getRandomMarketSide();
-    
+
     return Order::create(uid, underlying, price, qnty, mktSide);
 }
 

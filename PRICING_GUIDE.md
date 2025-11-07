@@ -1,4 +1,5 @@
 # SOLSTICE PRICING GUIDE
+
 ## Custom Implementation Guide for Your Codebase
 
 ---
@@ -30,6 +31,7 @@
 ### What You Already Have
 
 **Order Flow System:**
+
 - `Order` class stores: uid, underlying (variant of Equity or Future), price, quantity, outstanding quantity, market side (Bid/Ask), timestamps
 - `OrderBook` manages active orders in price-level maps (bids sorted descending, asks sorted ascending)
 - `Matcher` handles price-time priority matching between incoming and resting orders
@@ -37,12 +39,14 @@
 - `Orchestrator` generates random orders and coordinates multi-threaded order processing
 
 **Asset Classes:**
+
 - Two main types: `AssetClass::Equity` and `AssetClass::Future`
 - Equities: AAPL, MSFT, GOOGL, AMZN, META, BLK, NVDA, AMD, INTC, QCOM, JPM, BAC, CRM, GS, MS, ORCL, IBM, TSM, UBER, LYFT (20 total)
 - Futures: Quarterly contracts (MAR25, JUN25, SEP25, DEC25) for AAPL, MSFT, TSLA (12 total)
 - Uses `std::variant<Equity, Future>` as the `Underlying` type
 
 **Configuration System:**
+
 - `Config` singleton controls simulation parameters
 - Currently generates random prices between `minPrice` and `maxPrice` (default 8.0 to 10.0)
 - Random quantities between `minQnty` and `maxQnty` (default 1 to 20)
@@ -50,10 +54,12 @@
 - 50/50 random choice of Bid vs Ask side
 
 **Empty Pricing Component:**
+
 - `pricing::Pricer` class exists but is completely empty
 - This is where your futures pricing logic should live
 
 **Strategy/Backtesting:**
+
 - `MarketData` struct holds OHLCV (open, high, low, close, volume) time series data
 - `Account` tracks balance and positions
 - `Position` tracks entry/exit prices and position type (long/short)
@@ -97,6 +103,7 @@ The `pricing::Pricer` class should become a pricing engine that tracks and calcu
 ### Data Storage Needed
 
 **For All Underlyings (Both Equity and Future):**
+
 - Last traded price (the most recent execution price from your order book)
 - Best bid price (highest buy order currently in book)
 - Best ask price (lowest sell order currently in book)
@@ -104,6 +111,7 @@ The `pricing::Pricer` class should become a pricing engine that tracks and calcu
 - Thread-safe access (use `std::shared_mutex` - multiple readers, single writer)
 
 **Additionally For Futures Only:**
+
 - The underlying equity it's based on (AAPL futures → AAPL equity)
 - Expiry timestamp (when the contract expires)
 - Risk-free interest rate (annualized, stored as decimal like 0.05 for 5%)
@@ -115,16 +123,19 @@ The `pricing::Pricer` class should become a pricing engine that tracks and calcu
 **Equity Functions:**
 
 `void updateEquityTrade(Equity symbol, double tradePrice, TimePoint timestamp)`
+
 - Called whenever a trade executes for this equity
 - Updates the last traded price and timestamp
 - Thread-safe write operation
 
 `void updateEquityBookPrices(Equity symbol, double bestBid, double bestAsk)`
+
 - Called whenever the best bid or ask changes in the order book
 - Updates the stored bid/ask prices
 - Thread-safe write operation
 
 `std::expected<double, std::string> getEquityPrice(Equity symbol)`
+
 - Returns the last traded price for this equity
 - If no trades yet, returns midpoint of bid/ask if available
 - If no orders in book yet, returns error or a seed price
@@ -133,11 +144,13 @@ The `pricing::Pricer` class should become a pricing engine that tracks and calcu
 **Futures Functions:**
 
 `void initializeFuture(Future symbol, Equity underlying, TimePoint expiry, double riskFreeRate, double dividendYield)`
+
 - Sets up a futures contract with all necessary parameters
 - Called once during initialization for each future you're trading
 - Store the linkage between the future and its underlying equity
 
 `std::expected<double, std::string> calculateFairValue(Future symbol, TimePoint currentTime)`
+
 - The core pricing calculation
 - Retrieves spot price of underlying equity from equity pricing data
 - Calculates time to expiry in years
@@ -146,11 +159,13 @@ The `pricing::Pricer` class should become a pricing engine that tracks and calcu
 - Thread-safe read operation
 
 `void updateFutureTrade(Future symbol, double tradePrice, TimePoint timestamp)`
+
 - Called when a trade executes for this future
 - Updates last traded price (the actual market price)
 - Thread-safe write operation
 
 `std::expected<double, std::string> getFuturePrice(Future symbol, TimePoint currentTime)`
+
 - Can return either fair value or last traded price depending on use case
 - For order generation, probably return fair value
 - For market data recording, return last traded price if available
@@ -158,11 +173,13 @@ The `pricing::Pricer` class should become a pricing engine that tracks and calcu
 **Helper Functions:**
 
 `double timeToExpiryInYears(TimePoint current, TimePoint expiry)`
+
 - Calculates difference between timestamps
 - Converts to years as a double
 - Returns 0 if current >= expiry (contract expired)
 
 `bool isExpired(Future symbol, TimePoint currentTime)`
+
 - Checks if current time is past expiry
 - Used to avoid trading expired contracts
 
@@ -183,6 +200,7 @@ Here's the logic in plain English for `calculateFairValue()`:
 11. Return the result
 
 **Example calculation:**
+
 - AAPL spot price: $175.00
 - Risk-free rate: 5% (0.05)
 - Dividend yield: 2% (0.02)
@@ -256,6 +274,7 @@ If underlying is Future:
 **Step 2: Generate distributed price**
 
 Use `std::normal_distribution` with:
+
 - Mean = anchor price from step 1
 - StdDev = anchor price × 0.005 (for 0.5% volatility) or × 0.01 (for 1% volatility)
 
@@ -274,6 +293,7 @@ You need to hook into your matching engine to update the Pricer when trades occu
 **In Matcher::matchOrder()** (matcher.cpp:81-191):
 
 Currently when a trade executes, you:
+
 1. Update outstanding quantities on orders
 2. Call `orderBook->markOrderAsFulfilled()`
 3. Return success message
@@ -281,6 +301,7 @@ Currently when a trade executes, you:
 **Add this:**
 
 After a successful match, extract the trade price and call:
+
 ```
 pricer.updateEquityTrade() or pricer.updateFutureTrade()
 ```
@@ -294,18 +315,21 @@ The `getDealPrice()` function (matcher.cpp:23-47) already calculates the actual 
 ### Updating Best Bid/Ask
 
 Your `OrderBook` already tracks best prices through the sorted price level maps:
+
 - `BidPricesAtPriceLevel` (sorted descending with `std::greater<double>`)
 - `askPricesAtPriceLevel` (sorted ascending with `std::less<double>`)
 
 **When to update Pricer:**
 
 After these operations in OrderBook:
+
 - `addOrderToBook()` - might create new best bid/ask
 - `markOrderAsFulfilled()` - might remove best bid/ask
 
 **How to update:**
 
 Get the first element from the appropriate sorted set:
+
 - Best bid = first element of bidPrices set
 - Best ask = first element of askPrices set
 
@@ -322,6 +346,7 @@ For each of your 12 futures contracts, you need to decide:
 **Expiry Dates:**
 
 Your contracts are named MAR25, JUN25, SEP25, DEC25. Standard futures expiry is typically third Friday of the month. For 2025:
+
 - MAR25: March 21, 2025
 - JUN25: June 20, 2025
 - SEP25: September 19, 2025
@@ -332,12 +357,14 @@ Convert these to `TimePoint` by constructing a date and time (typically expires 
 **Risk-Free Rate:**
 
 Use a realistic current rate. As of late 2024/early 2025, US risk-free rate is around 4-5%. You could use:
+
 - 0.045 (4.5%) as a reasonable middle ground
 - Make it configurable in your Config class
 
 **Dividend Yields:**
 
 These vary by stock:
+
 - Tech stocks (AAPL, MSFT, TSLA): typically low yields, 0.5% to 1.5%
 - TSLA specifically: near zero or zero (doesn't pay much dividend)
 - You could use:
@@ -361,6 +388,7 @@ When your simulation starts (in `Orchestrator::initialiseUnderlyings()`):
 **Step 1: Initialize equities with seed prices**
 
 Set starting spot prices for each equity:
+
 ```
 AAPL: $175.00
 MSFT: $350.00
@@ -371,6 +399,7 @@ TSLA: $180.00
 **Step 2: Initialize futures with parameters**
 
 For each future contract:
+
 ```
 Call pricer.initializeFuture(
     Future::AAPL_MAR25,
@@ -430,6 +459,7 @@ Add a `marketMakerThread()` method to Orchestrator similar to `workerThread()`. 
 **Price range parameters:**
 
 Currently you have `minPrice` and `maxPrice` (8.0 to 10.0). With the new system:
+
 - These become less relevant because price is determined by Pricer
 - Could repurpose them as:
   - `priceVolatility`: controls standard deviation multiplier (0.005 to 0.02)
@@ -442,6 +472,7 @@ Keep as-is. Random quantities between 1 and 20 is fine.
 **Order flow rate:**
 
 Your `ordersToGenerate` (default 10000) and threading determine how fast orders arrive. For realistic simulation:
+
 - 10,000 orders over a few seconds is very high frequency
 - Consider adding a sleep/delay in order generation for slower, more realistic flow
 - Or keep it fast for stress testing your matching engine
@@ -451,6 +482,7 @@ Your `ordersToGenerate` (default 10000) and threading determine how fast orders 
 **Time period to simulate:**
 
 If you're simulating a trading day or week, decide:
+
 - Starting time (e.g., market open at 9:30 AM EST on a specific date)
 - Ending time (e.g., market close at 4:00 PM EST)
 - Whether spot prices of equities should drift during simulation (adds realism)
@@ -458,6 +490,7 @@ If you're simulating a trading day or week, decide:
 **Spot price evolution:**
 
 Currently spot prices would be static (set at initialization). For more realism:
+
 - Periodically update equity prices based on recent trades
 - Use a random walk or mean-reverting process
 - This causes futures fair values to change dynamically
@@ -477,6 +510,7 @@ Your `MarketData` struct holds OHLCV time series. This is typically used for bac
 **How Pricer connects:**
 
 When backtesting:
+
 1. Feed historical price data into MarketData
 2. Use this data to set spot prices in your Pricer
 3. Calculate futures fair values based on historical spot prices
@@ -487,11 +521,13 @@ When backtesting:
 The `mapRawInput()` function takes `RawMarketData` (a map of string to vector of doubles). This is historical data from external source.
 
 Add a method to Pricer:
+
 ```
 void loadHistoricalSpotPrices(Equity symbol, const std::vector<double>& closes, const std::vector<double>& timestamps)
 ```
 
 For each timestamp in the historical data:
+
 - Set the equity spot price
 - Recalculate all futures fair values that depend on this equity
 - Record these for use in strategy backtesting
@@ -503,14 +539,13 @@ Your `Dispatcher` executes strategies and generates a `Report` with PnL, winning
 **How pricing helps:**
 
 When your strategy decides to enter a long or short position:
+
 1. It needs to know at what price it can execute
 2. Use Pricer to get current best ask (for buying) or best bid (for selling)
 3. Or use fair value to estimate realistic execution price
 4. Record this in the Position object (entryPrice)
 
-When exiting:
-5. Use updated Pricer values to get exit price
-6. Calculate PnL as (exitPrice - entryPrice) × positionSize × direction
+When exiting: 5. Use updated Pricer values to get exit price 6. Calculate PnL as (exitPrice - entryPrice) × positionSize × direction
 
 **Example flow:**
 
@@ -529,6 +564,7 @@ SharpMovements strategy detects a sharp price movement in AAPL. It decides to bu
 ### Your Current Threading Model
 
 `Orchestrator` uses:
+
 - Multiple worker threads pulling from order queue (`workerThread()`)
 - Mutex per underlying to prevent race conditions when accessing same order book
 - Queue mutex for order queue access
@@ -536,6 +572,7 @@ SharpMovements strategy detects a sharp price movement in AAPL. It decides to bu
 ### Pricer Threading Needs
 
 The Pricer will be accessed by:
+
 - Order generation (reading prices to generate order prices)
 - Matching engine (writing prices after trades execute)
 - Market maker thread if you add one (reading and writing)
@@ -543,6 +580,7 @@ The Pricer will be accessed by:
 **Solution: shared_mutex**
 
 Use `std::shared_mutex` for each underlying's price data:
+
 - Multiple readers can read simultaneously (shared lock)
 - Writers get exclusive access (unique lock)
 - Order generation mostly reads (shared lock) - very fast
@@ -572,12 +610,14 @@ This is similar to your existing `d_underlyingMutexes` in Orchestrator but uses 
 ### Phase 1: Basic Pricer Structure (30-45 minutes)
 
 1. Define data structures in pricer.h:
+
    - Struct for equity price data (last trade, bid, ask, timestamp)
    - Struct for futures data (underlying link, expiry, rates, last trade)
    - Maps to store these keyed by Equity/Future enum
    - shared_mutex map for thread safety
 
 2. Implement basic getters/setters:
+
    - Initialize equity with seed price
    - Update equity price after trade
    - Get equity price for order generation
@@ -589,10 +629,12 @@ This is similar to your existing `d_underlyingMutexes` in Orchestrator but uses 
 ### Phase 2: Futures Pricing (45-60 minutes)
 
 1. Implement futures initialization:
+
    - Function to set up each future with expiry, rates, underlying link
    - Create helper to calculate time to expiry in years
 
 2. Implement fair value calculation:
+
    - Core cost-of-carry formula
    - Handle edge cases (expired contracts, missing spot price)
 
@@ -603,6 +645,7 @@ This is similar to your existing `d_underlyingMutexes` in Orchestrator but uses 
 ### Phase 3: Order Generation Integration (30 minutes)
 
 1. Modify `Orchestrator::generateOrder()`:
+
    - Get anchor price from Pricer instead of random in range
    - Use normal distribution around anchor
    - Handle both equity and future cases
@@ -614,10 +657,12 @@ This is similar to your existing `d_underlyingMutexes` in Orchestrator but uses 
 ### Phase 4: Price Updates (30 minutes)
 
 1. Hook into `Matcher::matchOrder()`:
+
    - After successful trade, extract trade price
    - Call Pricer update method with trade price
 
 2. Hook into `OrderBook` operations:
+
    - After adding/removing orders, check if best bid/ask changed
    - Update Pricer with new best prices
 
@@ -628,6 +673,7 @@ This is similar to your existing `d_underlyingMutexes` in Orchestrator but uses 
 1. Run simulation with futures
 2. Log fair values and market prices over time
 3. Verify:
+
    - Futures price above spot when interest > dividend (contango)
    - Market price oscillates around fair value
    - Prices converge as expiry approaches
@@ -654,11 +700,13 @@ This is similar to your existing `d_underlyingMutexes` in Orchestrator but uses 
 ### Unit Tests
 
 **Test equity pricing:**
+
 - Initialize with seed price, verify retrieval
 - Update with trade, verify new price stored
 - Concurrent reads from multiple threads
 
 **Test futures calculation:**
+
 - Known inputs → verify correct output
 - Example: spot=100, r=0.05, q=0.02, T=0.25 years → verify F ≈ 100.75
 - Test expiry case (T=0) → should return spot
@@ -667,11 +715,13 @@ This is similar to your existing `d_underlyingMutexes` in Orchestrator but uses 
 ### Integration Tests
 
 **Test order generation:**
+
 - Generate 1000 orders for AAPL futures
 - Verify orders cluster around calculated fair value
 - Plot histogram of order prices - should be bell curve centered on fair value
 
 **Test price evolution:**
+
 - Start simulation, let it run 1000 trades
 - Track market price over time
 - Verify it oscillates around fair value without wild jumps
@@ -679,12 +729,14 @@ This is similar to your existing `d_underlyingMutexes` in Orchestrator but uses 
 ### Sanity Checks During Development
 
 After each phase, print:
+
 - Current fair value for each future
 - Last traded market price
 - Difference between fair and market (should be small)
 - Best bid and best ask (spread should be reasonable)
 
 **Red flags to watch for:**
+
 - Futures price way above or below spot (>10% difference) - bug in calculation
 - Market price drifting away from fair value continuously - order generation issue
 - Huge bid-ask spreads (>5% of price) - not enough orders or market maker needed
@@ -698,6 +750,7 @@ After each phase, print:
 ### Dynamic Spot Price Evolution
 
 Instead of static spot prices, implement a price process:
+
 - Geometric Brownian Motion (realistic stock price movement)
 - Mean reversion (prices drift back toward long-term average)
 - Jump diffusion (occasional large moves)
@@ -707,6 +760,7 @@ This makes futures pricing dynamic as spot evolves.
 ### Multiple Interest Rates
 
 Use different rates for different maturities:
+
 - Short-term rate for near expiry (MAR25)
 - Long-term rate for far expiry (DEC25)
 - Models the yield curve
@@ -714,12 +768,14 @@ Use different rates for different maturities:
 ### Implied Dividend Yields
 
 Instead of hardcoded yields, calculate implied yield from market prices:
+
 - Rearrange formula to solve for q given observed futures price
 - This is what traders do in real markets
 
 ### Correlation Between Assets
 
 Currently AAPL, MSFT, TSLA move independently. Add correlation:
+
 - When AAPL spot moves up, MSFT tends to move up too
 - Tech sector correlation
 - Makes simulation more realistic
@@ -727,6 +783,7 @@ Currently AAPL, MSFT, TSLA move independently. Add correlation:
 ### Order Types
 
 Currently only limit orders. Add:
+
 - Market orders (execute immediately at best price)
 - Stop orders (trigger at certain price)
 - Iceberg orders (hidden quantity)
@@ -734,6 +791,7 @@ Currently only limit orders. Add:
 ### Market Impact
 
 Large orders should move the price more than small orders:
+
 - Model the price impact of order size
 - Affects execution price realistically
 
@@ -744,6 +802,7 @@ Large orders should move the price more than small orders:
 **Time Units:**
 
 Your `TimePoint` is `std::chrono::system_clock::time_point`. When calculating time to expiry:
+
 - Don't mix nanoseconds, seconds, days carelessly
 - Use `std::chrono::duration` to handle conversions
 - Test with a known time difference to verify calculation
@@ -755,6 +814,7 @@ Interest rate and dividend yield MUST be decimals (0.05 for 5%), not percentages
 **Mutex Deadlocks:**
 
 If Pricer and OrderBook both have mutexes:
+
 - Always lock in consistent order
 - Don't call OrderBook method while holding Pricer lock if OrderBook might call back to Pricer
 - Use RAII lock guards to ensure unlocking
@@ -762,6 +822,7 @@ If Pricer and OrderBook both have mutexes:
 **Variant Handling:**
 
 Your `Underlying` is a `std::variant<Equity, Future>`. When passing to Pricer:
+
 - Use `std::visit()` to determine which type
 - Or use separate maps for Equity and Future in Pricer
 - Don't assume the variant holds a specific type without checking
@@ -769,18 +830,21 @@ Your `Underlying` is a `std::variant<Equity, Future>`. When passing to Pricer:
 **Expired Contracts:**
 
 Don't generate orders for expired futures:
+
 - Check expiry before selecting a future
 - Or filter expired futures from the pool
 
 **Division By Zero:**
 
 When calculating time to expiry, if current time equals expiry:
+
 - Don't divide by zero
 - Return spot price immediately
 
 **Race Conditions:**
 
 Multiple threads updating last traded price simultaneously:
+
 - Without mutex, updates can be lost
 - With wrong mutex, deadlock can occur
 - Test with high concurrency to expose issues
@@ -792,6 +856,7 @@ Multiple threads updating last traded price simultaneously:
 Before considering your pricing implementation complete:
 
 **Calculation Correctness:**
+
 - [ ] Manually calculate fair value for one future with known parameters
 - [ ] Verify your code produces same result
 - [ ] Test edge case: expired contract returns spot
@@ -799,6 +864,7 @@ Before considering your pricing implementation complete:
 - [ ] Test edge case: dividend yield exceeds interest rate (backwardation)
 
 **Integration Correctness:**
+
 - [ ] Orders generate with prices near fair value, not random range
 - [ ] After trades execute, Pricer updates with trade price
 - [ ] Market price visible in logs/output
@@ -806,16 +872,19 @@ Before considering your pricing implementation complete:
 - [ ] Best bid is below fair value, best ask is above (spread straddles fair value)
 
 **Thread Safety:**
+
 - [ ] Run with maximum threads (hardware_concurrency)
 - [ ] No crashes or deadlocks after 100,000 orders
 - [ ] No data races detected by ThreadSanitizer (if available)
 
 **Performance:**
+
 - [ ] Pricing calculations don't slow down order generation
 - [ ] Shared locks allow concurrent reads
 - [ ] No excessive lock contention
 
 **Realism:**
+
 - [ ] Spreads are reasonable (0.1% to 1% of price)
 - [ ] Price discovery looks realistic (not random walks)
 - [ ] Futures converge toward spot as expiry approaches
@@ -826,6 +895,7 @@ Before considering your pricing implementation complete:
 ## QUICK REFERENCE: KEY FORMULAS
 
 **Futures Fair Value:**
+
 ```
 F = S × e^((r - q) × T)
 
@@ -842,6 +912,7 @@ At expiry (T=0): F = S
 ```
 
 **Time to Expiry in Years:**
+
 ```
 Get current TimePoint
 Get expiry TimePoint
@@ -851,6 +922,7 @@ Divide by seconds in a year: T = seconds.count() / (365.25 * 24 * 3600)
 ```
 
 **Normal Distribution for Order Prices:**
+
 ```
 std::normal_distribution<double> dist(anchorPrice, anchorPrice * volatility)
 double orderPrice = dist(randomGenerator)
@@ -861,6 +933,7 @@ volatility = 0.005 to 0.01 typically (0.5% to 1%)
 ```
 
 **Bid-Ask Spread:**
+
 ```
 spreadWidth = anchorPrice * 0.001  (0.1% spread)
 bid = anchorPrice - (spreadWidth / 2)
@@ -872,37 +945,44 @@ ask = anchorPrice + (spreadWidth / 2)
 ## YOUR CODEBASE-SPECIFIC NOTES
 
 **Namespaces:**
+
 - Your code uses `solstice` namespace with sub-namespaces (`matching`, `strategy`, `pricing`)
 - Pricer should be in `solstice::pricing`
 - Access other components as `solstice::matching::OrderBook`, etc.
 
 **Variant Usage:**
+
 - `Underlying` is `std::variant<Equity, Future>`
 - Use as key in maps requires std::hash specialization (already done)
 - Use `std::holds_alternative<Equity>(underlying)` to check type
 - Use `std::get<Equity>(underlying)` to extract value
 
 **TimePoint:**
+
 - Defined as `std::chrono::system_clock::time_point` in time_point.h
-- `getTimeNow()` utility available
+- `timeNow()` utility available
 - Supports standard chrono operations
 
 **Config Singleton:**
+
 - Access via `Config::instance()` which returns `std::expected<Config, std::string>`
 - Always check if the expected contains value before using
 - Modify Config to add pricing-related parameters
 
 **Order Book Structure:**
+
 - Stores `ActiveOrders` per underlying in `d_activeOrders` map
 - Each ActiveOrders has PriceLevelMap for bids and asks
 - Already has thread safety per underlying via `d_underlyingMutexes` in Orchestrator
 
 **Logging:**
+
 - Uses custom logging with LogLevel enum (DEBUG, INFO, etc.)
 - Access via `config->logLevel()` to check if should log
 - Use `std::cout` for logging (no special logger object)
 
 **Testing:**
+
 - Tests appear to use ctest (CMake)
 - Add unit tests for Pricer in tests directory
 - Follow existing test patterns

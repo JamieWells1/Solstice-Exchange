@@ -6,7 +6,7 @@ namespace solstice::matching
 
 Transaction::Transaction(OrderPtr bid, OrderPtr ask, double price, double qnty)
     : d_uid(Random::getRandomUid()),
-      d_timeExecuted(getTimeNow()),
+      d_timeExecuted(timeNow()),
       d_bidUid(bid->uid()),
       d_askUid(ask->uid()),
       d_price(price),

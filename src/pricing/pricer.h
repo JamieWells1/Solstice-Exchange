@@ -161,6 +161,40 @@ class Pricer
     void update(matching::OrderPtr order);
 
     template <typename T>
+    double updatedDemandFactor(T& priceData)
+    {
+        double currentDF = priceData.demandFactor();
+        double newPrice = priceData.lastPrice();
+        double ma = priceData.movingAverage();
+
+        if (priceData.executions() < 2)
+        {
+            return Random::getRandomDouble(-0.3, 0.3);
+        }
+
+        double sigma = standardDeviation(priceData);
+        double noise = Random::getRandomDouble(-0.05, 0.05);
+        currentDF += noise;
+
+        double priceDeviation = newPrice - ma;
+        // price too high
+        if (priceDeviation > 1.5 * sigma)
+        {
+            currentDF -= 0.15;
+        }
+        // price too low
+        else if (priceDeviation < -1.5 * sigma)
+        {
+            currentDF += 0.15;
+        }
+
+        currentDF *= 0.98;
+        currentDF = std::max(-1.0, std::min(1.0, currentDF));
+
+        return currentDF;
+    }
+
+    template <typename T>
     PricerDepOrderData compute(T& underlying)
     {
         return std::visit(
@@ -179,7 +213,6 @@ class Pricer
     double generateSeedPrice();
 
     EquityPriceData& getPriceData(Equity eq);
-
     FuturePriceData& getPriceData(Future fut);
 
     template <typename Func>
@@ -208,7 +241,9 @@ class Pricer
     double calculatePrice(Future fut, MarketSide mktSide);
 
     double calculateCarryAdjustment(Future fut);
-    double calculatePriceImpl(MarketSide mktSide, double lowestAsk, double highestBid, double demandFactor);
+
+    double calculatePriceImpl(MarketSide mktSide, double lowestAsk, double highestBid,
+                              double demandFactor);
 
     // propogate results from market side calc and price calc
     double calculateQnty(Equity eq, MarketSide mktSide, double price);

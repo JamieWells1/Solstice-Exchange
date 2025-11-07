@@ -8,10 +8,14 @@
 #include <cmath>
 #include <unordered_map>
 
+#include "time_point.h"
+
 namespace solstice::pricing
 {
 
 constexpr double baseOrderValue = 10000;
+// risk-free rate
+constexpr double r = 0.05;
 
 const std::unordered_map<OrderType, double> probabilities = {
     {OrderType::CrossSpread, 0.3}, {OrderType::InsideSpread, 0.2}, {OrderType::AtSpread, 0.5}};
@@ -337,9 +341,31 @@ double Pricer::calculatePriceImpl(MarketSide mktSide, double lowestAsk, double h
     return price;
 }
 
-double calculateCarryAdjustment(Future fut)
+double timeToExpiry(Future fut)
 {
-    // TODO: implement
+    std::string name = to_string(fut);
+    CurrentDate dateNow = currentDate();
+
+    int expiryMonth = monthToInt(name.substr(name.length() - 5, 3));
+    int expiryYear = std::stoi(name.substr(name.length() - 2, 2));
+
+    // NOTE: expiry year is ignored to avoid expiration in the future if futures are not updated
+    if (expiryMonth == dateNow.month)
+    {
+        return 1;
+    }
+    return std::abs(expiryMonth - dateNow.month) / 12.0;
+}
+
+double Pricer::calculateCarryAdjustment(Future fut)
+{
+    FuturePriceData data = getPriceData(fut);
+
+    double spot = data.lastPrice();
+    double t = timeToExpiry(fut);
+
+    // where r is risk-free rate
+    return spot * std::exp(r * t);
 }
 
 double Pricer::calculatePrice(Equity eq, MarketSide mktSide)
@@ -403,7 +429,7 @@ void Pricer::update(matching::OrderPtr order)
 {
     withPriceData(
         order->underlying(),
-        [&order](auto& priceData)
+        [&order, this](auto& priceData)
         {
             bool isBid = order->marketSide() == MarketSide::Bid;
             bool isAsk = order->marketSide() == MarketSide::Ask;
@@ -450,9 +476,8 @@ void Pricer::update(matching::OrderPtr order)
 
             priceData.incrementExecutions();
 
-            // TODO:
             // calculate new demand factor
-            double df = priceData.demandFactor();
+            priceData.demandFactor(updatedDemandFactor(priceData));
         });
 }
 
