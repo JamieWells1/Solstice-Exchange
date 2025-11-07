@@ -204,6 +204,9 @@ class Pricer
     double calculatePrice(Equity eq, MarketSide mktSide);
     double calculatePrice(Future fut, MarketSide mktSide);
 
+    double calculateCarryAdjustment(Future fut);
+    double calculatePriceImpl(MarketSide mktSide, double lowestAsk, double highestBid, double demandFactor);
+
     // propogate results from market side calc and price calc
     double calculateQnty(Equity eq, MarketSide mktSide, double price);
     double calculateQnty(Future fut, MarketSide mktSide, double price);

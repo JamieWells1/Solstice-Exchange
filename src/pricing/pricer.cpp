@@ -223,33 +223,131 @@ OrderType Pricer::getOrderType()
     return type;
 }
 
+double Pricer::calculatePriceImpl(MarketSide mktSide, double lowestAsk, double highestBid,
+                                  double demandFactor)
+{
+    double price;
+    OrderType type = getOrderType();
+
+    double spread = lowestAsk - highestBid;
+    double midSpread = (lowestAsk + highestBid) / 2;
+    double halfSpread = (midSpread - highestBid);
+
+    // order follows bullish momentum
+    if (mktSide == MarketSide::Bid)
+    {
+        switch (type)
+        {
+            case solstice::OrderType::InsideSpread:
+            {
+                if (spread > 0)
+                {
+                    // make price within spread influenced by demandFactor rather than completely
+                    // random
+                    double priceLowerBound = (highestBid + ((halfSpread)*demandFactor));
+                    double priceUpperBound = (lowestAsk + ((halfSpread)*demandFactor));
+
+                    price = Random::getRandomDouble(priceLowerBound, priceUpperBound);
+                }
+                else
+                {
+                    type = OrderType::AtSpread;
+                }
+            }
+
+            case (OrderType::CrossSpread):
+            {
+                if (spread > 0)
+                {
+                    double offset = halfSpread * std::abs(demandFactor);
+
+                    double priceLowerBound = lowestAsk + offset;
+                    double priceUpperBound = priceLowerBound + offset;
+
+                    price = Random::getRandomDouble(priceLowerBound, priceUpperBound);
+                }
+                break;
+            }
+
+            case (OrderType::AtSpread):
+            {
+                price = highestBid;
+            }
+        }
+    }
+
+    // order follows bearish momentum
+    if (mktSide == MarketSide::Ask)
+    {
+        switch (type)
+        {
+            case solstice::OrderType::InsideSpread:
+            {
+                if (spread > 0)
+                {
+                    double priceLowerBound = (highestBid - ((halfSpread)*demandFactor));
+                    double priceUpperBound = (lowestAsk - ((halfSpread)*demandFactor));
+
+                    price = Random::getRandomDouble(priceLowerBound, priceUpperBound);
+                }
+                else
+                {
+                    type = OrderType::AtSpread;
+                }
+            }
+
+            case (OrderType::CrossSpread):
+            {
+                if (spread > 0)
+                {
+                    double offset = halfSpread * std::abs(demandFactor);
+
+                    double priceUpperBound = highestBid - offset;
+                    double priceLowerBound = priceUpperBound - offset;
+
+                    price = Random::getRandomDouble(priceLowerBound, priceUpperBound);
+                }
+                break;
+            }
+
+            case (OrderType::AtSpread):
+            {
+                price = lowestAsk;
+            }
+        }
+    }
+}
+
+double calculateCarryAdjustment(Future fut)
+{
+    // TODO: implement
+}
+
 double Pricer::calculatePrice(Equity eq, MarketSide mktSide)
 {
     EquityPriceData data = getPriceData(eq);
-
     if (data.executions() == 0)
     {
         // return early and set the first order to be initial price set by pricer
         return data.lastPrice();
     }
 
-    // order follows bullish momentum
-    if (mktSide == MarketSide::Bid)
-    {
-    }
-
-    // factors to consider:
-    // 1. demandFactor
-    // 2. SD of price from MA
-    // 3. MarketSide
-    // 4. lastPrice
-    // 5. bidAsk spread
+    return calculatePriceImpl(mktSide, data.lowestAsk(), data.highestBid(), data.demandFactor());
 }
 
 double Pricer::calculatePrice(Future fut, MarketSide mktSide)
 {
-    // TODO: calculate price
     FuturePriceData data = getPriceData(fut);
+    if (data.executions() == 0)
+    {
+        return data.lastPrice();
+    }
+
+    double costOfCarry = calculateCarryAdjustment(fut);
+    double adjustedBid = data.highestBid() + costOfCarry;
+    double adjustedAsk = data.lowestAsk() + costOfCarry;
+
+    return calculatePriceImpl(mktSide, adjustedAsk, adjustedBid, data.demandFactor());
 }
 
 double Pricer::calculateQnty(Equity eq, MarketSide mktSide, double price)
