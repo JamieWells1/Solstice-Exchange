@@ -147,6 +147,9 @@ struct PricerDepOrderData
     double d_qnty;
 };
 
+double standardDeviation(EquityPriceData& data);
+double standardDeviation(FuturePriceData& data);
+
 class Pricer
 {
    public:

@@ -5,10 +5,13 @@
 #include <order_type.h>
 #include <pricer.h>
 
+#include <cmath>
 #include <unordered_map>
 
 namespace solstice::pricing
 {
+
+constexpr double baseOrderValue = 10000;
 
 const std::unordered_map<OrderType, double> probabilities = {
     {OrderType::CrossSpread, 0.3}, {OrderType::InsideSpread, 0.2}, {OrderType::AtSpread, 0.5}};
@@ -137,6 +140,20 @@ void Pricer::initialisePricerFutures()
     {
         d_futureDataMap.emplace(underlying, FuturePriceData(underlying));
     }
+}
+
+// Utils
+
+double standardDeviation(EquityPriceData& data)
+{
+    double n = data.executions();
+    return std::sqrt((data.pricesSumSquared() / n) - std::pow((data.pricesSum() / n), 2));
+}
+
+double standardDeviation(FuturePriceData& data)
+{
+    double n = data.executions();
+    return std::sqrt((data.pricesSumSquared() / n) - std::pow((data.pricesSum() / n), 2));
 }
 
 // ===================================================================
@@ -316,6 +333,8 @@ double Pricer::calculatePriceImpl(MarketSide mktSide, double lowestAsk, double h
             }
         }
     }
+
+    return price;
 }
 
 double calculateCarryAdjustment(Future fut)
@@ -352,14 +371,28 @@ double Pricer::calculatePrice(Future fut, MarketSide mktSide)
 
 double Pricer::calculateQnty(Equity eq, MarketSide mktSide, double price)
 {
-    // TODO: calculate qnty
     EquityPriceData data = getPriceData(eq);
+    double n = data.executions();
+
+    double sigma = standardDeviation(data);
+    double maxQuantity = baseOrderValue * std::abs(data.demandFactor()) / (price * (1 + sigma));
+
+    if (maxQuantity < 1) return 1;
+
+    return Random::getRandomDouble(1.0, maxQuantity);
 }
 
 double Pricer::calculateQnty(Future fut, MarketSide mktSide, double price)
 {
-    // TODO: calculate qnty
     FuturePriceData data = getPriceData(fut);
+    double n = data.executions();
+
+    double sigma = standardDeviation(data);
+    double maxQuantity = baseOrderValue * std::abs(data.demandFactor()) / (price * (1 + sigma));
+
+    if (maxQuantity < 1) return 1;
+
+    return Random::getRandomDouble(1.0, maxQuantity);
 }
 
 // ===================================================================
@@ -397,9 +430,7 @@ void Pricer::update(matching::OrderPtr order)
             {
                 priceData.lastPrice(newPrice);
                 priceData.pricesSum(priceData.pricesSum() + newPrice);
-                double newPricesSumSquared =
-                    (newPrice * newPrice) + (priceData.pricesSum() * priceData.pricesSum());
-                priceData.pricesSumSquared(newPricesSumSquared);
+                priceData.pricesSumSquared(priceData.pricesSumSquared() + (newPrice * newPrice));
 
                 // calculate new moving average in O(1) time
                 int e = priceData.executions();
