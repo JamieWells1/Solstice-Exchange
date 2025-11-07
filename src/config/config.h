@@ -56,7 +56,7 @@ struct Config
 
     static std::expected<void, std::string> checkConfig(Config& config);
 
-    LogLevel d_logLevel = LogLevel::INFO;
+    LogLevel d_logLevel = LogLevel::DEBUG;
     AssetClass d_assetClass = AssetClass::Equity;
     int d_ordersToGenerate = 100000;
     int d_underlyingPoolCount = 50;
@@ -64,7 +64,7 @@ struct Config
     int d_maxQnty = 20;
     double d_minPrice = 9.0;
     double d_maxPrice = 10.0;
-    bool d_usePricer = false;
+    bool d_usePricer = true;
 
     // ===================================================================
     // Backtesting

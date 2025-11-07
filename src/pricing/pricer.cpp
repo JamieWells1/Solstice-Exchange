@@ -46,13 +46,13 @@ double EquityPriceData::pricesSumSquared() { return d_pricesSumSquared; }
 
 void EquityPriceData::underlying(Equity newUnderlying) { d_equity = newUnderlying; }
 
-void EquityPriceData::lastPrice(int newLastPrice) { d_lastPrice = newLastPrice; }
+void EquityPriceData::lastPrice(double newLastPrice) { d_lastPrice = newLastPrice; }
 
-void EquityPriceData::highestBid(int newHighestBid) { d_highestBid = newHighestBid; }
+void EquityPriceData::highestBid(double newHighestBid) { d_highestBid = newHighestBid; }
 
-void EquityPriceData::lowestAsk(int newLowestAsk) { d_lowestAsk = newLowestAsk; }
+void EquityPriceData::lowestAsk(double newLowestAsk) { d_lowestAsk = newLowestAsk; }
 
-void EquityPriceData::demandFactor(int newDemandFactor) { d_demandFactor = newDemandFactor; }
+void EquityPriceData::demandFactor(double newDemandFactor) { d_demandFactor = newDemandFactor; }
 
 void EquityPriceData::movingAverage(double newMovingAverage) { d_movingAverage = newMovingAverage; }
 
@@ -91,13 +91,13 @@ double FuturePriceData::pricesSumSquared() { return d_pricesSumSquared; }
 
 void FuturePriceData::underlying(Future newUnderlying) { d_future = newUnderlying; }
 
-void FuturePriceData::lastPrice(int newLastPrice) { d_lastPrice = newLastPrice; }
+void FuturePriceData::lastPrice(double newLastPrice) { d_lastPrice = newLastPrice; }
 
-void FuturePriceData::highestBid(int newHighestBid) { d_highestBid = newHighestBid; }
+void FuturePriceData::highestBid(double newHighestBid) { d_highestBid = newHighestBid; }
 
-void FuturePriceData::lowestAsk(int newLowestAsk) { d_lowestAsk = newLowestAsk; }
+void FuturePriceData::lowestAsk(double newLowestAsk) { d_lowestAsk = newLowestAsk; }
 
-void FuturePriceData::demandFactor(int newDemandFactor) { d_demandFactor = newDemandFactor; }
+void FuturePriceData::demandFactor(double newDemandFactor) { d_demandFactor = newDemandFactor; }
 
 void FuturePriceData::movingAverage(double newMovingAverage) { d_movingAverage = newMovingAverage; }
 
@@ -151,12 +151,16 @@ void Pricer::initialisePricerFutures()
 double standardDeviation(EquityPriceData& data)
 {
     double n = data.executions();
+    if (n < 2) return 0;
+
     return std::sqrt((data.pricesSumSquared() / n) - std::pow((data.pricesSum() / n), 2));
 }
 
 double standardDeviation(FuturePriceData& data)
 {
     double n = data.executions();
+    if (n < 2) return 0;
+
     return std::sqrt((data.pricesSumSquared() / n) - std::pow((data.pricesSum() / n), 2));
 }
 
@@ -247,7 +251,7 @@ OrderType Pricer::getOrderType()
 double Pricer::calculatePriceImpl(MarketSide mktSide, double lowestAsk, double highestBid,
                                   double demandFactor)
 {
-    double price;
+    double price = 0.0;
     OrderType type = getOrderType();
 
     double spread = lowestAsk - highestBid;
@@ -272,8 +276,9 @@ double Pricer::calculatePriceImpl(MarketSide mktSide, double lowestAsk, double h
                 }
                 else
                 {
-                    type = OrderType::AtSpread;
+                    price = highestBid;
                 }
+                break;
             }
 
             case (OrderType::CrossSpread):
@@ -313,8 +318,9 @@ double Pricer::calculatePriceImpl(MarketSide mktSide, double lowestAsk, double h
                 }
                 else
                 {
-                    type = OrderType::AtSpread;
+                    price = lowestAsk;
                 }
+                break;  // Prevent fall-through
             }
 
             case (OrderType::CrossSpread):
@@ -338,7 +344,7 @@ double Pricer::calculatePriceImpl(MarketSide mktSide, double lowestAsk, double h
         }
     }
 
-    return price;
+    return std::max(1.0, price);
 }
 
 double timeToExpiry(Future fut)
@@ -400,7 +406,7 @@ double Pricer::calculateQnty(Equity eq, MarketSide mktSide, double price)
     EquityPriceData data = getPriceData(eq);
     double n = data.executions();
 
-    double sigma = standardDeviation(data);
+    double sigma = n > 1 ? standardDeviation(data) : 0;
     double maxQuantity = baseOrderValue * std::abs(data.demandFactor()) / (price * (1 + sigma));
 
     if (maxQuantity < 1) return 1;
@@ -413,7 +419,7 @@ double Pricer::calculateQnty(Future fut, MarketSide mktSide, double price)
     FuturePriceData data = getPriceData(fut);
     double n = data.executions();
 
-    double sigma = standardDeviation(data);
+    double sigma = n > 1 ? standardDeviation(data) : 0;
     double maxQuantity = baseOrderValue * std::abs(data.demandFactor()) / (price * (1 + sigma));
 
     if (maxQuantity < 1) return 1;
@@ -452,9 +458,11 @@ void Pricer::update(matching::OrderPtr order)
 
             double newPrice = order->matchedPrice();
 
+            // Always update lastPrice
+            priceData.lastPrice(newPrice);
+
             if (priceData.executions() > 0)
             {
-                priceData.lastPrice(newPrice);
                 priceData.pricesSum(priceData.pricesSum() + newPrice);
                 priceData.pricesSumSquared(priceData.pricesSumSquared() + (newPrice * newPrice));
 

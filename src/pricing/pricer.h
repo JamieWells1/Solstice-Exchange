@@ -6,6 +6,7 @@
 #include <market_side.h>
 #include <order_book.h>
 #include <order_type.h>
+#include <time_point.h>
 
 #include <memory>
 #include <unordered_map>
@@ -56,10 +57,10 @@ struct EquityPriceData
 
     void underlying(Equity eq);
 
-    void lastPrice(int newLastPrice);
-    void highestBid(int newHighestBid);
-    void lowestAsk(int newLowestAsk);
-    void demandFactor(int newDemandFactor);
+    void lastPrice(double newLastPrice);
+    void highestBid(double newHighestBid);
+    void lowestAsk(double newLowestAsk);
+    void demandFactor(double newDemandFactor);
     void movingAverage(double newMovingAverage);
     void incrementExecutions();
     void pricesSum(double newPricesSum);
@@ -70,16 +71,16 @@ struct EquityPriceData
 
     Equity d_equity;
 
-    double d_lastPrice;
-    double d_highestBid;
-    double d_lowestAsk;
-    double d_demandFactor;
-    double d_movingAverage;
+    double d_lastPrice = 0.0;
+    double d_highestBid = 0.0;
+    double d_lowestAsk = 0.0;
+    double d_demandFactor = 0.0;
+    double d_movingAverage = 0.0;
 
     // used for pricing calculations
     int d_executions = 0;
-    double d_pricesSum;
-    double d_pricesSumSquared;
+    double d_pricesSum = 0.0;
+    double d_pricesSumSquared = 0.0;
 };
 
 struct FuturePriceData
@@ -106,10 +107,10 @@ struct FuturePriceData
 
     void underlying(Future fut);
 
-    void lastPrice(int newLastPrice);
-    void highestBid(int newHighestBid);
-    void lowestAsk(int newLowestAsk);
-    void demandFactor(int newDemandFactor);
+    void lastPrice(double newLastPrice);
+    void highestBid(double newHighestBid);
+    void lowestAsk(double newLowestAsk);
+    void demandFactor(double newDemandFactor);
     void movingAverage(double newMovingAverage);
     void incrementExecutions();
     void pricesSum(double newPricesSum);
@@ -120,16 +121,16 @@ struct FuturePriceData
 
     Future d_future;
 
-    double d_lastPrice;
-    double d_highestBid;
-    double d_lowestAsk;
-    double d_demandFactor;
-    double d_movingAverage;
+    double d_lastPrice = 0.0;
+    double d_highestBid = 0.0;
+    double d_lowestAsk = 0.0;
+    double d_demandFactor = 0.0;
+    double d_movingAverage = 0.0;
 
     // used for pricing calculations
     int d_executions = 0;
-    double d_pricesSum;
-    double d_pricesSumSquared;
+    double d_pricesSum = 0.0;
+    double d_pricesSumSquared = 0.0;
 };
 
 struct PricerDepOrderData
@@ -190,6 +191,9 @@ class Pricer
 
         currentDF *= 0.98;
         currentDF = std::max(-1.0, std::min(1.0, currentDF));
+
+        if (currentDF > 1) return 1;
+        if (currentDF < -1) return -1;
 
         return currentDF;
     }

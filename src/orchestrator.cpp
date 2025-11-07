@@ -28,6 +28,7 @@ Orchestrator::Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook,
 const Config& Orchestrator::config() const { return d_config; }
 const std::shared_ptr<OrderBook>& Orchestrator::orderBook() const { return d_orderBook; }
 const std::shared_ptr<Matcher>& Orchestrator::matcher() const { return d_matcher; }
+const std::shared_ptr<pricing::Pricer>& Orchestrator::pricer() const { return d_pricer; }
 
 std::map<Underlying, std::mutex>& Orchestrator::underlyingMutexes() { return d_underlyingMutexes; }
 

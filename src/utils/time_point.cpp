@@ -4,7 +4,7 @@
 
 TimePoint timeNow() { return std::chrono::system_clock::now(); }
 
-CurrentDate getCurrentDate()
+CurrentDate currentDate()
 {
     auto now = std::chrono::system_clock::now();
     auto nowTimeT = std::chrono::system_clock::to_time_t(now);
