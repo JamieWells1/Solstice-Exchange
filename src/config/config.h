@@ -58,8 +58,8 @@ struct Config
 
     LogLevel d_logLevel = LogLevel::DEBUG;
     AssetClass d_assetClass = AssetClass::Equity;
-    int d_ordersToGenerate = 100000;
-    int d_underlyingPoolCount = 50;
+    int d_ordersToGenerate = 10000;
+    int d_underlyingPoolCount = 1;
     int d_minQnty = 1;
     int d_maxQnty = 20;
     double d_minPrice = 9.0;

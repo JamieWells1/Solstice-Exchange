@@ -26,7 +26,7 @@ Order::Order(int uid, Underlying underlying, double price, double qnty, MarketSi
       d_marketSide(marketSide),
       d_timeOrderPlaced(timeOrderPlaced)
 {
-    d_orderComplete = false;
+    d_matched = false;
     d_outstandingQnty = qnty;
 }
 
@@ -75,7 +75,7 @@ Underlying Order::underlying() const { return d_underlying; }
 double Order::price() const
 {
     // d_price becomes irrelevant once an order is matched
-    if (orderComplete())
+    if (matched())
     {
         return d_matchedPrice;
     }
@@ -101,20 +101,20 @@ std::string Order::marketSideString() const
 
 TimePoint Order::timeOrderPlaced() const { return d_timeOrderPlaced; }
 
-bool Order::orderComplete() const { return d_orderComplete; }
+bool Order::matched() const { return d_matched; }
 
 double Order::matchedPrice() const { return d_matchedPrice; }
 
 // setters
 
-void Order::orderComplete(bool isFulfilled) { d_orderComplete = isFulfilled; }
+void Order::matched(bool isFulfilled) { d_matched = isFulfilled; }
 
 void Order::matchedPrice(double matchedPrice) { d_matchedPrice = matchedPrice; }
 
 std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
 {
     // Cannot return time of fulfillment if fulfillment hasn't yet occured
-    if (!d_orderComplete)
+    if (!d_matched)
     {
         return std::unexpected("Order has not been fulfilled yet\n");
     }

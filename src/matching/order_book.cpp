@@ -223,7 +223,7 @@ void OrderBook::removeOrderFromBook(OrderPtr orderToRemove)
 
 void OrderBook::markOrderAsFulfilled(OrderPtr completedOrder, double matchedPrice)
 {
-    completedOrder->orderComplete(true);
+    completedOrder->matched(true);
     // match price may not be equal to initial order price
     completedOrder->matchedPrice(matchedPrice);
 

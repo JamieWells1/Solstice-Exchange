@@ -189,11 +189,10 @@ class Pricer
             currentDF += 0.15;
         }
 
-        currentDF *= 0.98;
+        // Mean reversion toward 0 instead of decay
+        // Gently pull toward 0, but don't force it there
+        currentDF = currentDF * 0.95 + 0.0 * 0.05;
         currentDF = std::max(-1.0, std::min(1.0, currentDF));
-
-        if (currentDF > 1) return 1;
-        if (currentDF < -1) return -1;
 
         return currentDF;
     }
@@ -213,11 +212,23 @@ class Pricer
             underlying);
     }
 
-   private:
-    double generateSeedPrice();
-
+   public:
     EquityPriceData& getPriceData(Equity eq);
     FuturePriceData& getPriceData(Future fut);
+
+    // propogate results from market side calc
+    double calculatePrice(Equity eq, MarketSide mktSide);
+    double calculatePrice(Future fut, MarketSide mktSide);
+
+    double calculatePriceImpl(MarketSide mktSide, double lowestAsk, double highestBid,
+                              double demandFactor);
+
+    // propogate results from market side calc and price calc
+    double calculateQnty(Equity eq, MarketSide mktSide, double price);
+    double calculateQnty(Future fut, MarketSide mktSide, double price);
+
+   private:
+    double generateSeedPrice();
 
     template <typename Func>
     auto withPriceData(Underlying underlying, Func&& func)
@@ -240,18 +251,7 @@ class Pricer
 
     OrderType getOrderType();
 
-    // propogate results from market side calc
-    double calculatePrice(Equity eq, MarketSide mktSide);
-    double calculatePrice(Future fut, MarketSide mktSide);
-
     double calculateCarryAdjustment(Future fut);
-
-    double calculatePriceImpl(MarketSide mktSide, double lowestAsk, double highestBid,
-                              double demandFactor);
-
-    // propogate results from market side calc and price calc
-    double calculateQnty(Equity eq, MarketSide mktSide, double price);
-    double calculateQnty(Future fut, MarketSide mktSide, double price);
 
     std::unordered_map<Equity, EquityPriceData> d_equityDataMap;
     std::unordered_map<Future, FuturePriceData> d_futureDataMap;

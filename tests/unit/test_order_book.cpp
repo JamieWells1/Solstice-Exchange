@@ -138,7 +138,7 @@ TEST_F(OrderBookFixture, MarkOrderAsFulfilledRemovesOrder)
     orderBook->addOrderToBook(*order);
     orderBook->markOrderAsFulfilled(*order, 100);
 
-    EXPECT_TRUE((*order)->orderComplete());
+    EXPECT_TRUE((*order)->matched());
 }
 
 TEST_F(OrderBookFixture, MarkOrderAsFulfilledRemovesPriceWhenLastOrder)

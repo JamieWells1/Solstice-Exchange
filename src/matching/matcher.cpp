@@ -52,11 +52,16 @@ std::string Matcher::matchSuccessOutput(OrderPtr incomingOrder, OrderPtr matched
     const double dealPrice = getDealPrice(incomingOrder, matchedOrder);
 
     std::ostringstream oss;
-    oss << incomingOrder->uid() << ", " << matchedOrder->uid() << "]\n"
-        << "Incoming: " << incomingOrder->marketSideString() << " "
-        << to_string(incomingOrder->underlying()) << " @ " << incomingOrder->price()
-        << ", total: " << incomingOrder->qnty()
-        << ", remaining: " << incomingOrder->outstandingQnty();
+
+    // Incoming order
+    oss << "Order: " << incomingOrder->uid()
+        << " | Status: Matched"
+        << " | Matched with: " << matchedOrder->uid()
+        << " | Side: " << incomingOrder->marketSideString()
+        << " | Ticker: " << to_string(incomingOrder->underlying())
+        << " | Price: $" << incomingOrder->price()
+        << " | Qnty: " << incomingOrder->qnty()
+        << " | Remaining Qnty: " << incomingOrder->outstandingQnty();
 
     if (incomingOrder->outstandingQnty() == 0)
     {
@@ -64,10 +69,15 @@ std::string Matcher::matchSuccessOutput(OrderPtr incomingOrder, OrderPtr matched
     }
     oss << "\n";
 
-    oss << "Matched: " << matchedOrder->marketSideString() << " "
-        << to_string(matchedOrder->underlying()) << " @ " << matchedOrder->price()
-        << ", total: " << matchedOrder->qnty()
-        << ", remaining: " << matchedOrder->outstandingQnty();
+    // Matched order
+    oss << "Order: " << matchedOrder->uid()
+        << " | Status: Matched"
+        << " | Matched with: " << incomingOrder->uid()
+        << " | Side: " << matchedOrder->marketSideString()
+        << " | Ticker: " << to_string(matchedOrder->underlying())
+        << " | Price: $" << matchedOrder->price()
+        << " | Qnty: " << matchedOrder->qnty()
+        << " | Remaining Qnty: " << matchedOrder->outstandingQnty();
 
     if (matchedOrder->outstandingQnty() == 0)
     {

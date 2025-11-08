@@ -4,11 +4,10 @@
 #include <market_side.h>
 #include <order_type.h>
 #include <pricer.h>
+#include <time_point.h>
 
 #include <cmath>
 #include <unordered_map>
-
-#include "time_point.h"
 
 namespace solstice::pricing
 {
@@ -267,10 +266,12 @@ double Pricer::calculatePriceImpl(MarketSide mktSide, double lowestAsk, double h
             {
                 if (spread > 0)
                 {
-                    // make price within spread influenced by demandFactor rather than completely
-                    // random
-                    double priceLowerBound = (highestBid + ((halfSpread)*demandFactor));
-                    double priceUpperBound = (lowestAsk + ((halfSpread)*demandFactor));
+                    double shift = halfSpread * demandFactor * 0.5;  // use 50% of half-spread
+                    double targetPrice = midSpread + shift;
+                    double priceRange = halfSpread * 0.3;  // 30% of half-spread as range
+
+                    double priceLowerBound = std::max(highestBid, targetPrice - priceRange);
+                    double priceUpperBound = std::min(lowestAsk, targetPrice + priceRange);
 
                     price = Random::getRandomDouble(priceLowerBound, priceUpperBound);
                 }
@@ -285,12 +286,16 @@ double Pricer::calculatePriceImpl(MarketSide mktSide, double lowestAsk, double h
             {
                 if (spread > 0)
                 {
-                    double offset = halfSpread * std::abs(demandFactor);
+                    double offset = halfSpread * std::abs(demandFactor) * 0.5;
 
-                    double priceLowerBound = lowestAsk + offset;
-                    double priceUpperBound = priceLowerBound + offset;
+                    double priceLowerBound = lowestAsk;
+                    double priceUpperBound = lowestAsk + offset;
 
                     price = Random::getRandomDouble(priceLowerBound, priceUpperBound);
+                }
+                else
+                {
+                    price = lowestAsk;
                 }
                 break;
             }
@@ -298,6 +303,7 @@ double Pricer::calculatePriceImpl(MarketSide mktSide, double lowestAsk, double h
             case (OrderType::AtSpread):
             {
                 price = highestBid;
+                break;
             }
         }
     }
@@ -311,8 +317,12 @@ double Pricer::calculatePriceImpl(MarketSide mktSide, double lowestAsk, double h
             {
                 if (spread > 0)
                 {
-                    double priceLowerBound = (highestBid - ((halfSpread)*demandFactor));
-                    double priceUpperBound = (lowestAsk - ((halfSpread)*demandFactor));
+                    double shift = halfSpread * demandFactor * 0.5;  // use 50% of half-spread
+                    double targetPrice = midSpread + shift;
+                    double priceRange = halfSpread * 0.3;  // 30% of half-spread as range
+
+                    double priceLowerBound = std::max(highestBid, targetPrice - priceRange);
+                    double priceUpperBound = std::min(lowestAsk, targetPrice + priceRange);
 
                     price = Random::getRandomDouble(priceLowerBound, priceUpperBound);
                 }
@@ -320,19 +330,23 @@ double Pricer::calculatePriceImpl(MarketSide mktSide, double lowestAsk, double h
                 {
                     price = lowestAsk;
                 }
-                break;  // Prevent fall-through
+                break;
             }
 
             case (OrderType::CrossSpread):
             {
                 if (spread > 0)
                 {
-                    double offset = halfSpread * std::abs(demandFactor);
+                    double offset = halfSpread * std::abs(demandFactor) * 0.5;
 
-                    double priceUpperBound = highestBid - offset;
-                    double priceLowerBound = priceUpperBound - offset;
+                    double priceUpperBound = highestBid;
+                    double priceLowerBound = std::max(1.0, highestBid - offset);
 
                     price = Random::getRandomDouble(priceLowerBound, priceUpperBound);
+                }
+                else
+                {
+                    price = highestBid;
                 }
                 break;
             }
@@ -340,6 +354,7 @@ double Pricer::calculatePriceImpl(MarketSide mktSide, double lowestAsk, double h
             case (OrderType::AtSpread):
             {
                 price = lowestAsk;
+                break;
             }
         }
     }
@@ -371,16 +386,34 @@ double Pricer::calculateCarryAdjustment(Future fut)
     double t = timeToExpiry(fut);
 
     // where r is risk-free rate
-    return spot * std::exp(r * t);
+    return spot * std::exp(r * t) - spot;
 }
 
 double Pricer::calculatePrice(Equity eq, MarketSide mktSide)
 {
-    EquityPriceData data = getPriceData(eq);
-    if (data.executions() == 0)
+    EquityPriceData& data = getPriceData(eq);
+
+    if (data.highestBid() == 0.0 && data.lowestAsk() == 0.0)
     {
-        // return early and set the first order to be initial price set by pricer
-        return data.lastPrice();
+        double initialPrice = data.lastPrice();
+        double spreadWidth = initialPrice * 0.002;  // 0.2% initial spread (tighter)
+
+        data.highestBid(initialPrice - spreadWidth / 2);
+        data.lowestAsk(initialPrice + spreadWidth / 2);
+    }
+    else if (data.executions() >= 10)
+    {
+        double basePrice = data.movingAverage();
+        double sigma = standardDeviation(data);
+
+        double spreadWidth = basePrice * (0.002 + sigma * 0.0015);  // Reduced volatility component
+
+        double targetBid = basePrice - spreadWidth / 2;
+        double targetAsk = basePrice + spreadWidth / 2;
+
+        data.highestBid(data.highestBid() * 0.95 +
+                        targetBid * 0.05);  // Adjust spread more gradually
+        data.lowestAsk(data.lowestAsk() * 0.95 + targetAsk * 0.05);
     }
 
     return calculatePriceImpl(mktSide, data.lowestAsk(), data.highestBid(), data.demandFactor());
@@ -388,11 +421,27 @@ double Pricer::calculatePrice(Equity eq, MarketSide mktSide)
 
 double Pricer::calculatePrice(Future fut, MarketSide mktSide)
 {
-    FuturePriceData data = getPriceData(fut);
-    if (data.executions() == 0)
+    FuturePriceData& data = getPriceData(fut);
+    double basePrice = data.lastPrice();
+
+    if (data.executions() > 0)
     {
-        return data.lastPrice();
+        basePrice = data.movingAverage();
     }
+
+    double spreadWidth;
+    if (data.executions() > 1)
+    {
+        double sigma = standardDeviation(data);
+        spreadWidth = basePrice * (0.005 + sigma * 0.01);  // 0.5% base + volatility component
+    }
+    else
+    {
+        spreadWidth = basePrice * 0.01;  // 1% initial spread
+    }
+
+    data.highestBid(basePrice - spreadWidth / 2);
+    data.lowestAsk(basePrice + spreadWidth / 2);
 
     double costOfCarry = calculateCarryAdjustment(fut);
     double adjustedBid = data.highestBid() + costOfCarry;
@@ -406,10 +455,13 @@ double Pricer::calculateQnty(Equity eq, MarketSide mktSide, double price)
     EquityPriceData data = getPriceData(eq);
     double n = data.executions();
 
-    double sigma = n > 1 ? standardDeviation(data) : 0;
-    double maxQuantity = baseOrderValue * std::abs(data.demandFactor()) / (price * (1 + sigma));
+    double demandScale = 0.3 + (0.7 * std::abs(data.demandFactor()));
 
-    if (maxQuantity < 1) return 1;
+    double sigma = n > 1 ? standardDeviation(data) : 0;
+    double volAdjustment = std::min(sigma, 0.5);
+
+    double maxQuantity = baseOrderValue * demandScale / (price * (1 + volAdjustment));
+    if (maxQuantity < 10) return Random::getRandomDouble(1.0, 10.0);
 
     return Random::getRandomDouble(1.0, maxQuantity);
 }
@@ -418,11 +470,14 @@ double Pricer::calculateQnty(Future fut, MarketSide mktSide, double price)
 {
     FuturePriceData data = getPriceData(fut);
     double n = data.executions();
+    double demandScale = 0.3 + (0.7 * std::abs(data.demandFactor()));
 
     double sigma = n > 1 ? standardDeviation(data) : 0;
-    double maxQuantity = baseOrderValue * std::abs(data.demandFactor()) / (price * (1 + sigma));
+    double volAdjustment = std::min(sigma, 0.5);
 
-    if (maxQuantity < 1) return 1;
+    double maxQuantity = baseOrderValue * demandScale / (price * (1 + volAdjustment));
+
+    if (maxQuantity < 10) return Random::getRandomDouble(1.0, 10.0);
 
     return Random::getRandomDouble(1.0, maxQuantity);
 }
@@ -440,52 +495,59 @@ void Pricer::update(matching::OrderPtr order)
             bool isBid = order->marketSide() == MarketSide::Bid;
             bool isAsk = order->marketSide() == MarketSide::Ask;
 
-            if (isBid)
+            if (order->matched())
             {
-                if (!priceData.highestBid() || priceData.highestBid() < order->matchedPrice())
+                double matchedPrice = order->matchedPrice();
+
+                if (isBid && (!priceData.highestBid() || priceData.highestBid() < matchedPrice))
                 {
-                    priceData.highestBid(order->matchedPrice());
+                    priceData.highestBid(matchedPrice);
                 }
-            }
 
-            if (isAsk)
-            {
-                if (!priceData.lowestAsk() || priceData.lowestAsk() > order->matchedPrice())
+                if (isAsk && (!priceData.lowestAsk() || priceData.lowestAsk() > matchedPrice))
                 {
-                    priceData.lowestAsk(order->matchedPrice());
+                    priceData.lowestAsk(matchedPrice);
                 }
-            }
 
-            double newPrice = order->matchedPrice();
+                priceData.lastPrice(matchedPrice);
 
-            // Always update lastPrice
-            priceData.lastPrice(newPrice);
+                if (priceData.executions() >= 10)  // Only update movingAverage after 10 executions
+                {
+                    priceData.pricesSum(priceData.pricesSum() + matchedPrice);
+                    priceData.pricesSumSquared(priceData.pricesSumSquared() +
+                                               (matchedPrice * matchedPrice));
 
-            if (priceData.executions() > 0)
-            {
-                priceData.pricesSum(priceData.pricesSum() + newPrice);
-                priceData.pricesSumSquared(priceData.pricesSumSquared() + (newPrice * newPrice));
+                    // Calculate new moving average in O(1) time
+                    int e = priceData.executions();
+                    int n = std::min(e, priceData.maRange());
 
-                // calculate new moving average in O(1) time
-                int e = priceData.executions();
-                int n = std::min(e, priceData.maRange());
+                    double totalMinusCurrent = priceData.movingAverage() * n;
+                    double totalInclCurrent = totalMinusCurrent + matchedPrice;
+                    double newMovingAverage = totalInclCurrent / (n + 1);
+                    priceData.movingAverage(newMovingAverage);
+                }
+                else if (priceData.executions() == 0)
+                {
+                    priceData.movingAverage(matchedPrice);
+                }
 
-                // at this point, neither movingAverage nor executions have been updated
-                double totalMinusCurrent = priceData.movingAverage() * n;
-                double totalInclCurrent = totalMinusCurrent + newPrice;
-                double newMovingAverage = totalInclCurrent / (n + 1);
-                priceData.movingAverage(newMovingAverage);
+                priceData.incrementExecutions();
+                priceData.demandFactor(updatedDemandFactor(priceData));
             }
             else
             {
-                // movingAverage = lastPrice if it's first order at this underlying
-                priceData.movingAverage(newPrice);
+                double orderPrice = order->price();
+
+                if (isBid && (!priceData.highestBid() || priceData.highestBid() < orderPrice))
+                {
+                    priceData.highestBid(orderPrice);
+                }
+
+                if (isAsk && (!priceData.lowestAsk() || priceData.lowestAsk() > orderPrice))
+                {
+                    priceData.lowestAsk(orderPrice);
+                }
             }
-
-            priceData.incrementExecutions();
-
-            // calculate new demand factor
-            priceData.demandFactor(updatedDemandFactor(priceData));
         });
 }
 

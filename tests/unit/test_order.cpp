@@ -70,7 +70,7 @@ TEST(OrderTests, OrderInitiallyNotComplete)
 {
     auto result = Order::create(0, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(result.has_value());
-    EXPECT_FALSE(result.value()->orderComplete());
+    EXPECT_FALSE(result.value()->matched());
 }
 
 TEST(OrderTests, OrderOutstandingQntyInitiallyEqualsQnty)
@@ -92,8 +92,8 @@ TEST(OrderTests, CanMarkOrderAsComplete)
 {
     auto result = Order::create(0, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(result.has_value());
-    result.value()->orderComplete(true);
-    EXPECT_TRUE(result.value()->orderComplete());
+    result.value()->matched(true);
+    EXPECT_TRUE(result.value()->matched());
 }
 
 TEST(OrderTests, TimeOrderFulfilledFailsWhenNotComplete)

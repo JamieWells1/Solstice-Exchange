@@ -2,9 +2,9 @@
 #define ORDER_H
 
 #include <asset_class.h>
+#include <config.h>
 #include <market_side.h>
 #include <time_point.h>
-#include <config.h>
 
 #include <ctime>
 #include <expected>
@@ -29,7 +29,8 @@ class Order
     static std::expected<std::shared_ptr<Order>, std::string> createWithPricer(
         std::shared_ptr<pricing::Pricer> pricer, int uid, Underlying underlying);
 
-    static std::expected<std::shared_ptr<Order>, std::string> createWithRandomValues(Config d_config, int uid, Underlying underlying);
+    static std::expected<std::shared_ptr<Order>, std::string> createWithRandomValues(
+        Config d_config, int uid, Underlying underlying);
 
     int uid() const;
     Underlying underlying() const;
@@ -41,10 +42,10 @@ class Order
     TimePoint timeOrderPlaced() const;
     std::expected<TimePoint, std::string> timeOrderFulfilled() const;
     double outstandingQnty(double newQnty);
-    bool orderComplete() const;
+    bool matched() const;
     double matchedPrice() const;
 
-    void orderComplete(bool isFulfilled);
+    void matched(bool isFulfilled);
     void matchedPrice(double matchedPrice);
 
     static double getRandomPrice(int minPrice, int maxPrice);
@@ -68,7 +69,7 @@ class Order
     MarketSide d_marketSide;
     TimePoint d_timeOrderPlaced;
     TimePoint d_timeOrderFulfilled;
-    bool d_orderComplete;
+    bool d_matched;
     double d_matchedPrice;
 };
 

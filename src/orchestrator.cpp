@@ -71,12 +71,23 @@ bool Orchestrator::processOrder(OrderPtr order)
 
         auto orderMatched = matcher()->matchOrder(order);
 
+        // Always update pricer (handles both matched and unmatched orders)
+        d_pricer->update(order);
+
         if (!orderMatched)
         {
             if (config().logLevel() >= LogLevel::DEBUG)
             {
-                std::cout << "Order " << order->uid()
-                          << " failed to match: " << orderMatched.error();
+                std::lock_guard<std::mutex> outputLock(d_outputMutex);
+                std::cout << "Order: " << order->uid()
+                          << " | Status: Dropped"
+                          << " | Matched with: N/A"
+                          << " | Side: " << order->marketSideString()
+                          << " | Ticker: " << to_string(order->underlying())
+                          << " | Price: $" << order->price()
+                          << " | Qnty: " << order->qnty()
+                          << " | Remaining Qnty: " << order->outstandingQnty()
+                          << " | Reason: " << orderMatched.error() << "\n";
             }
 
             return false;
@@ -85,10 +96,10 @@ bool Orchestrator::processOrder(OrderPtr order)
         {
             if (config().logLevel() >= LogLevel::DEBUG)
             {
+                std::lock_guard<std::mutex> outputLock(d_outputMutex);
                 std::cout << *orderMatched;
             }
 
-            d_pricer->update(order);
             return true;
         }
     }
@@ -98,12 +109,23 @@ bool Orchestrator::processOrder(OrderPtr order)
         d_orderBook->addOrderToBook(order);
 
         auto orderMatched = d_matcher->matchOrder(order);
+
+        pricer()->update(order);
+
         if (!orderMatched)
         {
             if (d_config.logLevel() >= LogLevel::DEBUG)
             {
-                std::cout << "Order " << order->uid()
-                          << " failed to match: " << orderMatched.error();
+                std::lock_guard<std::mutex> outputLock(d_outputMutex);
+                std::cout << "Order: " << order->uid()
+                          << " | Status: Dropped"
+                          << " | Matched with: N/A"
+                          << " | Side: " << order->marketSideString()
+                          << " | Ticker: " << to_string(order->underlying())
+                          << " | Price: $" << order->price()
+                          << " | Qnty: " << order->qnty()
+                          << " | Remaining Qnty: " << order->outstandingQnty()
+                          << " | Reason: " << orderMatched.error() << "\n";
             }
 
             return false;
@@ -112,10 +134,10 @@ bool Orchestrator::processOrder(OrderPtr order)
         {
             if (d_config.logLevel() >= LogLevel::DEBUG)
             {
+                std::lock_guard<std::mutex> outputLock(d_outputMutex);
                 std::cout << *orderMatched;
             }
 
-            pricer()->update(order);
             return true;
         }
     }

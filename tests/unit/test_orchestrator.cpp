@@ -97,7 +97,7 @@ TEST_F(OrchestratorFixture, ProcessOrderMarksFulfilledOnMatch)
 
     orch.processOrder(*askOrder);
 
-    EXPECT_TRUE((*askOrder)->orderComplete());
+    EXPECT_TRUE((*askOrder)->matched());
 }
 
 }  // namespace solstice::matching

@@ -54,6 +54,7 @@ class Orchestrator
     std::map<Underlying, std::mutex> d_underlyingMutexes;
     std::queue<OrderPtr> d_orderProcessQueue;
     std::mutex d_queueMutex;
+    std::mutex d_outputMutex;  // Protects std::cout from interleaving
     std::condition_variable d_queueConditionVar;
     std::atomic<bool> d_done{false};
 };
