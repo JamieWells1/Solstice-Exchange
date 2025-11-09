@@ -319,8 +319,6 @@ void Broadcaster::broadcastOrder(const std::shared_ptr<Order>& order)
         return;
     }
 
-    // Fast path: pre-serialize JSON before enqueueing to avoid multiple allocations
-    // This is still on the critical path but unavoidable for correctness
     json msg = {{"type", "order"},
                 {"order_id", order->uid()},
                 {"symbol", to_string(order->underlying())},
@@ -331,7 +329,6 @@ void Broadcaster::broadcastOrder(const std::shared_ptr<Order>& order)
                 {"matched", order->matched()},
                 {"timestamp", timePointToNanos(order->timeOrderPlaced())}};
 
-    // Try non-blocking enqueue to avoid waiting if broadcaster is backed up
     std::unique_lock<std::mutex> lock(d_queueMutex, std::try_to_lock);
     if (lock.owns_lock())
     {
@@ -339,7 +336,6 @@ void Broadcaster::broadcastOrder(const std::shared_ptr<Order>& order)
         lock.unlock();
         d_queueCV.notify_one();
     }
-    // If lock fails, drop the message rather than blocking order processing
 }
 
 void Broadcaster::broadcastBookUpdate(const Underlying& underlying,
