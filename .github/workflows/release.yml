@@ -51,9 +51,28 @@ jobs:
           fi
 
           git log "$RANGE" --pretty=format:"%h %s" > commits.txt
-          git diff "$RANGE" > diff.txt
 
-          python3 <<'PYCODE'
+          # Generate concise diff: stat + changed files only (not full content)
+          git diff "$RANGE" --stat=200 > diff_stat.txt
+          git diff "$RANGE" --name-status > diff_files.txt
+
+          # Sample actual diff content from key files (limit to 5000 lines max)
+          git diff "$RANGE" -- '*.h' '*.cpp' '*.md' '*.yml' '*.json' | head -n 5000 > diff_sample.txt
+
+          # Combine into concise diff
+          {
+            echo "=== Changed Files ==="
+            cat diff_files.txt
+            echo ""
+            echo "=== Diff Statistics ==="
+            cat diff_stat.txt
+            echo ""
+            echo "=== Sample Changes (first 5000 lines) ==="
+            cat diff_sample.txt
+          } > diff.txt
+
+          # Create Python script
+          cat > generate_release.py << 'PYSCRIPT'
           import os, json
           from openai import OpenAI
 
@@ -64,45 +83,11 @@ jobs:
           diff = open("diff.txt").read()
           tag = os.getenv("GITHUB_REF_NAME", "unknown")
 
-          prompt = f"""
-          You are an expert software release analyst.
-
-          You will be given:
-          1. Commit messages (developer intent hints)
-          2. Full code diff (objective source of truth)
-
-          Your task:
-          Produce strictly factual, concise release notes describing only what is verifiably present in the diff.
-
-          ### Output JSON Keys
-          ["SHORT_TITLE", "SUMMARY", "FEATURE_GROUP", "DETAILS", "ENHANCEMENTS", "BUG_DESCRIPTIONS", "DOC_UPDATES"]
-
-          ### Hard Rules
-          - Never infer or assume functionality not directly shown in the diff.
-          - Mention a feature/module only if it clearly appears in the diff (file paths, identifiers, comments).
-          - Ignore commit messages that describe work not reflected in the diff.
-          - If the diff mostly moves/renames files, treat it as a structural reorganization.
-          - Exclude trivial edits: formatting, imports, comments, or whitespace changes.
-          - Only include significant, user-visible, or structural changes.
-          - Merge related small edits into single concise bullets.
-          - Each bullet must communicate meaningful impact.
-          - Keep SHORT_TITLE ≤ 8 words; SUMMARY ≤ 3 sentences.
-          - Output valid JSON only (no code fences, no markdown commentary).
-
-          ### Prioritization Order
-          1. Identify dominant change type (refactor, feature, bug fix, doc update).
-          2. Summarize that as SHORT_TITLE and SUMMARY.
-          3. Group verified edits under correct sections.
-
-          Context:
-          Version: {tag}
-
-          ## Commit Messages
-          {commits}
-
-          ## Diff
-          {diff}
-          """
+          prompt = f"Generate concise JSON release notes for {tag}.\n\n"
+          prompt += 'Output format: {"SHORT_TITLE": "...", "SUMMARY": "...", "FEATURE_GROUP": "...", "DETAILS": "...", "ENHANCEMENTS": "...", "BUG_DESCRIPTIONS": "...", "DOC_UPDATES": "..."}\n\n'
+          prompt += "Rules:\n- SHORT_TITLE: max 8 words\n- SUMMARY: max 3 sentences\n"
+          prompt += "- Focus on user-visible changes\n- Ignore formatting/trivial edits\n- Output valid JSON only\n\n"
+          prompt += f"Commits:\n{commits}\n\nDiff Summary:\n{diff}"
 
           resp = client.chat.completions.create(
               model="gpt-4o-mini",
@@ -114,7 +99,7 @@ jobs:
 
           content = resp.choices[0].message.content
 
-          # --- Normalize response content ---
+          # Normalize response content
           if not content:
               raise RuntimeError("OpenAI returned no content")
 
@@ -126,7 +111,7 @@ jobs:
           else:
               text = str(content)
 
-          # --- Clean and parse JSON ---
+          # Clean and parse JSON
           text = text.replace('```json', '').replace('```', '').strip()
 
           if not text:
@@ -135,14 +120,16 @@ jobs:
           try:
               data = json.loads(text)
           except json.JSONDecodeError as e:
-              raise RuntimeError(f"Invalid JSON from model:\n{text}\n\nError: {e}")
+              raise RuntimeError(f"Invalid JSON from model: {text} Error: {e}")
 
-          # --- Write outputs into GitHub Actions environment ---
+          # Write outputs into GitHub Actions environment
           with open(os.getenv("GITHUB_ENV"), "a") as envfile:
               for key, value in data.items():
-                  value = str(value).replace("%", "%%")  # ensure string + protect %
+                  value = str(value).replace("%", "%%")
                   envfile.write(f"{key}<<EOF\n{value}\nEOF\n")
-          PYCODE
+          PYSCRIPT
+
+          python3 generate_release.py
 
       # ==============================================================
       # STEP 2: Substitute the placeholders with AI output
