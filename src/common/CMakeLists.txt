@@ -1,4 +1,4 @@
-add_library(common STATIC order.cpp transaction.cpp asset_class.cpp)
+add_library(common STATIC order.cpp transaction.cpp asset_class.cpp broadcaster.cpp)
 
 target_include_directories(common
     PUBLIC

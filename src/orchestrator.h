@@ -6,9 +6,11 @@
 #include <order.h>
 #include <order_book.h>
 #include <pricer.h>
+#include <broadcaster.h>
 
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <queue>
 
 namespace solstice::matching
@@ -20,7 +22,8 @@ class Orchestrator
     static std::expected<void, std::string> start();
 
     Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook,
-                 std::shared_ptr<Matcher> matcher, std::shared_ptr<pricing::Pricer> pricer);
+                 std::shared_ptr<Matcher> matcher, std::shared_ptr<pricing::Pricer> pricer,
+                 bool enableBroadcaster = false);
 
     bool processOrder(OrderPtr order);
 
@@ -50,11 +53,12 @@ class Orchestrator
     std::shared_ptr<OrderBook> d_orderBook;
     std::shared_ptr<Matcher> d_matcher;
     std::shared_ptr<pricing::Pricer> d_pricer;
+    std::optional<Broadcaster> d_broadcaster;
 
     std::map<Underlying, std::mutex> d_underlyingMutexes;
     std::queue<OrderPtr> d_orderProcessQueue;
     std::mutex d_queueMutex;
-    std::mutex d_outputMutex;  // Protects std::cout from interleaving
+    std::mutex d_outputMutex;  // protects std::cout from interleaving
     std::condition_variable d_queueConditionVar;
     std::atomic<bool> d_done{false};
 };

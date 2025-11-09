@@ -227,6 +227,8 @@ void OrderBook::markOrderAsFulfilled(OrderPtr completedOrder, double matchedPric
     // match price may not be equal to initial order price
     completedOrder->matchedPrice(matchedPrice);
 
+    
+
     removeOrderFromBook(completedOrder);
 
     // only remove from prices set if it's the last order left at

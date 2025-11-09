@@ -20,9 +20,13 @@ namespace solstice::matching
 
 Orchestrator::Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook,
                            std::shared_ptr<Matcher> matcher,
-                           std::shared_ptr<pricing::Pricer> pricer)
+                           std::shared_ptr<pricing::Pricer> pricer, bool enableBroadcaster)
     : d_config(config), d_orderBook(orderBook), d_matcher(matcher), d_pricer(pricer)
 {
+    if (enableBroadcaster)
+    {
+        d_broadcaster.emplace();
+    }
 }
 
 const Config& Orchestrator::config() const { return d_config; }
