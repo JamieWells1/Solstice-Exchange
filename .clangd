@@ -3,4 +3,6 @@ CompileFlags:
     - -std=c++23
     - -I/Library/Frameworks/Python.framework/Versions/3.13/include/python3.13
     - -I/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pybind11/include
+    - -I/opt/homebrew/include
     - -Isrc
+  CompilationDatabase: build

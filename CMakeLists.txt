@@ -8,6 +8,17 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+include_directories(
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/websocketpp
+)
+
+cmake_policy(SET CMP0167 OLD)
+
+# Find Boost (required by websocketpp)
+find_package(Boost REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+
 include(FetchContent)
 
 # Find Python
@@ -22,7 +33,7 @@ FetchContent_Declare(
 
 FetchContent_Declare(
   googletest
-  URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+  URL https://github.com/google/googletest/archive/refs/tags/v1.17.0.zip
 )
 
 FetchContent_MakeAvailable(pybind11 googletest)

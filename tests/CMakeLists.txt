@@ -7,6 +7,7 @@ add_executable(tests ${TEST_SOURCES})
 target_link_libraries(tests
     PRIVATE
     gtest_main
+    ${Boost_LIBRARIES}
     orchestrator
     matching
     pricing

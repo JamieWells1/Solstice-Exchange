@@ -40,7 +40,7 @@ struct Transaction
     TimePoint d_timeExecuted;
 };
 
-std::ostream& operator<<(std::ostream os, const Transaction& transaction);
+std::ostream& operator<<(std::ostream& os, const Transaction& transaction);
 
 }  // namespace solstice::matching
 

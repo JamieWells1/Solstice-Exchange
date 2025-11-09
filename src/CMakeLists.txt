@@ -43,3 +43,5 @@ target_include_directories(solstice PRIVATE
 target_compile_definitions(solstice PRIVATE ENABLE_LOGGING)
 
 target_link_libraries(solstice PRIVATE orchestrator matching pricing strategy common utils config enums)
+
+target_link_libraries(solstice PRIVATE ${Boost_LIBRARIES})
