@@ -136,11 +136,11 @@ struct FuturePriceData
 struct PricerDepOrderData
 {
    public:
-    PricerDepOrderData(MarketSide d_marketSide, double d_price, double d_qnty);
+    PricerDepOrderData(MarketSide d_marketSide, double d_price, int d_qnty);
 
     MarketSide marketSide();
     double price();
-    double qnty();
+    int qnty();
 
    private:
     MarketSide d_marketSide;
@@ -224,8 +224,8 @@ class Pricer
                               double demandFactor);
 
     // propogate results from market side calc and price calc
-    double calculateQnty(Equity eq, MarketSide mktSide, double price);
-    double calculateQnty(Future fut, MarketSide mktSide, double price);
+    int calculateQnty(Equity eq, MarketSide mktSide, double price);
+    int calculateQnty(Future fut, MarketSide mktSide, double price);
 
    private:
     double generateSeedPrice();

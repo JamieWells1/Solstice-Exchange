@@ -17,7 +17,7 @@ using namespace solstice;
 namespace solstice
 {
 
-Order::Order(int uid, Underlying underlying, double price, double qnty, MarketSide marketSide,
+Order::Order(int uid, Underlying underlying, double price, int qnty, MarketSide marketSide,
              TimePoint timeOrderPlaced)
     : d_uid(uid),
       d_underlying(underlying),
@@ -31,7 +31,7 @@ Order::Order(int uid, Underlying underlying, double price, double qnty, MarketSi
 }
 
 std::expected<std::shared_ptr<Order>, std::string> Order::create(int uid, Underlying underlying,
-                                                                 double price, double qnty,
+                                                                 double price, int qnty,
                                                                  MarketSide marketSide)
 {
     TimePoint timeOrderPlaced = timeNow();
@@ -82,11 +82,11 @@ double Order::price() const
     return d_price;
 }
 
-double Order::qnty() const { return d_qnty; }
+int Order::qnty() const { return d_qnty; }
 
-double Order::outstandingQnty() const { return d_outstandingQnty; }
+int Order::outstandingQnty() const { return d_outstandingQnty; }
 
-double Order::outstandingQnty(double newOutstandingQnty)
+int Order::outstandingQnty(int newOutstandingQnty)
 {
     d_outstandingQnty = newOutstandingQnty;
     return newOutstandingQnty;
@@ -121,12 +121,12 @@ std::expected<TimePoint, std::string> Order::timeOrderFulfilled() const
     return d_timeOrderFulfilled;
 }
 
-double Order::getRandomPrice(int minPrice, int maxPrice)
+double Order::getRandomPrice(double minPrice, double maxPrice)
 {
     return Random::getRandomDouble(minPrice, maxPrice);
 }
 
-double Order::getRandomQnty(int minQnty, int maxQnty)
+int Order::getRandomQnty(int minQnty, int maxQnty)
 {
     return Random::getRandomInt(minQnty, maxQnty);
 }
@@ -153,7 +153,7 @@ std::expected<void, std::string> Order::validatePrice(const double price)
     return {};
 }
 
-std::expected<void, std::string> Order::validateQnty(const double qnty)
+std::expected<void, std::string> Order::validateQnty(const int qnty)
 {
     if (qnty < 0)
     {
@@ -163,7 +163,7 @@ std::expected<void, std::string> Order::validateQnty(const double qnty)
     return {};
 }
 
-std::expected<void, std::string> Order::validateOrderAttributes(double price, double qnty,
+std::expected<void, std::string> Order::validateOrderAttributes(double price, int qnty,
                                                                 TimePoint& timeOrderPlaced)
 {
     auto validPrice = Order::validatePrice(price);

@@ -29,13 +29,13 @@ class Dispatcher
 {
    public:
     template <typename T>
-    static std::unique_ptr<T> constructStrategy(Strategy strategy, MarketData marketData);
+    static std::unique_ptr<T> constructStrategy(Strategy strategy, MarketData& marketData);
 
     virtual Report execute() = 0;
     virtual ~Dispatcher() = default;
 
    protected:
-    Dispatcher(Strategy strategy, MarketData marketData);
+    Dispatcher(Strategy strategy, MarketData& marketData);
 
     Account d_account;
     Strategy d_strategy;
@@ -44,12 +44,12 @@ class Dispatcher
 
 // strategy types
 template <typename T>
-std::unique_ptr<T> Dispatcher::constructStrategy(Strategy strategy, MarketData marketData)
+std::unique_ptr<T> Dispatcher::constructStrategy(Strategy strategy, MarketData& marketData)
 {
     switch (strategy)
     {
         case Strategy::SharpMovements:
-            return std::make_unique<T>(std::move(strategy), std::move(marketData));
+            return std::make_unique<T>(std::move(strategy), marketData);
         default:
             return nullptr;
     }

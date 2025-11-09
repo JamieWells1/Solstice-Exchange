@@ -23,7 +23,7 @@ class Order
 {
    public:
     static std::expected<std::shared_ptr<Order>, std::string> create(int uid, Underlying underlying,
-                                                                     double price, double qnty,
+                                                                     double price, int qnty,
                                                                      MarketSide marketSide);
 
     static std::expected<std::shared_ptr<Order>, std::string> createWithPricer(
@@ -35,37 +35,37 @@ class Order
     int uid() const;
     Underlying underlying() const;
     double price() const;
-    double qnty() const;
-    double outstandingQnty() const;
+    int qnty() const;
+    int outstandingQnty() const;
     MarketSide marketSide() const;
     std::string marketSideString() const;
     TimePoint timeOrderPlaced() const;
     std::expected<TimePoint, std::string> timeOrderFulfilled() const;
-    double outstandingQnty(double newQnty);
+    int outstandingQnty(int newQnty);
     bool matched() const;
     double matchedPrice() const;
 
     void matched(bool isFulfilled);
     void matchedPrice(double matchedPrice);
 
-    static double getRandomPrice(int minPrice, int maxPrice);
-    static double getRandomQnty(int minQnty, int maxQnty);
+    static double getRandomPrice(double minPrice, double maxPrice);
+    static int getRandomQnty(int minQnty, int maxQnty);
     static MarketSide getRandomMarketSide();
 
    private:
-    Order(int uid, Underlying underlying, double price, double qnty, MarketSide marketSide,
+    Order(int uid, Underlying underlying, double price, int qnty, MarketSide marketSide,
           TimePoint timeOrderPlaced);
 
     static std::expected<void, std::string> validatePrice(const double price);
-    static std::expected<void, std::string> validateQnty(const double qnty);
-    static std::expected<void, std::string> validateOrderAttributes(double price, double qnty,
+    static std::expected<void, std::string> validateQnty(const int qnty);
+    static std::expected<void, std::string> validateOrderAttributes(double price, int qnty,
                                                                     TimePoint& timeOrderPlaced);
 
     int d_uid;
     Underlying d_underlying;
     double d_price;
-    double d_qnty;
-    double d_outstandingQnty;
+    int d_qnty;
+    int d_outstandingQnty;
     MarketSide d_marketSide;
     TimePoint d_timeOrderPlaced;
     TimePoint d_timeOrderFulfilled;

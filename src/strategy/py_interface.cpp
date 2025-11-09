@@ -42,7 +42,7 @@ PYBIND11_MODULE(py_interface, m)
 {
     m.doc() = "Solstice LOB Python bindings";
 
-    // Expose Report class
+    // expose Report class
     py::class_<solstice::strategy::Report>(m, "Report")
         .def(py::init<int, int, int, int, double, int, int>(), py::arg("candlesAnalysed"),
              py::arg("tradesCompleted"), py::arg("longTrades"), py::arg("shortTrades"),

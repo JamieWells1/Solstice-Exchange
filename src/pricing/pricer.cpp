@@ -111,7 +111,7 @@ void FuturePriceData::pricesSumSquared(double newPricesSumSquared)
 
 // PricerDepOrderData
 
-PricerDepOrderData::PricerDepOrderData(MarketSide marketSide, double price, double qnty)
+PricerDepOrderData::PricerDepOrderData(MarketSide marketSide, double price, int qnty)
     : d_marketSide(marketSide), d_price(price), d_qnty(qnty)
 {
 }
@@ -120,7 +120,7 @@ MarketSide PricerDepOrderData::marketSide() { return d_marketSide; }
 
 double PricerDepOrderData::price() { return d_price; }
 
-double PricerDepOrderData::qnty() { return d_qnty; }
+int PricerDepOrderData::qnty() { return d_qnty; }
 
 // Pricer
 
@@ -406,7 +406,7 @@ double Pricer::calculatePrice(Equity eq, MarketSide mktSide)
         double basePrice = data.movingAverage();
         double sigma = standardDeviation(data);
 
-        double spreadWidth = basePrice * (0.002 + sigma * 0.0015);  // Reduced volatility component
+        double spreadWidth = basePrice * (0.002 + sigma * 0.0015);
 
         double targetBid = basePrice - spreadWidth / 2;
         double targetAsk = basePrice + spreadWidth / 2;
@@ -450,7 +450,7 @@ double Pricer::calculatePrice(Future fut, MarketSide mktSide)
     return calculatePriceImpl(mktSide, adjustedAsk, adjustedBid, data.demandFactor());
 }
 
-double Pricer::calculateQnty(Equity eq, MarketSide mktSide, double price)
+int Pricer::calculateQnty(Equity eq, MarketSide mktSide, double price)
 {
     EquityPriceData data = getPriceData(eq);
     double n = data.executions();
@@ -460,13 +460,13 @@ double Pricer::calculateQnty(Equity eq, MarketSide mktSide, double price)
     double sigma = n > 1 ? standardDeviation(data) : 0;
     double volAdjustment = std::min(sigma, 0.5);
 
-    double maxQuantity = baseOrderValue * demandScale / (price * (1 + volAdjustment));
-    if (maxQuantity < 10) return Random::getRandomDouble(1.0, 10.0);
+    int maxQuantity = baseOrderValue * demandScale / (price * (1 + volAdjustment));
+    if (maxQuantity < 10) return Random::getRandomInt(1, 10);
 
-    return Random::getRandomDouble(1.0, maxQuantity);
+    return Random::getRandomInt(1, maxQuantity);
 }
 
-double Pricer::calculateQnty(Future fut, MarketSide mktSide, double price)
+int Pricer::calculateQnty(Future fut, MarketSide mktSide, double price)
 {
     FuturePriceData data = getPriceData(fut);
     double n = data.executions();
@@ -475,11 +475,11 @@ double Pricer::calculateQnty(Future fut, MarketSide mktSide, double price)
     double sigma = n > 1 ? standardDeviation(data) : 0;
     double volAdjustment = std::min(sigma, 0.5);
 
-    double maxQuantity = baseOrderValue * demandScale / (price * (1 + volAdjustment));
+    int maxQuantity = baseOrderValue * demandScale / (price * (1 + volAdjustment));
 
-    if (maxQuantity < 10) return Random::getRandomDouble(1.0, 10.0);
+    if (maxQuantity < 10) return Random::getRandomInt(1, 10);
 
-    return Random::getRandomDouble(1.0, maxQuantity);
+    return Random::getRandomInt(1, maxQuantity);
 }
 
 // ===================================================================
@@ -511,7 +511,7 @@ void Pricer::update(matching::OrderPtr order)
 
                 priceData.lastPrice(matchedPrice);
 
-                if (priceData.executions() >= 10)  // Only update movingAverage after 10 executions
+                if (priceData.executions() >= 10)
                 {
                     priceData.pricesSum(priceData.pricesSum() + matchedPrice);
                     priceData.pricesSumSquared(priceData.pricesSumSquared() +

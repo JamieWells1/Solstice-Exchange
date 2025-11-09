@@ -222,14 +222,14 @@ TEST_F(PricerTest, QuantityDistribution)
     std::cout << "  executions: " << data.executions() << std::endl;
 
     int qtyAtOne = 0;
-    double minQty = 1000000;
-    double maxQty = 0;
-    double sumQty = 0;
+    int minQty = 1000000;
+    int maxQty = 0;
+    int sumQty = 0;
 
     for (int i = 0; i < 100; i++)
     {
         double price = 50.0;  // typical price
-        double qty = pricer->calculateQnty(Equity::AAPL, MarketSide::Bid, price);
+        int qty = pricer->calculateQnty(Equity::AAPL, MarketSide::Bid, price);
 
         if (qty == 1.0) qtyAtOne++;
         minQty = std::min(minQty, qty);
@@ -262,7 +262,7 @@ TEST_F(PricerTest, QuantityDistribution)
     for (int i = 0; i < 100; i++)
     {
         double price = 50.0;
-        double qty = pricer->calculateQnty(Equity::AAPL, MarketSide::Bid, price);
+        int qty = pricer->calculateQnty(Equity::AAPL, MarketSide::Bid, price);
 
         if (qty == 1.0) qtyAtOne++;
         minQty = std::min(minQty, qty);
@@ -343,4 +343,3 @@ TEST_F(PricerTest, PricesFluctuateOverTime)
     EXPECT_GT(uniqueBidPrices.size(), 5) << "Bid prices should have more variety";
     EXPECT_GT(uniqueAskPrices.size(), 5) << "Ask prices should have more variety";
 }
-

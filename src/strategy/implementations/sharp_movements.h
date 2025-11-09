@@ -11,7 +11,7 @@ namespace solstice::strategy
 class SharpMovements : public Dispatcher
 {
    public:
-    SharpMovements(Strategy strategy, MarketData marketData);
+    SharpMovements(Strategy strategy, MarketData& marketData);
 
     Report execute() override;
 

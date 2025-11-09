@@ -57,8 +57,8 @@ struct Config
     static std::expected<void, std::string> checkConfig(Config& config);
 
     LogLevel d_logLevel = LogLevel::DEBUG;
-    AssetClass d_assetClass = AssetClass::Equity;
-    int d_ordersToGenerate = 10000;
+    AssetClass d_assetClass = AssetClass::Future;
+    int d_ordersToGenerate = 100;
     int d_underlyingPoolCount = 1;
     int d_minQnty = 1;
     int d_maxQnty = 20;

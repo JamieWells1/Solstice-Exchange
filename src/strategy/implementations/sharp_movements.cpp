@@ -2,13 +2,11 @@
 #include <sharp_movements.h>
 #include <strategy.h>
 
-#include <iostream>
-
 namespace solstice::strategy
 {
 
-SharpMovements::SharpMovements(Strategy strategy, MarketData marketData)
-    : Dispatcher(std::move(strategy), std::move(marketData))
+SharpMovements::SharpMovements(Strategy strategy, MarketData& marketData)
+    : Dispatcher(std::move(strategy), marketData)
 {
 }
 
