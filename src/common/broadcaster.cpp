@@ -30,7 +30,7 @@ WebSocketSession::WebSocketSession(tcp::socket&& socket, Broadcaster& broadcaste
 {
 }
 
-WebSocketSession::~WebSocketSession() { broadcaster_.removeSession(shared_from_this()); }
+WebSocketSession::~WebSocketSession() {}
 
 void WebSocketSession::run()
 {
@@ -53,7 +53,7 @@ void WebSocketSession::onAccept(beast::error_code ec)
 
     broadcaster_.addSession(shared_from_this());
 
-    std::cout << "Client connected" << std::endl;
+    std::cout << "[Client connected]" << std::endl;
 
     ws_.async_read(buffer_,
                    beast::bind_front_handler(&WebSocketSession::onRead, shared_from_this()));
@@ -65,7 +65,7 @@ void WebSocketSession::onRead(beast::error_code ec, std::size_t bytes_transferre
 
     if (ec == websocket::error::closed)
     {
-        std::cout << "Client disconnected" << std::endl;
+        std::cout << "[Client disconnected]" << std::endl;
         return;
     }
 
@@ -189,12 +189,26 @@ void Listener::onAccept(beast::error_code ec, tcp::socket socket)
 Broadcaster::Broadcaster(unsigned short port) : ioc_(1)
 {
     ioThread_ = std::thread([this, port]() { this->run(port); });
+    broadcastThread_ = std::thread([this]() { this->broadcastWorker(); });
 
     std::cout << "WebSocket server started on port " << port << std::endl;
 }
 
 Broadcaster::~Broadcaster()
 {
+    // Stop the broadcast worker thread
+    {
+        std::lock_guard<std::mutex> lock(queueMutex_);
+        stopBroadcasting_ = true;
+    }
+    queueCV_.notify_all();
+
+    if (broadcastThread_.joinable())
+    {
+        broadcastThread_.join();
+    }
+
+    // Stop the IO thread
     ioc_.stop();
 
     if (ioThread_.joinable())
@@ -230,34 +244,68 @@ void Broadcaster::removeSession(std::shared_ptr<WebSocketSession> session)
 
 void Broadcaster::broadcast(const std::string& message)
 {
-    auto sharedMessage = std::make_shared<std::string>(message);
-
-    std::lock_guard<std::mutex> lock(sessionsMutex_);
-
-    for (auto it = sessions_.begin(); it != sessions_.end();)
+    // Enqueue message for async broadcasting (non-blocking)
     {
-        if (auto session = it->lock())
+        std::lock_guard<std::mutex> lock(queueMutex_);
+        messageQueue_.push(message);
+    }
+    queueCV_.notify_one();
+}
+
+void Broadcaster::broadcastWorker()
+{
+    while (true)
+    {
+        std::string message;
+
+        // Wait for messages
         {
-            session->send(sharedMessage);
-            ++it;
+            std::unique_lock<std::mutex> lock(queueMutex_);
+            queueCV_.wait(lock, [this]() { return !messageQueue_.empty() || stopBroadcasting_; });
+
+            if (stopBroadcasting_ && messageQueue_.empty())
+            {
+                break;
+            }
+
+            if (!messageQueue_.empty())
+            {
+                message = std::move(messageQueue_.front());
+                messageQueue_.pop();
+            }
         }
-        else
+
+        // Broadcast to all sessions (outside the queue lock)
+        if (!message.empty())
         {
-            it = sessions_.erase(it);
+            auto sharedMessage = std::make_shared<std::string>(std::move(message));
+
+            std::lock_guard<std::mutex> lock(sessionsMutex_);
+
+            for (auto it = sessions_.begin(); it != sessions_.end();)
+            {
+                if (auto session = it->lock())
+                {
+                    session->send(sharedMessage);
+                    ++it;
+                }
+                else
+                {
+                    it = sessions_.erase(it);
+                }
+            }
         }
     }
 }
 
-void Broadcaster::broadcastTrade(const matching::Transaction& transaction)
+void Broadcaster::broadcastTrade(const matching::OrderPtr& order)
 {
     json msg = {{"type", "trade"},
-                {"transaction_id", transaction.uid()},
-                {"symbol", to_string(transaction.underlying())},
-                {"price", transaction.price()},
-                {"quantity", transaction.qnty()},
-                {"bid_uid", transaction.bidUid()},
-                {"ask_uid", transaction.askUid()},
-                {"timestamp", timePointToNanos(transaction.timeExecuted())}};
+                {"transaction_id", order->uid()},
+                {"symbol", to_string(order->underlying())},
+                {"price", order->price()},
+                {"quantity", order->qnty()},
+                {"timestamp", timePointToNanos(*order->timeOrderFulfilled())}};
 
     broadcast(msg.dump());
 }

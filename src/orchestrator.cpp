@@ -20,13 +20,11 @@ namespace solstice::matching
 
 Orchestrator::Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook,
                            std::shared_ptr<Matcher> matcher,
-                           std::shared_ptr<pricing::Pricer> pricer, bool enableBroadcaster)
-    : d_config(config), d_orderBook(orderBook), d_matcher(matcher), d_pricer(pricer)
+                           std::shared_ptr<pricing::Pricer> pricer,
+                           std::optional<Broadcaster>& broadcaster)
+    : d_config(config), d_orderBook(orderBook), d_matcher(matcher), d_pricer(pricer),
+      d_broadcaster(broadcaster)
 {
-    if (enableBroadcaster)
-    {
-        d_broadcaster.emplace();
-    }
 }
 
 const Config& Orchestrator::config() const { return d_config; }
@@ -73,9 +71,14 @@ bool Orchestrator::processOrder(OrderPtr order)
         std::lock_guard<std::mutex> lock(mutexIt->second);
         d_orderBook->addOrderToBook(order);
 
+        // Broadcast order placement
+        if (d_broadcaster.get().has_value())
+        {
+            d_broadcaster.get()->broadcastOrder(order);
+        }
+
         auto orderMatched = matcher()->matchOrder(order);
 
-        // Always update pricer (handles both matched and unmatched orders)
         d_pricer->update(order);
 
         if (!orderMatched)
@@ -83,13 +86,11 @@ bool Orchestrator::processOrder(OrderPtr order)
             if (config().logLevel() >= LogLevel::DEBUG)
             {
                 std::lock_guard<std::mutex> outputLock(d_outputMutex);
-                std::cout << "Order: " << order->uid()
-                          << " | Status: Dropped"
+                std::cout << "Order: " << order->uid() << " | Status: Dropped"
                           << " | Matched with: N/A"
                           << " | Side: " << order->marketSideString()
-                          << " | Ticker: " << to_string(order->underlying())
-                          << " | Price: $" << order->price()
-                          << " | Qnty: " << order->qnty()
+                          << " | Ticker: " << to_string(order->underlying()) << " | Price: $"
+                          << order->price() << " | Qnty: " << order->qnty()
                           << " | Remaining Qnty: " << order->outstandingQnty()
                           << " | Reason: " << orderMatched.error() << "\n";
             }
@@ -112,6 +113,12 @@ bool Orchestrator::processOrder(OrderPtr order)
         // no mutex for this underlying - proceed without locking
         d_orderBook->addOrderToBook(order);
 
+        // Broadcast order placement
+        if (d_broadcaster.get().has_value())
+        {
+            d_broadcaster.get()->broadcastOrder(order);
+        }
+
         auto orderMatched = d_matcher->matchOrder(order);
 
         pricer()->update(order);
@@ -121,13 +128,11 @@ bool Orchestrator::processOrder(OrderPtr order)
             if (d_config.logLevel() >= LogLevel::DEBUG)
             {
                 std::lock_guard<std::mutex> outputLock(d_outputMutex);
-                std::cout << "Order: " << order->uid()
-                          << " | Status: Dropped"
+                std::cout << "Order: " << order->uid() << " | Status: Dropped"
                           << " | Matched with: N/A"
                           << " | Side: " << order->marketSideString()
-                          << " | Ticker: " << to_string(order->underlying())
-                          << " | Price: $" << order->price()
-                          << " | Qnty: " << order->qnty()
+                          << " | Ticker: " << to_string(order->underlying()) << " | Price: $"
+                          << order->price() << " | Qnty: " << order->qnty()
                           << " | Remaining Qnty: " << order->outstandingQnty()
                           << " | Reason: " << orderMatched.error() << "\n";
             }
@@ -257,7 +262,6 @@ std::expected<std::pair<int, int>, std::string> Orchestrator::produceOrders()
     d_done.store(true);
     d_queueConditionVar.notify_all();
 
-    // 5. Wait for workers
     for (auto& worker : threadPool)
     {
         worker.join();
@@ -266,7 +270,7 @@ std::expected<std::pair<int, int>, std::string> Orchestrator::produceOrders()
     return std::pair{ordersExecuted.load(), ordersMatched.load()};
 }
 
-std::expected<void, std::string> Orchestrator::start()
+std::expected<void, std::string> Orchestrator::start(std::optional<Broadcaster>& broadcaster)
 {
     auto config = Config::instance();
 
@@ -279,7 +283,7 @@ std::expected<void, std::string> Orchestrator::start()
     auto matcher = std::make_shared<Matcher>(orderBook);
     auto pricer = std::make_shared<pricing::Pricer>(orderBook);
 
-    Orchestrator orchestrator{*config, orderBook, matcher, pricer};
+    Orchestrator orchestrator{*config, orderBook, matcher, pricer, broadcaster};
 
     orchestrator.initialiseUnderlyings(config->assetClass());
 
@@ -303,4 +307,5 @@ std::expected<void, std::string> Orchestrator::start()
 
     return {};
 }
+
 }  // namespace solstice::matching

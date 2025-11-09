@@ -45,6 +45,7 @@ int Config::maxQnty() const { return d_maxQnty; }
 double Config::minPrice() const { return d_minPrice; }
 double Config::maxPrice() const { return d_maxPrice; }
 bool Config::usePricer() const { return d_usePricer; }
+bool Config::enableBroadcaster() const { return d_enableBroadcaster; }
 
 void Config::logLevel(LogLevel level) { d_logLevel = level; }
 void Config::assetClass(AssetClass assetClass) { d_assetClass = assetClass; }
@@ -55,6 +56,7 @@ void Config::maxQnty(int qnty) { d_maxQnty = qnty; }
 void Config::minPrice(double price) { d_minPrice = price; }
 void Config::maxPrice(double price) { d_maxPrice = price; }
 void Config::usePricer(bool usePricer) { d_usePricer = usePricer; }
+void Config::enableBroadcaster(bool enableBroadcaster) { d_enableBroadcaster = enableBroadcaster; }
 
 int Config::initialBalance() { return d_initialBalance; }
 

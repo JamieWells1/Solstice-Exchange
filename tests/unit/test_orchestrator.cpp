@@ -1,3 +1,4 @@
+#include <broadcaster.h>
 #include <config.h>
 #include <gtest/gtest.h>
 #include <matcher.h>
@@ -16,6 +17,7 @@ class OrchestratorFixture : public ::testing::Test
     std::shared_ptr<Matcher> matcher;
     std::shared_ptr<pricing::Pricer> pricer;
     std::unique_ptr<Orchestrator> orchestrator;
+    std::optional<Broadcaster> broadcaster;
 
     void SetUp() override
     {
@@ -40,13 +42,14 @@ class OrchestratorFixture : public ::testing::Test
 
 TEST(OrchestratorTests, StartSucceeds)
 {
-    auto result = Orchestrator::start();
+    std::optional<Broadcaster> broadcaster;
+    auto result = Orchestrator::start(broadcaster);
     ASSERT_TRUE(result.has_value());
 }
 
 TEST_F(OrchestratorFixture, ProcessOrderWithMatchSucceeds)
 {
-    Orchestrator orch{config, orderBook, matcher, pricer};
+    Orchestrator orch{config, orderBook, matcher, pricer, broadcaster};
 
     auto bidOrder = Order::create(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
@@ -61,7 +64,7 @@ TEST_F(OrchestratorFixture, ProcessOrderWithMatchSucceeds)
 
 TEST_F(OrchestratorFixture, ProcessOrderWithoutMatchFails)
 {
-    Orchestrator orch{config, orderBook, matcher, pricer};
+    Orchestrator orch{config, orderBook, matcher, pricer, broadcaster};
 
     auto bidOrder = Order::create(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
@@ -72,7 +75,7 @@ TEST_F(OrchestratorFixture, ProcessOrderWithoutMatchFails)
 
 TEST_F(OrchestratorFixture, ProcessOrderAddsToBook)
 {
-    Orchestrator orch{config, orderBook, matcher, pricer};
+    Orchestrator orch{config, orderBook, matcher, pricer, broadcaster};
 
     auto bidOrder = Order::create(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());
@@ -86,7 +89,7 @@ TEST_F(OrchestratorFixture, ProcessOrderAddsToBook)
 
 TEST_F(OrchestratorFixture, ProcessOrderMarksFulfilledOnMatch)
 {
-    Orchestrator orch{config, orderBook, matcher, pricer};
+    Orchestrator orch{config, orderBook, matcher, pricer, broadcaster};
 
     auto bidOrder = Order::create(1, Equity::AAPL, 100.0, 10.0, MarketSide::Bid);
     ASSERT_TRUE(bidOrder.has_value());

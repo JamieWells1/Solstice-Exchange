@@ -8,13 +8,16 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <queue>
 #include <thread>
 #include <vector>
+#include <condition_variable>
 
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
+#include "transaction.h"
 
 namespace solstice
 {
@@ -45,7 +48,7 @@ class Broadcaster
     Broadcaster(const Broadcaster&) = delete;
     Broadcaster& operator=(const Broadcaster&) = delete;
 
-    void broadcastTrade(const matching::Transaction& transaction);
+    void broadcastTrade(const matching::OrderPtr& order);
     void broadcastOrder(const std::shared_ptr<Order>& order);
     void broadcastBookUpdate(const Underlying& underlying, const std::optional<double>& bestBid,
                              const std::optional<double>& bestAsk);
@@ -57,11 +60,20 @@ class Broadcaster
    private:
     void broadcast(const std::string& message);
     void run(unsigned short port);
+    void broadcastWorker();  // Background thread for async broadcasting
 
     net::io_context ioc_;
     std::thread ioThread_;
+    std::thread broadcastThread_;
+
     std::mutex sessionsMutex_;
     std::vector<std::weak_ptr<WebSocketSession>> sessions_;
+
+    // Message queue for async broadcasting
+    std::queue<std::string> messageQueue_;
+    std::mutex queueMutex_;
+    std::condition_variable queueCV_;
+    bool stopBroadcasting_ = false;
 };
 
 class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>

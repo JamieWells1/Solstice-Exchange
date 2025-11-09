@@ -29,6 +29,8 @@ struct Config
     double minPrice() const;
     double maxPrice() const;
     bool usePricer() const;
+    bool enableBroadcaster() const;
+    int broadcastInterval() const;
 
     void logLevel(LogLevel level);
     void assetClass(AssetClass assetClass);
@@ -39,6 +41,8 @@ struct Config
     void minPrice(double price);
     void maxPrice(double price);
     void usePricer(bool usePricer);
+    void enableBroadcaster(bool enableBroadcaster);
+    void broadcastInterval(int broadcastInterval);
 
     // ===================================================================
     // Backtesting
@@ -56,20 +60,45 @@ struct Config
 
     static std::expected<void, std::string> checkConfig(Config& config);
 
-    LogLevel d_logLevel = LogLevel::DEBUG;
-    AssetClass d_assetClass = AssetClass::Future;
-    int d_ordersToGenerate = 100;
-    int d_underlyingPoolCount = 1;
+    // set sim log level
+    LogLevel d_logLevel = LogLevel::INFO;
+
+    // asset class to use in sim
+    AssetClass d_assetClass = AssetClass::Equity;
+
+    // number of orders to generate in sim
+    int d_ordersToGenerate = 10000;
+
+    // how many variations of underlying asset class to use in sim (e.g. AAPL, MSFT etc)
+    int d_underlyingPoolCount = 8;
+
+    // minimum quantity for randomly generated orders (only applicable if d_usePricer = false)
     int d_minQnty = 1;
+
+    // maximum quantity for randomly generated orders (only applicable if d_usePricer = false)
     int d_maxQnty = 20;
+
+    // minimum price for randomly generated orders (only applicable if d_usePricer = false)
     double d_minPrice = 9.0;
+
+    // maximum price for randomly generated orders (only applicable if d_usePricer = false)
     double d_maxPrice = 10.0;
+
+    // enable use of pricer when generating orders
     bool d_usePricer = true;
+
+    // enable outbound LAN web broadcaster
+    bool d_enableBroadcaster = true;
+
+    // broadcast 1 order per x that come in
+    int d_broadcastInterval = 10;
 
     // ===================================================================
     // Backtesting
     // ===================================================================
 
+
+    // set initial balance for backtesting strategies
     int d_initialBalance = 10000;
 };
 

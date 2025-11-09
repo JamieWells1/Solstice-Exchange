@@ -9,19 +9,15 @@ import json
 async def test_broadcaster():
     uri = "ws://localhost:8080"
 
-    print(f"Connecting to {uri}...")
-
     try:
         async with websockets.connect(uri) as websocket:
-            print("Connected! Listening for messages...")
-            print("Press Ctrl+C to stop\n")
+            print(f"Listening on port {uri}\n")
 
             while True:
                 try:
                     message = await websocket.recv()
                     data = json.loads(message)
 
-                    # Pretty print the message
                     msg_type = data.get('type', 'unknown')
 
                     if msg_type == 'trade':
@@ -41,9 +37,7 @@ async def test_broadcaster():
                         print(f"[BOOK] {data['symbol']} - Bid: {bid}, Ask: {ask}")
 
                     else:
-                        print(f"[{msg_type.upper()}] {json.dumps(data, indent=2)}")
-
-                    print()  # Empty line for readability
+                        print(f"[{msg_type.upper()}] {json.dumps(data, indent=2)}\n")
 
                 except json.JSONDecodeError:
                     print(f"Received non-JSON message: {message}")

@@ -20,10 +20,8 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 include(FetchContent)
 
-# Find Python
 find_package(Python COMPONENTS Interpreter Development REQUIRED)
 
-# Fetch pybind11
 FetchContent_Declare(
   pybind11
   GIT_REPOSITORY https://github.com/pybind/pybind11
@@ -39,5 +37,8 @@ FetchContent_MakeAvailable(pybind11 googletest)
 
 add_subdirectory(src)
 add_subdirectory(tests)
+
+add_executable(test_broadcaster test_broadcaster_standalone.cpp)
+target_link_libraries(test_broadcaster PRIVATE common utils enums pricing config matching)
 
 enable_testing()
