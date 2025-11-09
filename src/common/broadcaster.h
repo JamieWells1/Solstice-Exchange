@@ -3,7 +3,14 @@
 
 #include <asset_class.h>
 #include <time_point.h>
+#include <transaction.h>
 
+#include <atomic>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/strand.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/websocket.hpp>
+#include <condition_variable>
 #include <json.hpp>
 #include <memory>
 #include <mutex>
@@ -11,13 +18,6 @@
 #include <queue>
 #include <thread>
 #include <vector>
-#include <condition_variable>
-
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/strand.hpp>
-#include <boost/beast/core.hpp>
-#include <boost/beast/websocket.hpp>
-#include "transaction.h"
 
 namespace solstice
 {
@@ -62,18 +62,21 @@ class Broadcaster
     void run(unsigned short port);
     void broadcastWorker();  // Background thread for async broadcasting
 
-    net::io_context ioc_;
-    std::thread ioThread_;
-    std::thread broadcastThread_;
+    net::io_context d_ioc;
+    std::thread d_ioThread;
+    std::thread d_broadcastThread;
 
-    std::mutex sessionsMutex_;
-    std::vector<std::weak_ptr<WebSocketSession>> sessions_;
+    std::mutex d_sessionsMutex;
+    std::vector<std::weak_ptr<WebSocketSession>> d_sessions;
 
     // Message queue for async broadcasting
-    std::queue<std::string> messageQueue_;
-    std::mutex queueMutex_;
-    std::condition_variable queueCV_;
-    bool stopBroadcasting_ = false;
+    std::queue<std::string> d_messageQueue;
+    std::mutex d_queueMutex;
+    std::condition_variable d_queueCV;
+    bool d_stopBroadcasting = false;
+
+    // Counter for sampling broadcasts
+    std::atomic<int> d_orderCounter{0};
 };
 
 class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
@@ -90,10 +93,10 @@ class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
     void onRead(beast::error_code ec, std::size_t bytes_transferred);
     void onWrite(beast::error_code ec, std::size_t bytes_transferred);
 
-    websocket::stream<beast::tcp_stream> ws_;
-    Broadcaster& broadcaster_;
-    beast::flat_buffer buffer_;
-    std::vector<std::shared_ptr<std::string const>> writeQueue_;
+    websocket::stream<beast::tcp_stream> d_ws;
+    Broadcaster& d_broadcaster;
+    beast::flat_buffer d_buffer;
+    std::vector<std::shared_ptr<std::string const>> d_writeQueue;
 };
 
 class Listener : public std::enable_shared_from_this<Listener>
@@ -106,9 +109,9 @@ class Listener : public std::enable_shared_from_this<Listener>
     void doAccept();
     void onAccept(beast::error_code ec, tcp::socket socket);
 
-    net::io_context& ioc_;
-    tcp::acceptor acceptor_;
-    Broadcaster& broadcaster_;
+    net::io_context& d_ioc;
+    tcp::acceptor d_acceptor;
+    Broadcaster& d_broadcaster;
 };
 
 }  // namespace solstice

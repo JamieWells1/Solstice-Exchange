@@ -26,7 +26,7 @@ int64_t timePointToNanos(const TimePoint& tp)
 // ===================================================================
 
 WebSocketSession::WebSocketSession(tcp::socket&& socket, Broadcaster& broadcaster)
-    : ws_(std::move(socket)), broadcaster_(broadcaster)
+    : d_ws(std::move(socket)), d_broadcaster(broadcaster)
 {
 }
 
@@ -34,13 +34,13 @@ WebSocketSession::~WebSocketSession() {}
 
 void WebSocketSession::run()
 {
-    ws_.set_option(websocket::stream_base::timeout::suggested(beast::role_type::server));
+    d_ws.set_option(websocket::stream_base::timeout::suggested(beast::role_type::server));
 
-    ws_.set_option(websocket::stream_base::decorator(
+    d_ws.set_option(websocket::stream_base::decorator(
         [](websocket::response_type& res)
         { res.set(beast::http::field::server, "Solstice-LOB-Broadcaster"); }));
 
-    ws_.async_accept(beast::bind_front_handler(&WebSocketSession::onAccept, shared_from_this()));
+    d_ws.async_accept(beast::bind_front_handler(&WebSocketSession::onAccept, shared_from_this()));
 }
 
 void WebSocketSession::onAccept(beast::error_code ec)
@@ -51,12 +51,12 @@ void WebSocketSession::onAccept(beast::error_code ec)
         return;
     }
 
-    broadcaster_.addSession(shared_from_this());
+    d_broadcaster.addSession(shared_from_this());
 
     std::cout << "[Client connected]" << std::endl;
 
-    ws_.async_read(buffer_,
-                   beast::bind_front_handler(&WebSocketSession::onRead, shared_from_this()));
+    d_ws.async_read(d_buffer,
+                    beast::bind_front_handler(&WebSocketSession::onRead, shared_from_this()));
 }
 
 void WebSocketSession::onRead(beast::error_code ec, std::size_t bytes_transferred)
@@ -76,24 +76,24 @@ void WebSocketSession::onRead(beast::error_code ec, std::size_t bytes_transferre
     }
 
     // clear buffer and continue
-    buffer_.consume(buffer_.size());
-    ws_.async_read(buffer_,
-                   beast::bind_front_handler(&WebSocketSession::onRead, shared_from_this()));
+    d_buffer.consume(d_buffer.size());
+    d_ws.async_read(d_buffer,
+                    beast::bind_front_handler(&WebSocketSession::onRead, shared_from_this()));
 }
 
 void WebSocketSession::send(std::shared_ptr<std::string const> const& message)
 {
-    net::post(ws_.get_executor(),
+    net::post(d_ws.get_executor(),
               beast::bind_front_handler(
                   [self = shared_from_this(), message]()
                   {
-                      self->writeQueue_.push_back(message);
+                      self->d_writeQueue.push_back(message);
 
                       // return if already writing
-                      if (self->writeQueue_.size() > 1) return;
+                      if (self->d_writeQueue.size() > 1) return;
 
-                      self->ws_.async_write(
-                          net::buffer(*self->writeQueue_.front()),
+                      self->d_ws.async_write(
+                          net::buffer(*self->d_writeQueue.front()),
                           beast::bind_front_handler(&WebSocketSession::onWrite, self));
                   }));
 }
@@ -108,12 +108,12 @@ void WebSocketSession::onWrite(beast::error_code ec, std::size_t bytes_transferr
         return;
     }
 
-    writeQueue_.erase(writeQueue_.begin());
+    d_writeQueue.erase(d_writeQueue.begin());
 
-    if (!writeQueue_.empty())
+    if (!d_writeQueue.empty())
     {
-        ws_.async_write(net::buffer(*writeQueue_.front()),
-                        beast::bind_front_handler(&WebSocketSession::onWrite, shared_from_this()));
+        d_ws.async_write(net::buffer(*d_writeQueue.front()),
+                         beast::bind_front_handler(&WebSocketSession::onWrite, shared_from_this()));
     }
 }
 
@@ -122,12 +122,12 @@ void WebSocketSession::onWrite(beast::error_code ec, std::size_t bytes_transferr
 // ===================================================================
 
 Listener::Listener(net::io_context& ioc, tcp::endpoint endpoint, Broadcaster& broadcaster)
-    : ioc_(ioc), acceptor_(net::make_strand(ioc)), broadcaster_(broadcaster)
+    : d_ioc(ioc), d_acceptor(net::make_strand(ioc)), d_broadcaster(broadcaster)
 {
     beast::error_code ec;
 
     // open the acceptor
-    ec = acceptor_.open(endpoint.protocol(), ec);
+    ec = d_acceptor.open(endpoint.protocol(), ec);
     if (ec)
     {
         std::cerr << "Listener open error: " << ec.message() << std::endl;
@@ -135,7 +135,7 @@ Listener::Listener(net::io_context& ioc, tcp::endpoint endpoint, Broadcaster& br
     }
 
     // allow address reuse
-    ec = acceptor_.set_option(net::socket_base::reuse_address(true), ec);
+    ec = d_acceptor.set_option(net::socket_base::reuse_address(true), ec);
     if (ec)
     {
         std::cerr << "Listener set_option error: " << ec.message() << std::endl;
@@ -143,7 +143,7 @@ Listener::Listener(net::io_context& ioc, tcp::endpoint endpoint, Broadcaster& br
     }
 
     // bind to server address
-    ec = acceptor_.bind(endpoint, ec);
+    ec = d_acceptor.bind(endpoint, ec);
     if (ec)
     {
         std::cerr << "Listener bind error: " << ec.message() << std::endl;
@@ -151,7 +151,7 @@ Listener::Listener(net::io_context& ioc, tcp::endpoint endpoint, Broadcaster& br
     }
 
     // start listening for connections
-    ec = acceptor_.listen(net::socket_base::max_listen_connections, ec);
+    ec = d_acceptor.listen(net::socket_base::max_listen_connections, ec);
     if (ec)
     {
         std::cerr << "Listener listen error: " << ec.message() << std::endl;
@@ -163,8 +163,8 @@ void Listener::run() { doAccept(); }
 
 void Listener::doAccept()
 {
-    acceptor_.async_accept(net::make_strand(ioc_),
-                           beast::bind_front_handler(&Listener::onAccept, shared_from_this()));
+    d_acceptor.async_accept(net::make_strand(d_ioc),
+                            beast::bind_front_handler(&Listener::onAccept, shared_from_this()));
 }
 
 void Listener::onAccept(beast::error_code ec, tcp::socket socket)
@@ -176,7 +176,7 @@ void Listener::onAccept(beast::error_code ec, tcp::socket socket)
     else
     {
         // create session and run it
-        std::make_shared<WebSocketSession>(std::move(socket), broadcaster_)->run();
+        std::make_shared<WebSocketSession>(std::move(socket), d_broadcaster)->run();
     }
 
     doAccept();
@@ -186,34 +186,33 @@ void Listener::onAccept(beast::error_code ec, tcp::socket socket)
 // Broadcaster Implementation
 // ===================================================================
 
-Broadcaster::Broadcaster(unsigned short port) : ioc_(1)
+Broadcaster::Broadcaster(unsigned short port) : d_ioc(1)
 {
-    ioThread_ = std::thread([this, port]() { this->run(port); });
-    broadcastThread_ = std::thread([this]() { this->broadcastWorker(); });
+    d_ioThread = std::thread([this, port]() { this->run(port); });
+    d_broadcastThread = std::thread([this]() { this->broadcastWorker(); });
 
     std::cout << "WebSocket server started on port " << port << std::endl;
 }
 
 Broadcaster::~Broadcaster()
 {
-    // Stop the broadcast worker thread
     {
-        std::lock_guard<std::mutex> lock(queueMutex_);
-        stopBroadcasting_ = true;
+        std::lock_guard<std::mutex> lock(d_queueMutex);
+        d_stopBroadcasting = true;
     }
-    queueCV_.notify_all();
+    d_queueCV.notify_all();
 
-    if (broadcastThread_.joinable())
+    if (d_broadcastThread.joinable())
     {
-        broadcastThread_.join();
+        d_broadcastThread.join();
     }
 
     // Stop the IO thread
-    ioc_.stop();
+    d_ioc.stop();
 
-    if (ioThread_.joinable())
+    if (d_ioThread.joinable())
     {
-        ioThread_.join();
+        d_ioThread.join();
     }
 }
 
@@ -222,34 +221,34 @@ void Broadcaster::run(unsigned short port)
     auto const address = net::ip::make_address("0.0.0.0");
     auto const endpoint = tcp::endpoint{address, port};
 
-    std::make_shared<Listener>(ioc_, endpoint, *this)->run();
+    std::make_shared<Listener>(d_ioc, endpoint, *this)->run();
 
-    ioc_.run();
+    d_ioc.run();
 }
 
 void Broadcaster::addSession(std::shared_ptr<WebSocketSession> session)
 {
-    std::lock_guard<std::mutex> lock(sessionsMutex_);
-    sessions_.push_back(session);
+    std::lock_guard<std::mutex> lock(d_sessionsMutex);
+    d_sessions.push_back(session);
 }
 
 void Broadcaster::removeSession(std::shared_ptr<WebSocketSession> session)
 {
-    std::lock_guard<std::mutex> lock(sessionsMutex_);
-    sessions_.erase(std::remove_if(sessions_.begin(), sessions_.end(),
-                                   [&](const std::weak_ptr<WebSocketSession>& weak)
-                                   { return weak.expired() || weak.lock() == session; }),
-                    sessions_.end());
+    std::lock_guard<std::mutex> lock(d_sessionsMutex);
+    d_sessions.erase(std::remove_if(d_sessions.begin(), d_sessions.end(),
+                                    [&](const std::weak_ptr<WebSocketSession>& weak)
+                                    { return weak.expired() || weak.lock() == session; }),
+                     d_sessions.end());
 }
 
 void Broadcaster::broadcast(const std::string& message)
 {
     // Enqueue message for async broadcasting (non-blocking)
     {
-        std::lock_guard<std::mutex> lock(queueMutex_);
-        messageQueue_.push(message);
+        std::lock_guard<std::mutex> lock(d_queueMutex);
+        d_messageQueue.push(message);
     }
-    queueCV_.notify_one();
+    d_queueCV.notify_one();
 }
 
 void Broadcaster::broadcastWorker()
@@ -260,29 +259,29 @@ void Broadcaster::broadcastWorker()
 
         // Wait for messages
         {
-            std::unique_lock<std::mutex> lock(queueMutex_);
-            queueCV_.wait(lock, [this]() { return !messageQueue_.empty() || stopBroadcasting_; });
+            std::unique_lock<std::mutex> lock(d_queueMutex);
+            d_queueCV.wait(lock,
+                           [this]() { return !d_messageQueue.empty() || d_stopBroadcasting; });
 
-            if (stopBroadcasting_ && messageQueue_.empty())
+            if (d_stopBroadcasting && d_messageQueue.empty())
             {
                 break;
             }
 
-            if (!messageQueue_.empty())
+            if (!d_messageQueue.empty())
             {
-                message = std::move(messageQueue_.front());
-                messageQueue_.pop();
+                message = std::move(d_messageQueue.front());
+                d_messageQueue.pop();
             }
         }
 
-        // Broadcast to all sessions (outside the queue lock)
         if (!message.empty())
         {
             auto sharedMessage = std::make_shared<std::string>(std::move(message));
 
-            std::lock_guard<std::mutex> lock(sessionsMutex_);
+            std::lock_guard<std::mutex> lock(d_sessionsMutex);
 
-            for (auto it = sessions_.begin(); it != sessions_.end();)
+            for (auto it = d_sessions.begin(); it != d_sessions.end();)
             {
                 if (auto session = it->lock())
                 {
@@ -291,7 +290,7 @@ void Broadcaster::broadcastWorker()
                 }
                 else
                 {
-                    it = sessions_.erase(it);
+                    it = d_sessions.erase(it);
                 }
             }
         }
@@ -312,6 +311,14 @@ void Broadcaster::broadcastTrade(const matching::OrderPtr& order)
 
 void Broadcaster::broadcastOrder(const std::shared_ptr<Order>& order)
 {
+    int count = d_orderCounter.fetch_add(1, std::memory_order_relaxed);
+
+    int broadcastInterval = Config::instance().value().broadcastInterval();
+    if (count % broadcastInterval != 0)
+    {
+        return;
+    }
+
     json msg = {{"type", "order"},
                 {"order_id", order->uid()},
                 {"symbol", to_string(order->underlying())},
