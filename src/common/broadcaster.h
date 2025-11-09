@@ -8,7 +8,6 @@
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <set>
 #include <thread>
 #include <vector>
 
@@ -34,7 +33,6 @@ namespace websocket = beast::websocket;
 namespace net = boost::asio;
 using tcp = boost::asio::ip::tcp;
 
-// Forward declaration
 class WebSocketSession;
 
 class Broadcaster
@@ -66,7 +64,6 @@ class Broadcaster
     std::vector<std::weak_ptr<WebSocketSession>> sessions_;
 };
 
-// WebSocket session - handles individual connections
 class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
 {
    public:
@@ -87,7 +84,6 @@ class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
     std::vector<std::shared_ptr<std::string const>> writeQueue_;
 };
 
-// Listener - accepts incoming connections
 class Listener : public std::enable_shared_from_this<Listener>
 {
    public:

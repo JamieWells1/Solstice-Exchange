@@ -10,12 +10,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/websocketpp
 )
 
 cmake_policy(SET CMP0167 OLD)
 
-# Find Boost (required by websocketpp)
+# Find Boost (required by Boost.Beast for WebSocket)
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
