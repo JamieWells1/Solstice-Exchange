@@ -73,7 +73,7 @@ class Broadcaster
     std::queue<std::string> d_messageQueue;
     std::mutex d_queueMutex;
     std::condition_variable d_queueCV;
-    bool d_stopBroadcasting = false;
+    std::atomic<bool> d_stopBroadcasting{false};
 
     // Counter for sampling broadcasts
     std::atomic<int> d_orderCounter{0};
