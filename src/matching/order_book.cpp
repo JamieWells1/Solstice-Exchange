@@ -108,7 +108,7 @@ OrderBook::getBidPricesAtPriceLevel(OrderPtr order)
     return std::ref(it->second.bidPrices);
 }
 
-std::set<double, std::greater<double>>& OrderBook::bidPricesAtPriceLevel(OrderPtr order)
+std::set<double, std::greater<double>>& OrderBook::setBidPricesAtPriceLevel(OrderPtr order)
 {
     auto& bidsSet = d_activeOrders[order->underlying()].bidPrices;
 
@@ -128,7 +128,7 @@ OrderBook::getaskPricesAtPriceLevel(OrderPtr order)
     return std::ref(it->second.askPrices);
 }
 
-std::set<double, std::less<double>>& OrderBook::askPricesAtPriceLevel(OrderPtr order)
+std::set<double, std::less<double>>& OrderBook::setAskPricesAtPriceLevel(OrderPtr order)
 {
     auto& asksSet = d_activeOrders[order->underlying()].askPrices;
 
@@ -197,11 +197,11 @@ void OrderBook::addOrderToBook(OrderPtr order)
     // add price to price lookup map
     if (order->marketSide() == MarketSide::Bid)
     {
-        bidPricesAtPriceLevel(order).insert(order->price());
+        setBidPricesAtPriceLevel(order).insert(order->price());
     }
     else
     {
-        askPricesAtPriceLevel(order).insert(order->price());
+        setAskPricesAtPriceLevel(order).insert(order->price());
     }
 
     // add order to map of active orders safely
@@ -236,11 +236,11 @@ void OrderBook::markOrderAsFulfilled(OrderPtr completedOrder, double matchedPric
     {
         if (completedOrder->marketSide() == MarketSide::Bid)
         {
-            bidPricesAtPriceLevel(completedOrder).erase(completedOrder->price());
+            setBidPricesAtPriceLevel(completedOrder).erase(completedOrder->price());
         }
         else
         {
-            askPricesAtPriceLevel(completedOrder).erase(completedOrder->price());
+            setAskPricesAtPriceLevel(completedOrder).erase(completedOrder->price());
         }
     }
 }

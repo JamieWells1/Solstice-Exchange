@@ -69,8 +69,8 @@ class OrderBook
     std::expected<std::reference_wrapper<askPricesAtPriceLevel>, std::string>
     getaskPricesAtPriceLevel(OrderPtr order);
 
-    BidPricesAtPriceLevel& bidPricesAtPriceLevel(OrderPtr order);
-    askPricesAtPriceLevel& askPricesAtPriceLevel(OrderPtr order);
+    BidPricesAtPriceLevel& setBidPricesAtPriceLevel(OrderPtr order);
+    askPricesAtPriceLevel& setAskPricesAtPriceLevel(OrderPtr order);
 
     std::unordered_map<Underlying, ActiveOrders> d_activeOrders;
     std::vector<Transaction> d_transactions;

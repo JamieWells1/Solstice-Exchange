@@ -88,7 +88,7 @@ struct Config
     bool d_usePricer = true;
 
     // enable outbound LAN web broadcaster
-    bool d_enableBroadcaster = true;
+    bool d_enableBroadcaster = false;
 
     // broadcast 1 order per x that come in. Higher interval value results in faster broadcasting
     int d_broadcastInterval = 10;
