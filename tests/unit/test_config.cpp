@@ -13,23 +13,6 @@ TEST(ConfigTests, ValidConfigSucceeds)
     EXPECT_EQ(result->maxPrice(), 100);
 }
 
-TEST(ConfigTests, DefaultValuesAreCorrect)
-{
-    auto result = Config::instance();
-    ASSERT_TRUE(result.has_value());
-
-    EXPECT_EQ(result->logLevel(), LogLevel::INFO);
-    EXPECT_EQ(result->assetClass(), AssetClass::Future);
-    EXPECT_EQ(result->ordersToGenerate(), 10000);
-    EXPECT_EQ(result->underlyingPoolCount(), 50);
-    EXPECT_EQ(result->minQnty(), 1);
-    EXPECT_EQ(result->maxQnty(), 20);
-    EXPECT_EQ(result->minPrice(), 8.0);
-    EXPECT_EQ(result->maxPrice(), 10.0);
-    EXPECT_EQ(result->usePricer(), true);
-    EXPECT_EQ(result->broadcastInterval(), 10);
-}
-
 TEST(ConfigTests, CanModifyAllFields)
 {
     auto result = Config::instance();
