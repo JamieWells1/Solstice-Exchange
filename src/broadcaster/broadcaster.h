@@ -19,17 +19,12 @@
 #include <thread>
 #include <vector>
 
-namespace solstice
+namespace solstice::broadcaster
 {
-
-class Order;
-
-namespace matching
-{
-struct Transaction;
-}
 
 using json = nlohmann::json;
+using solstice::Order;
+using solstice::Underlying;
 
 namespace beast = boost::beast;
 namespace websocket = beast::websocket;
@@ -48,7 +43,7 @@ class Broadcaster
     Broadcaster(const Broadcaster&) = delete;
     Broadcaster& operator=(const Broadcaster&) = delete;
 
-    void broadcastTrade(const matching::OrderPtr& order);
+    void broadcastTrade(const ::solstice::matching::OrderPtr& order);
     void broadcastOrder(const std::shared_ptr<Order>& order);
     void broadcastBookUpdate(const Underlying& underlying, const std::optional<double>& bestBid,
                              const std::optional<double>& bestAsk);
@@ -114,6 +109,6 @@ class Listener : public std::enable_shared_from_this<Listener>
     Broadcaster& d_broadcaster;
 };
 
-}  // namespace solstice
+}  // namespace solstice::broadcaster
 
 #endif  // BROADCASTER_H

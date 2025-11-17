@@ -11,4 +11,5 @@ target_include_directories(matching
         ${CMAKE_SOURCE_DIR}/src/enums
         ${CMAKE_SOURCE_DIR}/src/config
         ${CMAKE_SOURCE_DIR}/src/pricing
+        ${CMAKE_SOURCE_DIR}/src/broadcaster
 )

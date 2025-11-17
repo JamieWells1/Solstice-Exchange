@@ -1,9 +1,10 @@
-add_library(common STATIC order.cpp transaction.cpp asset_class.cpp broadcaster.cpp)
+add_library(common STATIC order.cpp transaction.cpp asset_class.cpp)
 
 target_include_directories(common
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/src/pricing
+        ${CMAKE_SOURCE_DIR}/src/broadcaster
         ${CMAKE_SOURCE_DIR}/src/matching
         ${CMAKE_SOURCE_DIR}/src/config
         ${CMAKE_SOURCE_DIR}/src/utils

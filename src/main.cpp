@@ -19,7 +19,7 @@ int main()
     }
 
     // start broadcaster
-    std::optional<Broadcaster> broadcaster;
+    std::optional<broadcaster::Broadcaster> broadcaster;
     if (config->enableBroadcaster())
     {
         broadcaster.emplace(8080);

@@ -1,5 +1,6 @@
 #include <asset_class.h>
 #include <broadcaster.h>
+#include <config.h>
 #include <order.h>
 #include <transaction.h>
 
@@ -8,7 +9,7 @@
 #include <cstdint>
 #include <iostream>
 
-namespace solstice
+namespace solstice::broadcaster
 {
 
 namespace
@@ -207,7 +208,6 @@ Broadcaster::~Broadcaster()
         d_broadcastThread.join();
     }
 
-    // Stop the IO thread
     d_ioc.stop();
 
     if (d_ioThread.joinable())
@@ -243,7 +243,6 @@ void Broadcaster::removeSession(std::shared_ptr<WebSocketSession> session)
 
 void Broadcaster::broadcast(const std::string& message)
 {
-    // Enqueue message for async broadcasting (non-blocking)
     {
         std::lock_guard<std::mutex> lock(d_queueMutex);
         d_messageQueue.push(message);
@@ -256,8 +255,6 @@ void Broadcaster::broadcastWorker()
     while (true)
     {
         std::string message;
-
-        // Wait for messages
         {
             std::unique_lock<std::mutex> lock(d_queueMutex);
             d_queueCV.wait(lock,
@@ -365,4 +362,4 @@ void Broadcaster::broadcastBookUpdate(const Underlying& underlying,
     broadcast(msg.dump());
 }
 
-}  // namespace solstice
+}  // namespace solstice::broadcaster

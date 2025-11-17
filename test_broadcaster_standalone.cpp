@@ -9,10 +9,11 @@
 
 using namespace solstice;
 using namespace solstice::matching;
+using namespace solstice::broadcaster;
 
 int main()
 {
-    Broadcaster broadcaster(8080);
+    Broadcaster broadcaster_instance(8080);
 
     for (int i = 0; i < 10; i++)
     {
@@ -21,11 +22,11 @@ int main()
         auto order = Order::create(i, Equity::AAPL, 150.0 + i, 100, MarketSide::Bid);
         if (order)
         {
-            broadcaster.broadcastOrder(*order);
+            broadcaster_instance.broadcastOrder(*order);
         }
 
-        broadcaster.broadcastBookUpdate(Equity::AAPL, std::optional<double>(150.0 + i),
-                                        std::optional<double>(151.0 + i));
+        broadcaster_instance.broadcastBookUpdate(Equity::AAPL, std::optional<double>(150.0 + i),
+                                                 std::optional<double>(151.0 + i));
     }
 
     std::cin.get();

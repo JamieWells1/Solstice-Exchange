@@ -17,7 +17,7 @@ class OrchestratorFixture : public ::testing::Test
     std::shared_ptr<Matcher> matcher;
     std::shared_ptr<pricing::Pricer> pricer;
     std::unique_ptr<Orchestrator> orchestrator;
-    std::optional<Broadcaster> broadcaster;
+    std::optional<broadcaster::Broadcaster> broadcaster;
 
     void SetUp() override
     {
@@ -42,7 +42,7 @@ class OrchestratorFixture : public ::testing::Test
 
 TEST(OrchestratorTests, StartSucceeds)
 {
-    std::optional<Broadcaster> broadcaster;
+    std::optional<broadcaster::Broadcaster> broadcaster;
     auto result = Orchestrator::start(broadcaster);
     ASSERT_TRUE(result.has_value());
 }

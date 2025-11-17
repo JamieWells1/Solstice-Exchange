@@ -21,7 +21,7 @@ namespace solstice::matching
 Orchestrator::Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook,
                            std::shared_ptr<Matcher> matcher,
                            std::shared_ptr<pricing::Pricer> pricer,
-                           std::optional<Broadcaster>& broadcaster)
+                           std::optional<broadcaster::Broadcaster>& broadcaster)
     : d_config(config), d_orderBook(orderBook), d_matcher(matcher), d_pricer(pricer),
       d_broadcaster(broadcaster)
 {
@@ -270,7 +270,7 @@ std::expected<std::pair<int, int>, std::string> Orchestrator::produceOrders()
     return std::pair{ordersExecuted.load(), ordersMatched.load()};
 }
 
-std::expected<void, std::string> Orchestrator::start(std::optional<Broadcaster>& broadcaster)
+std::expected<void, std::string> Orchestrator::start(std::optional<broadcaster::Broadcaster>& broadcaster)
 {
     auto config = Config::instance();
 

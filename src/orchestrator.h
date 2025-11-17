@@ -20,11 +20,11 @@ namespace solstice::matching
 class Orchestrator
 {
    public:
-    static std::expected<void, std::string> start(std::optional<Broadcaster>& broadcaster);
+    static std::expected<void, std::string> start(std::optional<broadcaster::Broadcaster>& broadcaster);
 
     Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook,
                  std::shared_ptr<Matcher> matcher, std::shared_ptr<pricing::Pricer> pricer,
-                 std::optional<Broadcaster>& broadcaster);
+                 std::optional<broadcaster::Broadcaster>& broadcaster);
 
     bool processOrder(OrderPtr order);
 
@@ -54,7 +54,7 @@ class Orchestrator
     std::shared_ptr<OrderBook> d_orderBook;
     std::shared_ptr<Matcher> d_matcher;
     std::shared_ptr<pricing::Pricer> d_pricer;
-    std::reference_wrapper<std::optional<Broadcaster>> d_broadcaster;
+    std::reference_wrapper<std::optional<broadcaster::Broadcaster>> d_broadcaster;
 
     std::map<Underlying, std::mutex> d_underlyingMutexes;
     std::queue<OrderPtr> d_orderProcessQueue;
