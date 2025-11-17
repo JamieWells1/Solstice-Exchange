@@ -27,6 +27,7 @@ TEST(ConfigTests, DefaultValuesAreCorrect)
     EXPECT_EQ(result->minPrice(), 8.0);
     EXPECT_EQ(result->maxPrice(), 10.0);
     EXPECT_EQ(result->usePricer(), true);
+    EXPECT_EQ(result->broadcastInterval(), 10);
 }
 
 TEST(ConfigTests, CanModifyAllFields)
@@ -43,6 +44,7 @@ TEST(ConfigTests, CanModifyAllFields)
     result->minPrice(100.0);
     result->maxPrice(200.0);
     result->usePricer(true);
+    result->broadcastInterval(20);
 
     EXPECT_EQ(result->logLevel(), LogLevel::DEBUG);
     EXPECT_EQ(result->assetClass(), AssetClass::Equity);
@@ -53,6 +55,7 @@ TEST(ConfigTests, CanModifyAllFields)
     EXPECT_EQ(result->minPrice(), 100.0);
     EXPECT_EQ(result->maxPrice(), 200.0);
     EXPECT_EQ(result->usePricer(), true);
+    EXPECT_EQ(result->broadcastInterval(), 20);
 }
 
 }  // namespace solstice
