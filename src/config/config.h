@@ -97,7 +97,6 @@ struct Config
     // Backtesting
     // ===================================================================
 
-
     // set initial balance for backtesting strategies
     int d_initialBalance = 10000;
 };

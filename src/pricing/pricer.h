@@ -2,136 +2,20 @@
 #define PRICER_H
 
 #include <asset_class.h>
+#include <equity_price_data.h>
+#include <future_price_data.h>
 #include <get_random.h>
 #include <market_side.h>
 #include <order_book.h>
 #include <order_type.h>
+#include <pricing_utils.h>
 #include <time_point.h>
 
 #include <memory>
-#include <unordered_map>
 #include <variant>
 
 namespace solstice::pricing
 {
-
-template <typename PriceData>
-void setInitialDemandFactor(PriceData& underlying)  // type
-{
-    underlying.demandFactor(Random::getRandomDouble(-1, 1));
-}
-
-template <typename PriceData>
-void setInitialPrice(PriceData& underlying)
-{
-    underlying.lastPrice(Random::getRandomDouble(10, 200));
-}
-
-template <typename PriceData>
-void setInitialMovingAverage(PriceData& underlying)
-{
-    underlying.movingAverage(underlying.lastPrice());
-}
-
-struct EquityPriceData
-{
-   public:
-    EquityPriceData(Equity underlying) : d_equity(underlying)
-    {
-        setInitialDemandFactor(*this);
-        setInitialPrice(*this);
-        setInitialMovingAverage(*this);
-    }
-
-    Equity underlying();
-    int maRange();
-
-    double lastPrice();
-    double highestBid();
-    double lowestAsk();
-    double demandFactor();
-    double movingAverage();
-    int executions();
-    double pricesSum();
-    double pricesSumSquared();
-
-    void underlying(Equity eq);
-
-    void lastPrice(double newLastPrice);
-    void highestBid(double newHighestBid);
-    void lowestAsk(double newLowestAsk);
-    void demandFactor(double newDemandFactor);
-    void movingAverage(double newMovingAverage);
-    void incrementExecutions();
-    void pricesSum(double newPricesSum);
-    void pricesSumSquared(double newPricesSumSquared);
-
-   private:
-    static constexpr int d_maRange = 10;
-
-    Equity d_equity;
-
-    double d_lastPrice = 0.0;
-    double d_highestBid = 0.0;
-    double d_lowestAsk = 0.0;
-    double d_demandFactor = 0.0;
-    double d_movingAverage = 0.0;
-
-    // used for pricing calculations
-    int d_executions = 0;
-    double d_pricesSum = 0.0;
-    double d_pricesSumSquared = 0.0;
-};
-
-struct FuturePriceData
-{
-   public:
-    FuturePriceData(Future underlying) : d_future(underlying)
-    {
-        setInitialDemandFactor(*this);
-        setInitialPrice(*this);
-        setInitialMovingAverage(*this);
-    }
-
-    Future underlying();
-    int maRange();
-
-    double lastPrice();
-    double highestBid();
-    double lowestAsk();
-    double demandFactor();
-    double movingAverage();
-    int executions();
-    double pricesSum();
-    double pricesSumSquared();
-
-    void underlying(Future fut);
-
-    void lastPrice(double newLastPrice);
-    void highestBid(double newHighestBid);
-    void lowestAsk(double newLowestAsk);
-    void demandFactor(double newDemandFactor);
-    void movingAverage(double newMovingAverage);
-    void incrementExecutions();
-    void pricesSum(double newPricesSum);
-    void pricesSumSquared(double newPricesSumSquared);
-
-   private:
-    static constexpr int d_maRange = 10;
-
-    Future d_future;
-
-    double d_lastPrice = 0.0;
-    double d_highestBid = 0.0;
-    double d_lowestAsk = 0.0;
-    double d_demandFactor = 0.0;
-    double d_movingAverage = 0.0;
-
-    // used for pricing calculations
-    int d_executions = 0;
-    double d_pricesSum = 0.0;
-    double d_pricesSumSquared = 0.0;
-};
 
 struct PricerDepOrderData
 {
@@ -147,9 +31,6 @@ struct PricerDepOrderData
     double d_price;
     double d_qnty;
 };
-
-double standardDeviation(EquityPriceData& data);
-double standardDeviation(FuturePriceData& data);
 
 class Pricer
 {
@@ -173,7 +54,7 @@ class Pricer
             return Random::getRandomDouble(-0.3, 0.3);
         }
 
-        double sigma = standardDeviation(priceData);
+        double sigma = priceData.standardDeviation(priceData);
         double noise = Random::getRandomDouble(-0.05, 0.05);
         currentDF += noise;
 

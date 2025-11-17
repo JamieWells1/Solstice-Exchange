@@ -229,7 +229,7 @@ TEST_F(PricerTest, PricesFluctuateOverTime)
     std::set<double> uniqueBidPrices;
     std::set<double> uniqueAskPrices;
 
-    for (int i = 0; i < 50; i++)
+    for (int i = 0; i < 1000; i++)
     {
         double bidPrice = pricer->calculatePrice(Equity::AAPL, MarketSide::Bid);
         double askPrice = pricer->calculatePrice(Equity::AAPL, MarketSide::Ask);
@@ -238,6 +238,7 @@ TEST_F(PricerTest, PricesFluctuateOverTime)
         uniqueAskPrices.insert(askPrice);
     }
 
-    EXPECT_GT(uniqueBidPrices.size(), 5) << "Bid prices should have more variety";
-    EXPECT_GT(uniqueAskPrices.size(), 5) << "Ask prices should have more variety";
+    // at least 100 unique entries
+    EXPECT_GT(uniqueBidPrices.size(), 100) << "Bid prices should have more variety";
+    EXPECT_GT(uniqueAskPrices.size(), 100) << "Ask prices should have more variety";
 }

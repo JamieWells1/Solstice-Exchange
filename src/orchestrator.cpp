@@ -86,7 +86,7 @@ bool Orchestrator::processOrder(OrderPtr order)
             if (config().logLevel() >= LogLevel::DEBUG)
             {
                 std::lock_guard<std::mutex> outputLock(d_outputMutex);
-                std::cout << "Order: " << order->uid() << " | Status: Dropped"
+                std::cout << "Order: " << order->uid() << " | Status: Idle"
                           << " | Matched with: N/A"
                           << " | Side: " << order->marketSideString()
                           << " | Ticker: " << to_string(order->underlying()) << " | Price: $"
@@ -128,7 +128,7 @@ bool Orchestrator::processOrder(OrderPtr order)
             if (d_config.logLevel() >= LogLevel::DEBUG)
             {
                 std::lock_guard<std::mutex> outputLock(d_outputMutex);
-                std::cout << "Order: " << order->uid() << " | Status: Dropped"
+                std::cout << "Order: " << order->uid() << " | Status: Idle"
                           << " | Matched with: N/A"
                           << " | Side: " << order->marketSideString()
                           << " | Ticker: " << to_string(order->underlying()) << " | Price: $"
