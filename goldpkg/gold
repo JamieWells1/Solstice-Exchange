@@ -13,7 +13,18 @@ GREEN = "\033[92m"
 RED = "\033[91m"
 RESET = "\033[0m"
 
-PROJECT_ROOT = os.getcwd()
+# Find project root by looking for goldpkg directory
+def find_project_root():
+    current = os.path.abspath(os.getcwd())
+    while current != os.path.dirname(current):  # Not at filesystem root
+        if os.path.exists(os.path.join(current, "goldpkg", "gold.cfg")) or \
+           os.path.exists(os.path.join(current, "goldpkg")):
+            return current
+        current = os.path.dirname(current)
+    # Fallback to current directory if goldpkg not found
+    return os.getcwd()
+
+PROJECT_ROOT = find_project_root()
 setup_script = os.path.join(PROJECT_ROOT, "install.sh")
 os.chdir(PROJECT_ROOT)
 
@@ -54,7 +65,7 @@ def replace_project_name_in_cmake(project_name, project_root):
 def build():
     try:
         os.makedirs(BUILD_DIR, exist_ok=True)
-        subprocess.run(["cmake", ".."], cwd=BUILD_DIR, check=True)
+        subprocess.run(["cmake", "-DCMAKE_C_COMPILER=gcc", "-DCMAKE_CXX_COMPILER=g++", ".."], cwd=BUILD_DIR, check=True)
         subprocess.run(["cmake", "--build", "."], cwd=BUILD_DIR, check=True)
         log_success("✓ Build complete.")
     except subprocess.CalledProcessError as e:
