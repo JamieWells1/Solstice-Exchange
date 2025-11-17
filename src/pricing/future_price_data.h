@@ -1,0 +1,64 @@
+#ifndef FUTURE_PRICE_DATA_H
+#define FUTURE_PRICE_DATA_H
+
+#include <asset_class.h>
+#include <pricing_utils.h>
+
+namespace solstice::pricing
+{
+
+struct FuturePriceData
+{
+   public:
+    FuturePriceData(Future underlying) : d_future(underlying)
+    {
+        setInitialDemandFactor(*this);
+        setInitialPrice(*this);
+        setInitialMovingAverage(*this);
+    }
+
+    Future underlying();
+    int maRange();
+
+    double lastPrice();
+    double highestBid();
+    double lowestAsk();
+    double demandFactor();
+    double movingAverage();
+    int executions();
+    double pricesSum();
+    double pricesSumSquared();
+
+    void underlying(Future fut);
+
+    void lastPrice(double newLastPrice);
+    void highestBid(double newHighestBid);
+    void lowestAsk(double newLowestAsk);
+    void demandFactor(double newDemandFactor);
+    void movingAverage(double newMovingAverage);
+    void incrementExecutions();
+    void pricesSum(double newPricesSum);
+    void pricesSumSquared(double newPricesSumSquared);
+
+    double standardDeviation(FuturePriceData& data);
+
+   private:
+    static constexpr int d_maRange = 10;
+
+    Future d_future;
+
+    double d_lastPrice = 0.0;
+    double d_highestBid = 0.0;
+    double d_lowestAsk = 0.0;
+    double d_demandFactor = 0.0;
+    double d_movingAverage = 0.0;
+
+    // used for pricing calculations
+    int d_executions = 0;
+    double d_pricesSum = 0.0;
+    double d_pricesSumSquared = 0.0;
+};
+
+}  // namespace solstice::pricing
+
+#endif  // FUTURE_PRICE_DATA_H

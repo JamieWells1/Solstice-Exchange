@@ -12,104 +12,39 @@
 namespace solstice::pricing
 {
 
-constexpr double baseOrderValue = 10000;
-// risk-free rate
+// risk-free rate for futures pricing
 constexpr double r = 0.05;
+
+constexpr double baseOrderValue = 10000;
 
 const std::unordered_map<OrderType, double> probabilities = {
     {OrderType::CrossSpread, 0.3}, {OrderType::InsideSpread, 0.2}, {OrderType::AtSpread, 0.5}};
 
-// EquityPriceData getters
+// equity pricing calc constants
+constexpr double EQUITY_INITIAL_SPREAD_PCT = 0.002;             // 0.2% initial spread
+constexpr double EQUITY_BASE_SPREAD_PCT = 0.002;                // Base spread width
+constexpr double EQUITY_VOLATILITY_SPREAD_MULTIPLIER = 0.0015;  // Volatility impact on spread
+constexpr double EQUITY_SPREAD_ADJUSTMENT_WEIGHT = 0.95;  // Current spread weight in adjustment
+constexpr double EQUITY_TARGET_ADJUSTMENT_WEIGHT = 0.05;  // Target spread weight in adjustment
+constexpr double EQUITY_MIN_EXEC_FOR_SPREAD_CALC = 10;  // Min executions before spread calculation
+constexpr double EQUITY_TRANSIENT_DRIFT_PCT = 0.025;    // ±2.5% transient price drift
 
-Equity EquityPriceData::underlying() { return d_equity; }
+// future pricing calc constants
+constexpr double FUTURE_INITIAL_SPREAD_PCT = 0.01;            // 1% initial spread
+constexpr double FUTURE_BASE_SPREAD_PCT = 0.005;              // 0.5% base spread
+constexpr double FUTURE_VOLATILITY_SPREAD_MULTIPLIER = 0.01;  // Volatility impact on spread
 
-double EquityPriceData::lastPrice() { return d_lastPrice; }
+// price calc constants
+constexpr double INSIDE_SPREAD_SHIFT_FACTOR = 0.5;  // 50% of half-spread for shift
+constexpr double INSIDE_SPREAD_RANGE_FACTOR = 0.3;  // 30% of half-spread as range
+constexpr double CROSS_SPREAD_OFFSET_FACTOR = 0.5;  // 50% of half-spread for offset
 
-double EquityPriceData::highestBid() { return d_highestBid; }
-
-double EquityPriceData::lowestAsk() { return d_lowestAsk; }
-
-double EquityPriceData::demandFactor() { return d_demandFactor; }
-
-double EquityPriceData::movingAverage() { return d_movingAverage; }
-
-int EquityPriceData::executions() { return d_executions; }
-
-int EquityPriceData::maRange() { return d_maRange; }
-
-double EquityPriceData::pricesSum() { return d_pricesSum; }
-
-double EquityPriceData::pricesSumSquared() { return d_pricesSumSquared; }
-
-// EquityPriceData setters
-
-void EquityPriceData::underlying(Equity newUnderlying) { d_equity = newUnderlying; }
-
-void EquityPriceData::lastPrice(double newLastPrice) { d_lastPrice = newLastPrice; }
-
-void EquityPriceData::highestBid(double newHighestBid) { d_highestBid = newHighestBid; }
-
-void EquityPriceData::lowestAsk(double newLowestAsk) { d_lowestAsk = newLowestAsk; }
-
-void EquityPriceData::demandFactor(double newDemandFactor) { d_demandFactor = newDemandFactor; }
-
-void EquityPriceData::movingAverage(double newMovingAverage) { d_movingAverage = newMovingAverage; }
-
-void EquityPriceData::incrementExecutions() { d_executions++; }
-
-void EquityPriceData::pricesSum(double newPricesSum) { d_pricesSum = newPricesSum; }
-
-void EquityPriceData::pricesSumSquared(double newPricesSumSquared)
-{
-    d_pricesSumSquared = newPricesSumSquared;
-}
-
-// FuturePriceData getters
-
-Future FuturePriceData::underlying() { return d_future; }
-
-double FuturePriceData::lastPrice() { return d_lastPrice; }
-
-double FuturePriceData::highestBid() { return d_highestBid; }
-
-double FuturePriceData::lowestAsk() { return d_lowestAsk; }
-
-double FuturePriceData::demandFactor() { return d_demandFactor; }
-
-double FuturePriceData::movingAverage() { return d_movingAverage; }
-
-int FuturePriceData::executions() { return d_executions; }
-
-int FuturePriceData::maRange() { return d_maRange; }
-
-double FuturePriceData::pricesSum() { return d_pricesSum; }
-
-double FuturePriceData::pricesSumSquared() { return d_pricesSumSquared; }
-
-// FuturePriceData setters
-
-void FuturePriceData::underlying(Future newUnderlying) { d_future = newUnderlying; }
-
-void FuturePriceData::lastPrice(double newLastPrice) { d_lastPrice = newLastPrice; }
-
-void FuturePriceData::highestBid(double newHighestBid) { d_highestBid = newHighestBid; }
-
-void FuturePriceData::lowestAsk(double newLowestAsk) { d_lowestAsk = newLowestAsk; }
-
-void FuturePriceData::demandFactor(double newDemandFactor) { d_demandFactor = newDemandFactor; }
-
-void FuturePriceData::movingAverage(double newMovingAverage) { d_movingAverage = newMovingAverage; }
-
-void FuturePriceData::incrementExecutions() { d_executions++; }
-
-void FuturePriceData::pricesSum(double newPricesSum) { d_pricesSum = newPricesSum; }
-
-void FuturePriceData::pricesSumSquared(double newPricesSumSquared)
-{
-    d_pricesSumSquared = newPricesSumSquared;
-}
-
-// PricerDepOrderData
+// quantity calc constants
+constexpr double MIN_DEMAND_SCALE = 0.3;    // Minimum demand scale
+constexpr double MAX_DEMAND_SCALE = 0.7;    // Additional demand scale based on demand factor
+constexpr double MAX_VOL_ADJUSTMENT = 0.5;  // Maximum volatility adjustment
+constexpr int MIN_QUANTITY_THRESHOLD = 10;  // Minimum quantity threshold
+constexpr int MIN_QUANTITY = 1;             // Minimum order quantity
 
 PricerDepOrderData::PricerDepOrderData(MarketSide marketSide, double price, int qnty)
     : d_marketSide(marketSide), d_price(price), d_qnty(qnty)
@@ -121,8 +56,6 @@ MarketSide PricerDepOrderData::marketSide() { return d_marketSide; }
 double PricerDepOrderData::price() { return d_price; }
 
 int PricerDepOrderData::qnty() { return d_qnty; }
-
-// Pricer
 
 Pricer::Pricer(std::shared_ptr<matching::OrderBook> orderBook) : d_orderBook(orderBook)
 {
@@ -143,24 +76,6 @@ void Pricer::initialisePricerFutures()
     {
         d_futureDataMap.emplace(underlying, FuturePriceData(underlying));
     }
-}
-
-// Utils
-
-double standardDeviation(EquityPriceData& data)
-{
-    double n = data.executions();
-    if (n < 2) return 0;
-
-    return std::sqrt((data.pricesSumSquared() / n) - std::pow((data.pricesSum() / n), 2));
-}
-
-double standardDeviation(FuturePriceData& data)
-{
-    double n = data.executions();
-    if (n < 2) return 0;
-
-    return std::sqrt((data.pricesSumSquared() / n) - std::pow((data.pricesSum() / n), 2));
 }
 
 // ===================================================================
@@ -266,9 +181,9 @@ double Pricer::calculatePriceImpl(MarketSide mktSide, double lowestAsk, double h
             {
                 if (spread > 0)
                 {
-                    double shift = halfSpread * demandFactor * 0.5;  // use 50% of half-spread
+                    double shift = halfSpread * demandFactor * INSIDE_SPREAD_SHIFT_FACTOR;
                     double targetPrice = midSpread + shift;
-                    double priceRange = halfSpread * 0.3;  // 30% of half-spread as range
+                    double priceRange = halfSpread * INSIDE_SPREAD_RANGE_FACTOR;
 
                     double priceLowerBound = std::max(highestBid, targetPrice - priceRange);
                     double priceUpperBound = std::min(lowestAsk, targetPrice + priceRange);
@@ -286,7 +201,8 @@ double Pricer::calculatePriceImpl(MarketSide mktSide, double lowestAsk, double h
             {
                 if (spread > 0)
                 {
-                    double offset = halfSpread * std::abs(demandFactor) * 0.5;
+                    double offset =
+                        halfSpread * std::abs(demandFactor) * CROSS_SPREAD_OFFSET_FACTOR;
 
                     double priceLowerBound = lowestAsk;
                     double priceUpperBound = lowestAsk + offset;
@@ -317,9 +233,9 @@ double Pricer::calculatePriceImpl(MarketSide mktSide, double lowestAsk, double h
             {
                 if (spread > 0)
                 {
-                    double shift = halfSpread * demandFactor * 0.5;  // use 50% of half-spread
+                    double shift = halfSpread * demandFactor * INSIDE_SPREAD_SHIFT_FACTOR;
                     double targetPrice = midSpread + shift;
-                    double priceRange = halfSpread * 0.3;  // 30% of half-spread as range
+                    double priceRange = halfSpread * INSIDE_SPREAD_RANGE_FACTOR;
 
                     double priceLowerBound = std::max(highestBid, targetPrice - priceRange);
                     double priceUpperBound = std::min(lowestAsk, targetPrice + priceRange);
@@ -337,7 +253,8 @@ double Pricer::calculatePriceImpl(MarketSide mktSide, double lowestAsk, double h
             {
                 if (spread > 0)
                 {
-                    double offset = halfSpread * std::abs(demandFactor) * 0.5;
+                    double offset =
+                        halfSpread * std::abs(demandFactor) * CROSS_SPREAD_OFFSET_FACTOR;
 
                     double priceUpperBound = highestBid;
                     double priceLowerBound = std::max(1.0, highestBid - offset);
@@ -396,27 +313,37 @@ double Pricer::calculatePrice(Equity eq, MarketSide mktSide)
     if (data.highestBid() == 0.0 && data.lowestAsk() == 0.0)
     {
         double initialPrice = data.lastPrice();
-        double spreadWidth = initialPrice * 0.002;  // 0.2% initial spread (tighter)
+        double spreadWidth = initialPrice * EQUITY_INITIAL_SPREAD_PCT;
 
         data.highestBid(initialPrice - spreadWidth / 2);
         data.lowestAsk(initialPrice + spreadWidth / 2);
     }
-    else if (data.executions() >= 10)
+    else if (data.executions() >= EQUITY_MIN_EXEC_FOR_SPREAD_CALC)
     {
         double basePrice = data.movingAverage();
-        double sigma = standardDeviation(data);
+        double sigma = data.standardDeviation(data);
 
-        double spreadWidth = basePrice * (0.002 + sigma * 0.0015);
+        double spreadWidth =
+            basePrice * (EQUITY_BASE_SPREAD_PCT + sigma * EQUITY_VOLATILITY_SPREAD_MULTIPLIER);
 
         double targetBid = basePrice - spreadWidth / 2;
         double targetAsk = basePrice + spreadWidth / 2;
 
-        data.highestBid(data.highestBid() * 0.95 +
-                        targetBid * 0.05);  // Adjust spread more gradually
-        data.lowestAsk(data.lowestAsk() * 0.95 + targetAsk * 0.05);
+        data.highestBid(data.highestBid() * EQUITY_SPREAD_ADJUSTMENT_WEIGHT +
+                        targetBid * EQUITY_TARGET_ADJUSTMENT_WEIGHT);
+        data.lowestAsk(data.lowestAsk() * EQUITY_SPREAD_ADJUSTMENT_WEIGHT +
+                       targetAsk * EQUITY_TARGET_ADJUSTMENT_WEIGHT);
     }
 
-    return calculatePriceImpl(mktSide, data.lowestAsk(), data.highestBid(), data.demandFactor());
+    double bidDrift =
+        Random::getRandomDouble(-EQUITY_TRANSIENT_DRIFT_PCT, EQUITY_TRANSIENT_DRIFT_PCT);
+    double askDrift =
+        Random::getRandomDouble(-EQUITY_TRANSIENT_DRIFT_PCT, EQUITY_TRANSIENT_DRIFT_PCT);
+
+    double adjustedBid = data.highestBid() * (1.0 + bidDrift);
+    double adjustedAsk = data.lowestAsk() * (1.0 + askDrift);
+
+    return calculatePriceImpl(mktSide, adjustedAsk, adjustedBid, data.demandFactor());
 }
 
 double Pricer::calculatePrice(Future fut, MarketSide mktSide)
@@ -432,12 +359,13 @@ double Pricer::calculatePrice(Future fut, MarketSide mktSide)
     double spreadWidth;
     if (data.executions() > 1)
     {
-        double sigma = standardDeviation(data);
-        spreadWidth = basePrice * (0.005 + sigma * 0.01);  // 0.5% base + volatility component
+        double sigma = data.standardDeviation(data);
+        spreadWidth =
+            basePrice * (FUTURE_BASE_SPREAD_PCT + sigma * FUTURE_VOLATILITY_SPREAD_MULTIPLIER);
     }
     else
     {
-        spreadWidth = basePrice * 0.01;  // 1% initial spread
+        spreadWidth = basePrice * FUTURE_INITIAL_SPREAD_PCT;
     }
 
     data.highestBid(basePrice - spreadWidth / 2);
@@ -455,31 +383,33 @@ int Pricer::calculateQnty(Equity eq, MarketSide mktSide, double price)
     EquityPriceData data = getPriceData(eq);
     double n = data.executions();
 
-    double demandScale = 0.3 + (0.7 * std::abs(data.demandFactor()));
+    double demandScale = MIN_DEMAND_SCALE + (MAX_DEMAND_SCALE * std::abs(data.demandFactor()));
 
-    double sigma = n > 1 ? standardDeviation(data) : 0;
-    double volAdjustment = std::min(sigma, 0.5);
+    double sigma = n > 1 ? data.standardDeviation(data) : 0;
+    double volAdjustment = std::min(sigma, MAX_VOL_ADJUSTMENT);
 
     int maxQuantity = baseOrderValue * demandScale / (price * (1 + volAdjustment));
-    if (maxQuantity < 10) return Random::getRandomInt(1, 10);
+    if (maxQuantity < MIN_QUANTITY_THRESHOLD)
+        return Random::getRandomInt(MIN_QUANTITY, MIN_QUANTITY_THRESHOLD);
 
-    return Random::getRandomInt(1, maxQuantity);
+    return Random::getRandomInt(MIN_QUANTITY, maxQuantity);
 }
 
 int Pricer::calculateQnty(Future fut, MarketSide mktSide, double price)
 {
     FuturePriceData data = getPriceData(fut);
     double n = data.executions();
-    double demandScale = 0.3 + (0.7 * std::abs(data.demandFactor()));
+    double demandScale = MIN_DEMAND_SCALE + (MAX_DEMAND_SCALE * std::abs(data.demandFactor()));
 
-    double sigma = n > 1 ? standardDeviation(data) : 0;
-    double volAdjustment = std::min(sigma, 0.5);
+    double sigma = n > 1 ? data.standardDeviation(data) : 0;
+    double volAdjustment = std::min(sigma, MAX_VOL_ADJUSTMENT);
 
     int maxQuantity = baseOrderValue * demandScale / (price * (1 + volAdjustment));
 
-    if (maxQuantity < 10) return Random::getRandomInt(1, 10);
+    if (maxQuantity < MIN_QUANTITY_THRESHOLD)
+        return Random::getRandomInt(MIN_QUANTITY, MIN_QUANTITY_THRESHOLD);
 
-    return Random::getRandomInt(1, maxQuantity);
+    return Random::getRandomInt(MIN_QUANTITY, maxQuantity);
 }
 
 // ===================================================================
