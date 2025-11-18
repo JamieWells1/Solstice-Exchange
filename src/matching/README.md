@@ -82,8 +82,6 @@ My hypothesis is that orders executed and execution time will have a linear rela
 
 > Execution time in milliseconds on the x-axis plotted against orders executed in hundreds of thousands on the y-axis for graphic simplicity.
 
-![v0.2.0 Plot No Line](/assets/v0.2.0_plot_no_line.png)
-
 ![v0.2.0 Plot With Line](/assets/v0.2.0_plot_line.png)
 
 As we can see, the number of orders executed is directly correlated to execution time in a linear fashion, as correctly stated in my hypothesis. These numbers were taken as an average over 5 tests across each level of orders executed. The throughput remained almost identical across all of the tests, with a slight dip at the 100,000 orders mark.
