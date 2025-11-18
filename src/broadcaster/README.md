@@ -47,21 +47,6 @@ Then to run the executable:
 
 ---
 
-### Latest Performance Optimisation Release (v[X.X.X]) | [Full release]([link to release])
-
-**Config:**
-
-- [Config parameter 1]
-- [Config parameter 2]
-- [Config parameter 3]
-- [Config parameter 4]
-
-**Result:**
-
-- [Metric 1]: [Value]
-- [Metric 2]: [Value]
-- [Metric 3]: [Value]
-
 ### Plotting [Metric A] Against [Metric B]
 
 [Hypothesis statement about the relationship between the two metrics]

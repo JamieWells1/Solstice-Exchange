@@ -20,6 +20,7 @@ const std::vector<double>& MarketData::highs() const { return d_highs; }
 const std::vector<double>& MarketData::lows() const { return d_lows; }
 const std::vector<double>& MarketData::closes() const { return d_closes; }
 const std::vector<double>& MarketData::volume() const { return d_volume; }
+const std::vector<double>& MarketData::timestamps() const { return d_timestamps; }
 
 MarketData MarketData::mapRawInput(RawMarketData& inputData)
 {
