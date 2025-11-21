@@ -9,9 +9,8 @@ Config::Config() {}
 
 std::expected<void, std::string> Config::checkConfig(Config& config)
 {
-    auto values = {double(config.ordersToGenerate()), double(config.minQnty()),
-                   double(config.maxQnty()),          double(config.minPrice()),
-                   double(config.maxPrice()),         double(config.underlyingPoolCount())};
+    auto values = {double(config.minQnty()), double(config.maxQnty()), double(config.minPrice()),
+                   double(config.maxPrice()), double(config.underlyingPoolCount())};
 
     for (auto value : values)
     {

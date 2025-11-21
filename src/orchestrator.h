@@ -21,6 +21,7 @@ class Orchestrator
 {
    public:
     static std::expected<void, std::string> start(std::optional<broadcaster::Broadcaster>& broadcaster);
+    static void requestStop();
 
     Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook,
                  std::shared_ptr<Matcher> matcher, std::shared_ptr<pricing::Pricer> pricer,
@@ -62,6 +63,7 @@ class Orchestrator
     std::mutex d_outputMutex;  // protects std::cout from interleaving
     std::condition_variable d_queueConditionVar;
     std::atomic<bool> d_done{false};
+    static std::atomic<bool> s_stopRequested;
 };
 
 std::ostream& operator<<(std::ostream& os, ActiveOrders activeOrders);

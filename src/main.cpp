@@ -3,8 +3,10 @@
 #include <orchestrator.h>
 #include <order_book.h>
 
+#include <atomic>
 #include <iostream>
 #include <optional>
+#include <thread>
 
 using namespace solstice;
 
@@ -32,6 +34,25 @@ int main()
 
     if (!choice.empty())
     {
+        bool infiniteMode = (config->ordersToGenerate() == -1);
+
+        if (infiniteMode)
+        {
+            std::cout << "Running in infinite mode. Press Enter to stop...\n" << std::endl;
+        }
+
+        // For infinite mode, spawn a thread to wait for key press
+        if (infiniteMode)
+        {
+            std::thread inputThread([]()
+                                    {
+                std::cin.ignore();
+                std::cin.get();
+                matching::Orchestrator::requestStop();
+            });
+            inputThread.detach();
+        }
+
         auto response = matching::Orchestrator::start(broadcaster);
 
         if (!response)
@@ -40,13 +61,7 @@ int main()
             return -1;
         }
 
-        if (broadcaster.has_value())
-        {
-            std::cout << "\n\nOrder flow complete. Broadcaster still running." << std::endl;
-            std::cout << "Press Enter to exit..." << std::endl;
-            std::cin.ignore();
-            std::cin.get();
-        }
+        std::cout << std::endl;
 
         return 0;
     }

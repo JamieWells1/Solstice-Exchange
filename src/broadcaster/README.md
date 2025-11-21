@@ -83,4 +83,4 @@ Surprisingly, the 'throughput tax' was on the broadcaster being enabled rather t
 
 ### Does Number of Connections Affect Broadcast Speed?
 
-When running the tests for the research above, I came to the conclusion that the time for 
+When running the tests for the research above, I came to the conclusion that the time for each broadcast to be fully completed for a client 

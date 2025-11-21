@@ -216,15 +216,6 @@ Broadcaster::~Broadcaster()
     {
         d_ioThread.join();
     }
-
-    if (Config::instance().value().logLevel() >= LogLevel::INFO)
-    {
-        auto endTime = timeNow();
-        auto duration =
-            std::chrono::duration_cast<std::chrono::milliseconds>(endTime - d_startTime);
-        std::cout << "[DEBUG] Broadcaster ran for " << duration.count() << "ms" << std::flush
-                  << std::endl;
-    }
 }
 
 void Broadcaster::run(unsigned short port)

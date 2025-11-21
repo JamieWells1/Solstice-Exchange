@@ -61,13 +61,13 @@ struct Config
     static std::expected<void, std::string> checkConfig(Config& config);
 
     // set sim log level
-    LogLevel d_logLevel = LogLevel::INFO;
+    LogLevel d_logLevel = LogLevel::DEBUG;
 
     // asset class to use in sim
     AssetClass d_assetClass = AssetClass::Equity;
 
-    // number of orders to generate in sim
-    int d_ordersToGenerate = 100000;
+    // number of orders to generate in sim -- set to -1 for infinite orders
+    int d_ordersToGenerate = 1000;
 
     // how many variations of underlying asset class to use in sim (e.g. AAPL, MSFT etc)
     int d_underlyingPoolCount = 10;

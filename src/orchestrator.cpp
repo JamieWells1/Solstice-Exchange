@@ -18,11 +18,18 @@
 namespace solstice::matching
 {
 
+std::atomic<bool> Orchestrator::s_stopRequested{false};
+
+void Orchestrator::requestStop() { s_stopRequested.store(true); }
+
 Orchestrator::Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook,
                            std::shared_ptr<Matcher> matcher,
                            std::shared_ptr<pricing::Pricer> pricer,
                            std::optional<broadcaster::Broadcaster>& broadcaster)
-    : d_config(config), d_orderBook(orderBook), d_matcher(matcher), d_pricer(pricer),
+    : d_config(config),
+      d_orderBook(orderBook),
+      d_matcher(matcher),
+      d_pricer(pricer),
       d_broadcaster(broadcaster)
 {
 }
@@ -246,9 +253,14 @@ std::expected<std::pair<int, int>, std::string> Orchestrator::produceOrders()
                                 std::ref(ordersExecuted));
     }
 
-    for (size_t i = 0; i < config().ordersToGenerate(); i++)
+    size_t i = 0;
+    bool infiniteMode = (config().ordersToGenerate() == -1);
+
+    int ordersGenerated = 0;
+    while ((infiniteMode || i < static_cast<size_t>(config().ordersToGenerate())) &&
+           !s_stopRequested.load())
     {
-        auto order = generateOrder(i);
+        auto order = generateOrder(ordersGenerated);
         if (!order)
         {
             d_done.store(true);
@@ -257,6 +269,12 @@ std::expected<std::pair<int, int>, std::string> Orchestrator::produceOrders()
             return std::unexpected(order.error());
         }
         pushToQueue(*order);
+
+        if (!infiniteMode)
+        {
+            i++;
+        }
+        ordersGenerated++;
     }
 
     d_done.store(true);
@@ -270,7 +288,8 @@ std::expected<std::pair<int, int>, std::string> Orchestrator::produceOrders()
     return std::pair{ordersExecuted.load(), ordersMatched.load()};
 }
 
-std::expected<void, std::string> Orchestrator::start(std::optional<broadcaster::Broadcaster>& broadcaster)
+std::expected<void, std::string> Orchestrator::start(
+    std::optional<broadcaster::Broadcaster>& broadcaster)
 {
     auto config = Config::instance();
 
