@@ -18,10 +18,6 @@
 namespace solstice::matching
 {
 
-std::atomic<bool> Orchestrator::s_stopRequested{false};
-
-void Orchestrator::requestStop() { s_stopRequested.store(true); }
-
 Orchestrator::Orchestrator(Config config, std::shared_ptr<OrderBook> orderBook,
                            std::shared_ptr<Matcher> matcher,
                            std::shared_ptr<pricing::Pricer> pricer,
@@ -257,8 +253,7 @@ std::expected<std::pair<int, int>, std::string> Orchestrator::produceOrders()
     bool infiniteMode = (config().ordersToGenerate() == -1);
 
     int ordersGenerated = 0;
-    while ((infiniteMode || i < static_cast<size_t>(config().ordersToGenerate())) &&
-           !s_stopRequested.load())
+    while (infiniteMode || i < static_cast<size_t>(config().ordersToGenerate()))
     {
         auto order = generateOrder(ordersGenerated);
         if (!order)

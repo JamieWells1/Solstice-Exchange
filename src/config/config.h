@@ -67,7 +67,7 @@ struct Config
     AssetClass d_assetClass = AssetClass::Equity;
 
     // number of orders to generate in sim -- set to -1 for infinite orders
-    int d_ordersToGenerate = 1000;
+    int d_ordersToGenerate = -1;
 
     // how many variations of underlying asset class to use in sim (e.g. AAPL, MSFT etc)
     int d_underlyingPoolCount = 10;
@@ -88,7 +88,7 @@ struct Config
     bool d_usePricer = true;
 
     // enable outbound LAN web broadcaster
-    bool d_enableBroadcaster = true;
+    bool d_enableBroadcaster = false;
 
     // broadcast 1 order per x that come in. Higher interval value results in faster broadcasting
     int d_broadcastInterval = 10;
