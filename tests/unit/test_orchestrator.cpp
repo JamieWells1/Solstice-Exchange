@@ -21,6 +21,9 @@ class OrchestratorFixture : public ::testing::Test
 
     void SetUp() override
     {
+        config.ordersToGenerate(100);
+        config.usePricer(true);
+
         orderBook = std::make_shared<OrderBook>();
         matcher = std::make_shared<Matcher>(orderBook);
         pricer = std::make_shared<pricing::Pricer>(orderBook);
