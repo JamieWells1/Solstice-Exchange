@@ -221,6 +221,17 @@ void OrderBook::removeOrderFromBook(OrderPtr orderToRemove)
     }
 }
 
+std::optional<std::reference_wrapper<const ActiveOrders>> OrderBook::getActiveOrders(
+    const Underlying& underlying) const
+{
+    auto it = d_activeOrders.find(underlying);
+    if (it == d_activeOrders.end())
+    {
+        return std::nullopt;
+    }
+    return std::cref(it->second);
+}
+
 void OrderBook::markOrderAsFulfilled(OrderPtr completedOrder, double matchedPrice)
 {
     completedOrder->matched(true);

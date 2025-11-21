@@ -54,6 +54,9 @@ class OrderBook
     void removeOrderFromBook(OrderPtr orderToRemove);
     void markOrderAsFulfilled(OrderPtr completedOrder, double matchedPrice);
 
+    std::optional<std::reference_wrapper<const ActiveOrders>> getActiveOrders(
+        const Underlying& underlying) const;
+
     template <typename T>
     void initialiseBookAtUnderlyings()
     {

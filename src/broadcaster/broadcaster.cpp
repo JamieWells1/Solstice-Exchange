@@ -189,6 +189,8 @@ void Listener::onAccept(beast::error_code ec, tcp::socket socket)
 
 Broadcaster::Broadcaster(unsigned short port) : d_ioc(1)
 {
+    d_startTime = timeNow();
+
     d_ioThread = std::thread([this, port]() { this->run(port); });
     d_broadcastThread = std::thread([this]() { this->broadcastWorker(); });
 
@@ -213,6 +215,15 @@ Broadcaster::~Broadcaster()
     if (d_ioThread.joinable())
     {
         d_ioThread.join();
+    }
+
+    if (Config::instance().value().logLevel() >= LogLevel::INFO)
+    {
+        auto endTime = timeNow();
+        auto duration =
+            std::chrono::duration_cast<std::chrono::milliseconds>(endTime - d_startTime);
+        std::cout << "[DEBUG] Broadcaster ran for " << duration.count() << "ms" << std::flush
+                  << std::endl;
     }
 }
 
@@ -306,7 +317,8 @@ void Broadcaster::broadcastTrade(const matching::OrderPtr& order)
     broadcast(msg.dump());
 }
 
-void Broadcaster::broadcastOrder(const std::shared_ptr<Order>& order)
+void Broadcaster::broadcastBook(const Underlying& underlying,
+                                const std::shared_ptr<::solstice::matching::OrderBook>& orderBook)
 {
     int count = d_orderCounter.fetch_add(1, std::memory_order_relaxed);
 
@@ -316,15 +328,51 @@ void Broadcaster::broadcastOrder(const std::shared_ptr<Order>& order)
         return;
     }
 
-    json msg = {{"type", "order"},
-                {"order_id", order->uid()},
-                {"symbol", to_string(order->underlying())},
-                {"price", order->price()},
-                {"quantity", order->qnty()},
-                {"outstanding_quantity", order->outstandingQnty()},
-                {"side", order->marketSideString()},
-                {"matched", order->matched()},
-                {"timestamp", timePointToNanos(order->timeOrderPlaced())}};
+    auto activeOrdersOpt = orderBook->getActiveOrders(underlying);
+    if (!activeOrdersOpt)
+    {
+        return;
+    }
+
+    const auto& activeOrders = activeOrdersOpt->get();
+
+    // Get highest bid (last element in map since it's sorted ascending)
+    std::optional<double> bestBid;
+    for (auto it = activeOrders.bids.rbegin(); it != activeOrders.bids.rend(); ++it)
+    {
+        int totalQnty = 0;
+        for (const auto& o : it->second)
+        {
+            totalQnty += o->outstandingQnty();
+        }
+        if (totalQnty > 0)
+        {
+            bestBid = it->first;
+            break;
+        }
+    }
+
+    // Get lowest ask (first element in map since it's sorted ascending)
+    std::optional<double> bestAsk;
+    for (const auto& [price, orders] : activeOrders.asks)
+    {
+        int totalQnty = 0;
+        for (const auto& o : orders)
+        {
+            totalQnty += o->outstandingQnty();
+        }
+        if (totalQnty > 0)
+        {
+            bestAsk = price;
+            break;
+        }
+    }
+
+    json msg = {{"type", "book"},
+                {"symbol", to_string(underlying)},
+                {"best_bid", bestBid.has_value() ? json(bestBid.value()) : json(nullptr)},
+                {"best_ask", bestAsk.has_value() ? json(bestAsk.value()) : json(nullptr)},
+                {"timestamp", timePointToNanos(timeNow())}};
 
     std::unique_lock<std::mutex> lock(d_queueMutex, std::try_to_lock);
     if (lock.owns_lock())
@@ -333,33 +381,6 @@ void Broadcaster::broadcastOrder(const std::shared_ptr<Order>& order)
         lock.unlock();
         d_queueCV.notify_one();
     }
-}
-
-void Broadcaster::broadcastBookUpdate(const Underlying& underlying,
-                                      const std::optional<double>& bestBid,
-                                      const std::optional<double>& bestAsk)
-{
-    json msg = {{"type", "book_update"}, {"symbol", to_string(underlying)}};
-
-    if (bestBid.has_value())
-    {
-        msg["best_bid"] = bestBid.value();
-    }
-    else
-    {
-        msg["best_bid"] = nullptr;
-    }
-
-    if (bestAsk.has_value())
-    {
-        msg["best_ask"] = bestAsk.value();
-    }
-    else
-    {
-        msg["best_ask"] = nullptr;
-    }
-
-    broadcast(msg.dump());
 }
 
 }  // namespace solstice::broadcaster

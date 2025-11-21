@@ -16,93 +16,71 @@ Real-time market data broadcasting component built on Boost.Beast and Boost.Asio
 
 ## Local Execution
 
-To enable the broadcaster:
+1. Set `d_enableBroadcaster` to `true` in `config.h`
 
-Set `d_enableBroadcaster` to `true` in `config.h`
+2. Run the executable:
+```bash
+./build/bin/solstice
+```
 
-Then to run the executable:
+3. In a separate terminal, connect with the WebSocket client:
+```bash
+python3 websocket_client.py [TICKER]
+```
 
-`./build/bin/solstice`
+Examples:
+```bash
+python3 websocket_client.py        # Show all tickers
+python3 websocket_client.py AAPL   # Filter to AAPL only
+python3 websocket_client.py MSFT   # Filter to MSFT only
+```
+
+The client receives book updates in JSON format:
+```json
+{
+  "type": "book",
+  "symbol": "AAPL",
+  "best_bid": 149.50,
+  "best_ask": 150.25,
+  "timestamp": 1234567890
+}
+```
+
+Available tickers are defined in `equity.h` and `future.h`.
 
 ---
 
 ## Benchmarks
 
-### [Benchmark Name] - v[X.X] | [Full release]([link to release])
+### How orders broadcasted per connection affects throughput
 
-[Brief description of this benchmark version and what it represents]
+This benchmark will test how orders broadcasted per connection affects throughput, starting with the broadcaster enabled, moving up to 5 concurrent connections.
 
-**Config:**
+My hypothesis is that there will be a negligible fixed latency when the broadcaster is on compared to when it is turned off, and then a larger, steady increase in latency as more connections are added. This is because the heavy lifting resides in the multi-threaded session management and message distribution, which I suspect increases linearly with number of connections.
 
-- [Config parameter 1]
-- [Config parameter 2]
-- [Config parameter 3]
-- [Config parameter 4]
+**Constants:**
 
-**Result:**
-
-- [Metric 1]: [Value]
-- [Metric 2]: [Value]
-- [Metric 3]: [Value]
+- Tickers: 10
+- Orders: 50,000
+- Broadcast Interval: 1
+- Tests per entry: 3
 
 ---
 
-### Plotting [Metric A] Against [Metric B]
+### Plotting Connections Against Throughput
 
-[Hypothesis statement about the relationship between the two metrics]
-
-| [Column 1 Header] | [Column 2 Header] | [Column 3 Header] |
+| Broadcaster       | Connections       | Throughput (ms)   |
 | ----------------- | ----------------- | ----------------- |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
+| False             | 0                 | 184               |
+| True              | 0                 | 434               |
+| True              | 1                 | 503               |
+| True              | 2                 | 528               |
+| True              | 3                 | 543               |
+| True              | 4                 | 556               |
+| True              | 5                 | 573               |
 
-**Plotted on a graph:**
+Surprisingly, the 'throughput tax' was on the broadcaster being enabled rather than the number of connections. I believe this is because although no connections were established in the second row, the multi-threaded logic to send to connections was still executed. After that, there is a taxing jump from 0 to 1 connections, indicating that some broadcasting logic is specific to there being at least one connection. A linear relationship with throughput is then observered as the number of connections increases, proving correct relative to my hypothesis.
 
-> [Description of what the axes represent]
+### Does Number of Connections Affect Broadcast Speed?
 
-![[Image Title]]([path to image])
-
-![[Image Title]]([path to image])
-
-[Analysis paragraph explaining the results, whether the hypothesis was correct, and what the data shows]
-
-### Plotting [Metric C] Against [Metric D]
-
-[Hypothesis statement about the relationship between these metrics, including expected patterns and reasoning]
-
-> [Note about test configuration or methodology]
-
-| [Column 1 Header] | [Column 2 Header] | [Column 3 Header] |
-| ----------------- | ----------------- | ----------------- |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
-| [Value]           | [Value]           | [Value]           |
-
-**Plotted on a graph:**
-
-> [Description of what the axes represent]
-
-[Description of which subset of data this graph shows]:
-
-![[Image Title]]([path to image])
-
-[Description of what this alternate view shows]:
-
-![[Image Title]]([path to image])
-
-[Detailed analysis paragraph explaining patterns in the data, unexpected results, and technical reasoning behind the observations. Include discussion of any anomalies and potential causes.]
+When running the tests for the research above, I came to the conclusion that the time for 

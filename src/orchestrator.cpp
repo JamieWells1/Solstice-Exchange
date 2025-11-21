@@ -71,13 +71,13 @@ bool Orchestrator::processOrder(OrderPtr order)
         std::lock_guard<std::mutex> lock(mutexIt->second);
         d_orderBook->addOrderToBook(order);
 
-        // Broadcast order placement
+        auto orderMatched = matcher()->matchOrder(order);
+
+        // Broadcast book after order is processed
         if (d_broadcaster.get().has_value())
         {
-            d_broadcaster.get()->broadcastOrder(order);
+            d_broadcaster.get()->broadcastBook(order->underlying(), d_orderBook);
         }
-
-        auto orderMatched = matcher()->matchOrder(order);
 
         d_pricer->update(order);
 
@@ -113,13 +113,13 @@ bool Orchestrator::processOrder(OrderPtr order)
         // no mutex for this underlying - proceed without locking
         d_orderBook->addOrderToBook(order);
 
-        // Broadcast order placement
+        auto orderMatched = d_matcher->matchOrder(order);
+
+        // Broadcast book after order is processed
         if (d_broadcaster.get().has_value())
         {
-            d_broadcaster.get()->broadcastOrder(order);
+            d_broadcaster.get()->broadcastBook(order->underlying(), d_orderBook);
         }
-
-        auto orderMatched = d_matcher->matchOrder(order);
 
         pricer()->update(order);
 
